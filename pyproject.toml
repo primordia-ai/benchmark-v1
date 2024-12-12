@@ -10,7 +10,6 @@ readme = "README.md"
 
 packages = [
     {include = "alla", from = "src"},
-    {include = "llm", from = "src"},
 ]
 
 [build-system]

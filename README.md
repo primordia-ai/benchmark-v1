@@ -16,7 +16,7 @@ You can then use simply import our src structures as `llm.models`, `alla.utils` 
 
 `poetry` provides an isolated python environment with your package dependencies.
 
-You can spin up a shell for your env simply with `poetry run shell`.
+You can spin up a shell for your env simply with `poetry shell`.
 Or you can execute a one-off command in your env with `poetry run <my_script>`.
 
 `poetry` is also a package management tool.  
