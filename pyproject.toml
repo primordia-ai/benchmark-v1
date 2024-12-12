@@ -31,6 +31,7 @@ arviz = "^0.18.0"
 namedtupled = "^0.3.3"
 jax = {extras = ["cpu"], version = "^0.4.26"}
 xarray = "^2024.11.0"
+pandas = "^2.2.3"
 
 [tool.poetry.dev-dependencies]
 notebook = "*"
