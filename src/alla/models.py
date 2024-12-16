@@ -65,6 +65,8 @@ class ALLA:
         # Ensure no nans left
         assert not np.any(np.isnan(self.soft_likelihoods))
 
+        self.soft_indicator_costs: dict = synth.SOFT_INDICATOR_COSTS
+
         # Init our results data, essentially
         self.indicator_utility_avg = None
         self.reset()
@@ -203,7 +205,7 @@ class ALLA:
 
         return best_j, max_utility
 
-    def select_next_indicator_with_budget(self, prior, candidates, budget: int, soft_indicator_costs: dict) -> tuple:
+    def select_next_indicator_with_budget(self, prior, candidates, budget: int) -> tuple:
         """
         Select the next indicator to observe given a budget constraint.
         This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
@@ -217,8 +219,6 @@ class ALLA:
             A list of candidate indicators to consider.
         budget : int
             The available budget for selecting indicators.
-        soft_indicator_costs : dict
-            A dictionary mapping each indicator to its cost.
         Returns:
         --------
         tuple
@@ -236,7 +236,7 @@ class ALLA:
         for j in candidates:
             utility = 0
             # check if we can afford this indicator
-            if soft_indicator_costs[j] > budget:
+            if self.soft_indicator_costs[j] > budget:
                 continue
 
             for x_ij in [0, 1]:
@@ -298,12 +298,12 @@ class ALLA:
             #given the calculated expected utility, check if we should use the indicator
             
             #update the budget
-            budget -= soft_indicator_costs[j]
+            budget -= self.soft_indicator_costs[j]
             if budget <= 0:
                 break
         return best_j, max_utility
 
-    def select_next_indicator_with_budget_evolutionary(self, prior, candidates, budget: int, soft_indicator_costs: dict, population_size=2, generations=2, mutation_rate=0.1) -> tuple:
+    def select_next_indicator_with_budget_evolutionary(self, prior, candidates, budget: int, population_size=2, generations=2, mutation_rate=0.1) -> tuple:
         """
         Select the next indicator to observe given a budget constraint using an evolutionary algorithm.
         This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
@@ -317,8 +317,6 @@ class ALLA:
             A list of candidate indicators to consider.
         budget : int
             The available budget for selecting indicators.
-        soft_indicator_costs : dict
-            A dictionary mapping each indicator to its cost.
         population_size : int
             The size of the population for the evolutionary algorithm.
         generations : int
@@ -393,7 +391,7 @@ class ALLA:
             
             # Update best indicator
             for ind in population:
-                if soft_indicator_costs[ind] <= budget:
+                if self.soft_indicator_costs[ind] <= budget:
                     ind_utility = fitness(ind)
                     if ind_utility > max_utility:
                         max_utility = ind_utility
@@ -528,7 +526,7 @@ class ALLA:
 
         plt.show()
 
-    def process_asset_with_budget(self, asset: Union[xr.Dataset, str], soft_only=True, budget: int = 20) -> dict:
+    def process_asset_with_budget(self, asset: Union[xr.Dataset, str], soft_only=True, budget: int = 20) -> None:
         """
         Process an asset to infer its class and growth forecast
         """
@@ -554,8 +552,9 @@ class ALLA:
         
         np.random.seed(42)
         costs = np.random.randint(1, 10, len(candidates))
-        soft_indicator_costs = dict(zip(candidates, costs))
-        print(f"Soft indicator costs: {soft_indicator_costs}")
+        # Update soft indicator costs
+        self.soft_indicator_costs = dict(zip(candidates, costs))
+        print(f"Soft indicator costs: {self.soft_indicator_costs}")
         for count in tqdm(range(len(indicators)), desc="Soft Ind."):
             prior_history.append(prior.copy())
             p_k = prior / np.sum(prior)
@@ -566,7 +565,7 @@ class ALLA:
             growth_means.append(mean_g)
             growth_stds.append(std_g)
 
-            j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget, soft_indicator_costs=soft_indicator_costs)
+            j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget)
             utilities.append(utility)
             selected_js.append(j)
             candidates.remove(j)
