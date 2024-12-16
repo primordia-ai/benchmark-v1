@@ -8,6 +8,7 @@ import numpy as np
 import xarray as xr
 from scipy import stats
 from tqdm import tqdm
+import random
 
 from alla.utils import stats as alla_stats, synthetic as synth
 
@@ -21,13 +22,21 @@ class ALLA:
     Stocks are one of High Growth, Stable, or Time Bomb.
     """
 
-    def __init__(self, stocks_dataset: xr.Dataset, asset_memory_depth: int = 20):
+    def __init__(
+        self,
+        stocks_dataset: xr.Dataset,
+        asset_memory_depth: int = 20,
+        seed: int = 777,
+    ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
         :param asset_memory_depth:  How many Bayesian updates to remember for each asset
+        :param seed:                Seed
         """
+        np.random.seed(seed)
+
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
@@ -64,8 +73,11 @@ class ALLA:
         # Ensure no nans left
         assert not np.any(np.isnan(self.soft_likelihoods))
 
+        self.soft_indicator_costs: dict = synth.SOFT_INDICATOR_COSTS
+
         # Init our results data, essentially
         self.indicator_utility_avg = None
+        self.ranked_indicators = np.arange(self.n_soft)
         self.reset()
 
     def reset(self):
@@ -100,6 +112,7 @@ class ALLA:
         # for indicator i, respectively
         self.indicator_utility_avg = np.zeros((self.n_soft, 2))
         self.indicator_utility_avg[:, 1] = -np.inf
+        self.ranked_indicators = np.arange(self.n_soft)
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
@@ -124,6 +137,10 @@ class ALLA:
             self.stocks['asset_prior'].loc[asset.asset], -1, axis=1
         )
         self.stocks['asset_prior'].loc[asset.asset][:, -1] = asset_prior
+
+    def refresh_indicator_rank(self):
+        """Returns the soft indicators ranked by utility average, descending"""
+        self.ranked_indicators = np.argsort(self.indicator_utility_avg[:, 1])[::-1]
 
     def select_next_indicator(self, prior, candidates):
         """
@@ -202,9 +219,206 @@ class ALLA:
 
         return best_j, max_utility
 
-    def process_asset(self, asset: Union[xr.Dataset, str], soft_only=True) -> dict:
+    def select_next_indicator_with_budget(self, prior, candidates, budget: int) -> tuple:
+        """
+        Select the next indicator to observe given a budget constraint.
+        This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
+        that can be afforded within the given budget. The utility is computed based on the expected log Bayes factor, which
+        measures the information gain from observing the indicator.
+        Parameters:
+        -----------
+        prior : np.ndarray
+            The prior probabilities for each class.
+        candidates : list
+            A list of candidate indicators to consider.
+        budget : int
+            The available budget for selecting indicators.
+        Returns:
+        --------
+        tuple
+            A tuple containing the selected indicator and its associated utility.
+        """
+        max_utility = -float('inf')
+        best_j = None
+
+        # Current probabilities
+        p_k = prior / np.sum(prior)
+
+        # Current growth mixture params
+        # prior_mean, prior_std = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
+        for j in candidates:
+            utility = 0
+            # check if we can afford this indicator
+            if self.soft_indicator_costs[j] > budget:
+                continue
+
+            for x_ij in [0, 1]:
+                # P(x_ij | current beliefs)
+                p_xj = np.sum(
+                    p_k * (self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij))
+                )
+
+                if p_xj > 0:  # only compute if observation is possible
+                    # Posterior class probabilities if we observe x_ij
+                    likelihood = self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij)
+                    gamma = p_k * likelihood
+                    gamma = gamma / np.sum(gamma)
+
+                    # Posterior growth mixture params
+                    # post_mean, post_std = alla_stats.mixture_stats(gamma, self.mu_g, self.sigma_g)
+
+                    # Expected log Bayes factor is expected log ratio of the densities
+                    # Note: we need to integrate over possible g values
+                    g_points = np.linspace(
+                        min(self.mu_g - 3 * max(self.sigma_g)),
+                        max(self.mu_g + 3 * max(self.sigma_g)),
+                        100
+                    )
+
+                    for g in g_points:
+                        # P(g|posterior)
+                        post_prob = sum(
+                            gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                                for k in range(self.n_classes)
+                        )
+                        # P(g|prior)
+                        prior_prob = sum(
+                            p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                                for k in range(self.n_classes)
+                        )
+
+                        if post_prob > 0 and prior_prob > 0:
+                            # Weight by posterior probability of g
+                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
+                                       (g_points[1] - g_points[0])
+
+            # Update the utility of this indicator
+            if self.indicator_utility_avg[j, 0] == 0:
+                # First observation
+                self.indicator_utility_avg[j, 0] = 1
+                self.indicator_utility_avg[j, 1] = utility
+                avg_utility = utility
+            else:
+                # Running average
+                self.indicator_utility_avg[j, 0] += 1
+                self.indicator_utility_avg[j, 1] += ((utility - self.indicator_utility_avg[j, 1]) /
+                                                     self.indicator_utility_avg[j, 0])
+                avg_utility = self.indicator_utility_avg[j, 1]
+
+            if avg_utility > max_utility:
+                max_utility = avg_utility
+                best_j = j
+            #given the calculated expected utility, check if we should use the indicator
+            
+            #update the budget
+            budget -= self.soft_indicator_costs[j]
+            if budget <= 0:
+                break
+        return best_j, max_utility
+
+    def select_next_indicator_with_budget_evolutionary(self, prior, candidates, budget: int, population_size=2, generations=2, mutation_rate=0.1) -> tuple:
+        """
+        Select the next indicator to observe given a budget constraint using an evolutionary algorithm.
+        This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
+        that can be afforded within the given budget. The utility is computed based on the expected log Bayes factor, which
+        measures the information gain from observing the indicator.
+        Parameters:
+        -----------
+        prior : np.ndarray
+            The prior probabilities for each class.
+        candidates : list
+            A list of candidate indicators to consider.
+        budget : int
+            The available budget for selecting indicators.
+        population_size : int
+            The size of the population for the evolutionary algorithm.
+        generations : int
+            The number of generations to run the evolutionary algorithm.
+        mutation_rate : float
+            The mutation rate for the evolutionary algorithm.
+        Returns:
+        --------
+        tuple
+            A tuple containing the selected indicator and its associated utility.
+        """
+        
+        def fitness(indicator):
+            utility = 0
+            p_k = prior / np.sum(prior)
+            for x_ij in [0, 1]:
+                p_xj = np.sum(
+                    p_k * (self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij))
+                )
+                if p_xj > 0:
+                    likelihood = self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij)
+                    gamma = p_k * likelihood
+                    gamma = gamma / np.sum(gamma)
+                    g_points = np.linspace(
+                        min(self.mu_g - 3 * max(self.sigma_g)),
+                        max(self.mu_g + 3 * max(self.sigma_g)),
+                        100
+                    )
+                    for g in g_points:
+                        post_prob = sum(
+                            gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                            for k in range(self.n_classes)
+                        )
+                        prior_prob = sum(
+                            p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                            for k in range(self.n_classes)
+                        )
+                        if post_prob > 0 and prior_prob > 0:
+                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * (g_points[1] - g_points[0])
+            return utility
+
+        def mutate(indicator):
+            if random.random() < mutation_rate:
+                return random.choice(candidates)
+            return indicator
+
+        def crossover(parent1, parent2):
+            return random.choice([parent1, parent2])
+
+        # Initialize population
+        population = [random.choice(candidates) for _ in range(population_size)]
+        best_indicator = None
+        max_utility = -float('inf')
+
+        for generation in tqdm(range(generations)):
+            # Evaluate fitness
+            fitness_values = [fitness(ind) for ind in population]
+            
+            # Select parents
+            parents = random.choices(population, weights=fitness_values, k=population_size)
+            
+            # Generate new population
+            new_population = []
+            for i in range(0, population_size, 2):
+                parent1 = parents[i]
+                parent2 = parents[i + 1]
+                child1 = mutate(crossover(parent1, parent2))
+                child2 = mutate(crossover(parent1, parent2))
+                new_population.extend([child1, child2])
+            
+            population = new_population
+            
+            # Update best indicator
+            for ind in population:
+                if self.soft_indicator_costs[ind] <= budget:
+                    ind_utility = fitness(ind)
+                    if ind_utility > max_utility:
+                        max_utility = ind_utility
+                        best_indicator = ind
+        print(f"Best indicator: {best_indicator} with utility: {max_utility}")
+        return best_indicator, max_utility
+
+    def process_asset(self, asset: Union[xr.Dataset, str], budget: int | None = None, soft_only=True) -> None:
         """
         Process an asset to infer its class and growth forecast
+
+        :param asset:       xr.Dataset for the selected asset
+        :param budget:      Optionally provide an integer budget
+        :param soft_only:   Operate on only soft indicators
         """
         if not soft_only:
             raise NotImplementedError("Only soft indicators are supported for now.")
@@ -217,7 +431,7 @@ class ALLA:
         indicators = asset.val.values[asset.indicator_type.values == 'soft']
         # Get most recent prior
         prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
-        candidates = list(range(self.n_soft))
+        candidates = list(self.ranked_indicators.copy())
 
         selected_js = []
         utilities = []
@@ -236,7 +450,11 @@ class ALLA:
             growth_means.append(mean_g)
             growth_stds.append(std_g)
 
-            j, utility = self.select_next_indicator(prior, candidates)
+            if budget:
+                j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget)
+            else:
+                j, utility = self.select_next_indicator(prior, candidates)
+
             utilities.append(utility)
             selected_js.append(j)
             candidates.remove(j)
@@ -259,14 +477,9 @@ class ALLA:
             ]
             self._update_quantile_pred(asset, quantiles)
 
-        # return {
-        #     "selected_js": selected_js,
-        #     "utilities": utilities,
-        #     "class_probs": class_probs,
-        #     "prior_history": prior_history,
-        #     "growth_means": growth_means,
-        #     "growth_stds": growth_stds,
-        # }
+        # Refresh indicator rank at the end
+        self.refresh_indicator_rank()
+
 
     def plot_prior_history(self, asset: str, save_path: str | None = None):
         """
