@@ -49,20 +49,14 @@ class ALLA:
         self.mu_g = synth.GROWTH_MU
         self.sigma_g = synth.GROWTH_SCALE
 
-        # Initialize belief model
+        # Ordered list of soft indicator names
         self.soft_indicators = stocks_dataset.coords['indicator'].values[
             stocks_dataset.coords['indicator_type'].values == 'soft'
         ]
         self.n_soft = len(self.soft_indicators)
 
-        # For soft indicator likelihoods, we marginalize over colors
-        marginals = synth.get_soft_likelihoods()
-        self.soft_likelihoods = np.full((len(self.soft_indicators), self.n_classes), np.nan)  # likelihood array
-        for key, val in marginals.items():
-            self.soft_likelihoods[:, self.class_idx[key]] = val
-
-        # Ensure no nans left
-        assert not np.any(np.isnan(self.soft_likelihoods))
+        # Get the soft likelihood dataset. Dimensions are indicator, asset-class, and color
+        self.soft_likelihoods: xr.Dataset = synth.get_soft_indicator_xarray()
 
         # Init our results data, essentially
         self.indicator_utility_avg = None
@@ -103,7 +97,7 @@ class ALLA:
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
-        Update the quantile predictions for an asset
+        Update the quantile history
 
         :param asset: xr.Dataset for the selected asset
         """
@@ -115,7 +109,7 @@ class ALLA:
 
     def _update_asset_prior(self, asset: xr.Dataset, asset_prior):
         """
-        Update the asset priors for an asset
+        Update the asset prior history
 
         :param asset: xr.Dataset for the selected asset
         """
@@ -134,7 +128,7 @@ class ALLA:
         max_utility = -float('inf')
         best_j = None
 
-        # Current probabilities
+        # Current asset-class probabilities
         p_k = prior / np.sum(prior)
 
         # Current growth mixture params
@@ -143,45 +137,49 @@ class ALLA:
         for j in candidates:
             utility = 0
 
-            for x_ij in [0, 1]:
-                # P(x_ij | current beliefs)
-                p_xj = np.sum(
-                    p_k * (self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij))
-                )
+            indicator_name = self.soft_indicators[j]
+            class_color_matrix = self.soft_likelihoods[indicator_name].values  # [classes, colors]
+            # Sum over the colors for each asset-class
+            # class_likelihood = i_likes.sum(axis=0)
+            # class_likelihood /= class_likelihood.sum()
+            color_likelihoods = np.dot(p_k, class_color_matrix)  # [p(red|p_k), p(yellow|p_k), p(green|p_k)]
 
-                if p_xj > 0:  # only compute if observation is possible
-                    # Posterior class probabilities if we observe x_ij
-                    likelihood = self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij)
-                    gamma = p_k * likelihood
-                    gamma = gamma / np.sum(gamma)
+            # TODO -- optimize
+            for ic, c in enumerate(["red", "yellow", "green"]):
+                # P(c | p_k)
+                p_col = color_likelihoods[ic]
 
-                    # Posterior growth mixture params
-                    # post_mean, post_std = alla_stats.mixture_stats(gamma, self.mu_g, self.sigma_g)
+                if p_col > 0:
+                    # Posterior class probabilities if we observe color
+                    cls_likelihood = class_color_matrix[:, ic]
+                    gamma = p_k * cls_likelihood
+                    if np.sum(gamma) > 1e-6:
+                        gamma = gamma / np.sum(gamma)
 
-                    # Expected log Bayes factor is expected log ratio of the densities
-                    # Note: we need to integrate over possible g values
-                    g_points = np.linspace(
-                        min(self.mu_g - 3 * max(self.sigma_g)),
-                        max(self.mu_g + 3 * max(self.sigma_g)),
-                        100
-                    )
-
-                    for g in g_points:
-                        # P(g|posterior)
-                        post_prob = sum(
-                            gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
-                        )
-                        # P(g|prior)
-                        prior_prob = sum(
-                            p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
+                        # Expected log Bayes factor is expected log ratio of the densities
+                        # Note: we need to integrate over possible g values
+                        g_points = np.linspace(
+                            min(self.mu_g - 3 * max(self.sigma_g)),
+                            max(self.mu_g + 3 * max(self.sigma_g)),
+                            100
                         )
 
-                        if post_prob > 0 and prior_prob > 0:
-                            # Weight by posterior probability of g
-                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
-                                       (g_points[1] - g_points[0])
+                        for g in g_points:
+                            # P(g|posterior)
+                            post_prob = sum(
+                                gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                                    for k in range(self.n_classes)
+                            )
+                            # P(g|prior)
+                            prior_prob = sum(
+                                p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                                    for k in range(self.n_classes)
+                            )
+
+                            if post_prob > 0 and prior_prob > 0:
+                                # Weight by posterior probability of g
+                                utility += p_col * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
+                                           (g_points[1] - g_points[0])
 
             # Update the utility of this indicator
             if self.indicator_utility_avg[j, 0] == 0:
@@ -214,22 +212,20 @@ class ALLA:
             asset = self.stocks.sel(asset=asset)
 
         # Get the soft indicators, by masking with indicator_type
-        indicators = asset.val.values[asset.indicator_type.values == 'soft']
+        observed_colors = asset.ryg.values[asset.indicator_type.values == 'soft']
         # Get most recent prior
         prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
         candidates = list(range(self.n_soft))
 
         selected_js = []
         utilities = []
-        class_probs = []
         prior_history = []
         growth_means = []
         growth_stds = []
 
-        for count in tqdm(range(len(indicators)), desc="Soft Ind."):
-            prior_history.append(prior.copy())
-            p_k = prior / np.sum(prior)
-            class_probs.append(p_k)
+        for count in tqdm(range(self.n_soft), desc="Soft Ind."):
+            p_k = prior.copy()
+            prior_history.append(p_k)
 
             # Track growth predictions
             mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
@@ -240,14 +236,18 @@ class ALLA:
             utilities.append(utility)
             selected_js.append(j)
             candidates.remove(j)
+            indicator_name = self.soft_indicators[j]
 
             # Observed
-            observed = indicators[j]
+            observed_color = observed_colors[j]
 
-            likelihood = self.soft_likelihoods[j, :] ** observed * (1 - self.soft_likelihoods[j, :]) ** (1 - observed)
+            # Inference
+            # Likelihood of asset-class given color
+            likelihood = self.soft_likelihoods[indicator_name].sel(color=observed_color).values  # [3,]
             posterior = p_k * likelihood
-            posterior = posterior / np.sum(posterior)
+            posterior /= np.sum(posterior)
             prior = posterior * np.sum(prior)
+            prior /= np.sum(prior)
 
             # Update the stocks dataset with class probabilities and growth quantiles
             self._update_asset_prior(asset, prior)
