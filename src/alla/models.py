@@ -22,13 +22,21 @@ class ALLA:
     Stocks are one of High Growth, Stable, or Time Bomb.
     """
 
-    def __init__(self, stocks_dataset: xr.Dataset, asset_memory_depth: int = 20):
+    def __init__(
+        self,
+        stocks_dataset: xr.Dataset,
+        asset_memory_depth: int = 20,
+        seed: int = 777,
+    ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
         :param asset_memory_depth:  How many Bayesian updates to remember for each asset
+        :param seed:                Seed
         """
+        np.random.seed(seed)
+
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
@@ -69,6 +77,7 @@ class ALLA:
 
         # Init our results data, essentially
         self.indicator_utility_avg = None
+        self.ranked_indicators = np.arange(self.n_soft)
         self.reset()
 
     def reset(self):
@@ -103,6 +112,7 @@ class ALLA:
         # for indicator i, respectively
         self.indicator_utility_avg = np.zeros((self.n_soft, 2))
         self.indicator_utility_avg[:, 1] = -np.inf
+        self.ranked_indicators = np.arange(self.n_soft)
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
@@ -127,6 +137,10 @@ class ALLA:
             self.stocks['asset_prior'].loc[asset.asset], -1, axis=1
         )
         self.stocks['asset_prior'].loc[asset.asset][:, -1] = asset_prior
+
+    def refresh_indicator_rank(self):
+        """Returns the soft indicators ranked by utility average, descending"""
+        self.ranked_indicators = np.argsort(self.indicator_utility_avg[:, 1])[::-1]
 
     def select_next_indicator(self, prior, candidates):
         """
@@ -224,7 +238,6 @@ class ALLA:
         tuple
             A tuple containing the selected indicator and its associated utility.
         """
-        
         max_utility = -float('inf')
         best_j = None
 
@@ -399,9 +412,13 @@ class ALLA:
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
 
-    def process_asset(self, asset: Union[xr.Dataset, str], soft_only=True) -> dict:
+    def process_asset(self, asset: Union[xr.Dataset, str], budget: int | None = None, soft_only=True) -> None:
         """
         Process an asset to infer its class and growth forecast
+
+        :param asset:       xr.Dataset for the selected asset
+        :param budget:      Optionally provide an integer budget
+        :param soft_only:   Operate on only soft indicators
         """
         if not soft_only:
             raise NotImplementedError("Only soft indicators are supported for now.")
@@ -414,7 +431,7 @@ class ALLA:
         indicators = asset.val.values[asset.indicator_type.values == 'soft']
         # Get most recent prior
         prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
-        candidates = list(range(self.n_soft))
+        candidates = list(self.ranked_indicators.copy())
 
         selected_js = []
         utilities = []
@@ -433,7 +450,11 @@ class ALLA:
             growth_means.append(mean_g)
             growth_stds.append(std_g)
 
-            j, utility = self.select_next_indicator(prior, candidates)
+            if budget:
+                j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget)
+            else:
+                j, utility = self.select_next_indicator(prior, candidates)
+
             utilities.append(utility)
             selected_js.append(j)
             candidates.remove(j)
@@ -456,14 +477,9 @@ class ALLA:
             ]
             self._update_quantile_pred(asset, quantiles)
 
-        # return {
-        #     "selected_js": selected_js,
-        #     "utilities": utilities,
-        #     "class_probs": class_probs,
-        #     "prior_history": prior_history,
-        #     "growth_means": growth_means,
-        #     "growth_stds": growth_stds,
-        # }
+        # Refresh indicator rank at the end
+        self.refresh_indicator_rank()
+
 
     def plot_prior_history(self, asset: str, save_path: str | None = None):
         """
@@ -525,74 +541,3 @@ class ALLA:
             print(f"Saving plot to {save_path}")
 
         plt.show()
-
-    def process_asset_with_budget(self, asset: Union[xr.Dataset, str], soft_only=True, budget: int = 20) -> None:
-        """
-        Process an asset to infer its class and growth forecast
-        """
-        if not soft_only:
-            raise NotImplementedError("Only soft indicators are supported for now.")
-
-        if isinstance(asset, str):
-            # Get the asset by its name
-            asset = self.stocks.sel(asset=asset)
-
-        # Get the soft indicators, by masking with indicator_type
-        indicators = asset.val.values[asset.indicator_type.values == 'soft']
-        # Get most recent prior
-        prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
-        candidates = list(range(self.n_soft))
-
-        selected_js = []
-        utilities = []
-        class_probs = []
-        prior_history = []
-        growth_means = []
-        growth_stds = []
-        
-        np.random.seed(42)
-        costs = np.random.randint(1, 10, len(candidates))
-        # Update soft indicator costs
-        self.soft_indicator_costs = dict(zip(candidates, costs))
-        print(f"Soft indicator costs: {self.soft_indicator_costs}")
-        for count in tqdm(range(len(indicators)), desc="Soft Ind."):
-            prior_history.append(prior.copy())
-            p_k = prior / np.sum(prior)
-            class_probs.append(p_k)
-
-            # Track growth predictions
-            mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
-            growth_means.append(mean_g)
-            growth_stds.append(std_g)
-
-            j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget)
-            utilities.append(utility)
-            selected_js.append(j)
-            candidates.remove(j)
-
-            # Observed
-            observed = indicators[j]
-
-            likelihood = self.soft_likelihoods[j, :] ** observed * (1 - self.soft_likelihoods[j, :]) ** (1 - observed)
-            posterior = p_k * likelihood
-            posterior = posterior / np.sum(posterior)
-            prior = posterior * np.sum(prior)
-
-            # Update the stocks dataset with class probabilities and growth quantiles
-            self._update_asset_prior(asset, prior)
-            # TODO -- Calculate the quantiles properly
-            quantiles = [
-                mean_g - std_g,
-                mean_g,
-                mean_g + std_g
-            ]
-            self._update_quantile_pred(asset, quantiles)
-
-        # return {
-        #     "selected_js": selected_js,
-        #     "utilities": utilities,
-        #     "class_probs": class_probs,
-        #     "prior_history": prior_history,
-        #     "growth_means": growth_means,
-        #     "growth_stds": growth_stds,
-        # }
