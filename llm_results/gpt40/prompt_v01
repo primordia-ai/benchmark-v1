@@ -1,0 +1,98 @@
+To classify the company based on the given indicators and priors, I will analyze the data and suggest the next action. Here's the structured response:
+Input Data Analysis:
+Hard Indicators (Quantitative Data):
+
+    gross_margin: 0.648
+    operating_margin: 0.419
+    asset_turnover: 3.423
+    leverage: 2.000
+    revenue_growth: 0.318
+    ebitda_growth: 0.022
+    working_capital_ratio: 1.000
+    reinvestment_rate: 1.144
+
+Key Financials:
+
+    Revenue: $1587.7M
+    Net Income: $482.3M
+    Total Assets: $463.8M
+    Market Cap: $510,433,037.1M
+
+Soft Indicators (Qualitative Data):
+
+Not provided in this case. Recommendations will address whether acquiring them is needed.
+Priors:
+
+Classification likelihoods (e.g., "high_growth," "stable," "time_bomb") expected but not detailed. Assumed that high-growth companies typically have strong margins, moderate leverage, and high revenue growth.
+Step 1: Evaluate Hard Indicators
+Classification Ranges (Assumed for Analysis):
+
+    Gross Margin:
+        Red: <0.3, Yellow: 0.3–0.5, Green: >0.5
+    Operating Margin:
+        Red: <0.1, Yellow: 0.1–0.3, Green: >0.3
+    Asset Turnover:
+        Red: <1, Yellow: 1–2, Green: >2
+    Leverage:
+        Red: >3, Yellow: 2–3, Green: <2
+    Revenue Growth:
+        Red: <0.05, Yellow: 0.05–0.2, Green: >0.2
+    EBITDA Growth:
+        Red: <0, Yellow: 0–0.1, Green: >0.1
+    Working Capital Ratio:
+        Red: <0.5, Yellow: 0.5–1.5, Green: >1.5
+    Reinvestment Rate:
+        Red: <0.5, Yellow: 0.5–1, Green: >1
+
+Indicator Assessment:
+
+    Gross Margin (0.648): Green
+    Operating Margin (0.419): Green
+    Asset Turnover (3.423): Green
+    Leverage (2.000): Yellow
+    Revenue Growth (0.318): Green
+    EBITDA Growth (0.022): Yellow
+    Working Capital Ratio (1.000): Yellow
+    Reinvestment Rate (1.144): Green
+
+Summary:
+Most indicators suggest strong performance (green), but areas like leverage, EBITDA growth, and working capital ratio indicate some caution. The company shows characteristics of high growth but requires further analysis for full confirmation.
+Step 2: Estimate Classification
+
+Based on these hard indicators:
+
+    The company demonstrates strong margins, high asset turnover, and robust revenue growth, aligning with characteristics of a high-growth company.
+    Yellow flags in leverage, EBITDA growth, and working capital ratio slightly temper this view but do not suggest a critical risk.
+
+Current Estimation:
+
+    Classification: Green
+    Reasoning: Strong performance in critical areas like margins, revenue growth, and asset turnover outweigh moderate concerns in leverage and EBITDA growth.
+
+Step 3: Recommend Next Action
+Do We Need Soft Indicators?
+
+    Current classification is fairly confident (green). However, a soft indicator like geopolitical risk or digital transformation could refine the analysis, especially for forward-looking stability in high-growth classification.
+
+Selection Criteria:
+
+    High information gain relative to cost.
+    Impact on classification clarity.
+
+Next Action:
+
+    Indicator to Acquire: "None"
+    Reasoning: The current classification is already clear, with no significant uncertainty warranting the expense of acquiring additional indicators.
+
+Final Output:
+
+{
+  "current_estimation": {
+    "classification": "green",
+    "reasoning": "Strong gross and operating margins, high asset turnover, and robust revenue growth suggest a high-growth classification. Moderate concerns in leverage and EBITDA growth are insufficient to downgrade the classification."
+  },
+  "next_action": {
+    "indicator_to_acquire": "None",
+    "reasoning": "The current indicators provide sufficient clarity, and additional soft indicators are not required for further classification refinement."
+  }
+}
