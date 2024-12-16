@@ -203,6 +203,70 @@ SOFT_LIKELIHOOD_MATRIX = {
     }
 }
 
+# Combine the above
+INDICATOR_LIKELIHOODS = {
+    'high_growth': {**FINANCIAL_LIKELIHOOD_MATRIX['high_growth'], **SOFT_LIKELIHOOD_MATRIX['high_growth']},
+    'stable': {**FINANCIAL_LIKELIHOOD_MATRIX['stable'], **SOFT_LIKELIHOOD_MATRIX['stable']},
+    'time_bomb': {**FINANCIAL_LIKELIHOOD_MATRIX['time_bomb'], **SOFT_LIKELIHOOD_MATRIX['time_bomb']}
+}
+
+# Define soft color likelihoods
+# The Bernoulli probabilities of a soft indicator being true if it has this color attribute
+SOFT_COLOR_LIKELIHOODS = {
+    'red': 0.1,
+    'yellow': 0.5,
+    'green': 0.9
+}
+
+# Underlying growth parameters
+GROWTH_MU = np.array([0.097, 0.01, -0.048])
+GROWTH_SCALE = np.array([0.1, 0.01, 0.05])
+
+
+def get_soft_likelihoods() -> dict[str: list[float]]:
+    """
+    Generate likelihoods for soft indicators based on color attribute.
+    """
+    # For soft indicator likelihoods, we marginalize over colors
+    marginals = {
+        "high_growth": [],
+        "stable": [],
+        "time_bomb": [],
+    }
+    soft_indicators = list(SOFT_LIKELIHOOD_MATRIX['high_growth'].keys())
+
+    for ind in soft_indicators:
+        # This ignores likelihood of being high_growth, stable, or time_bomb (which is .3, .5, .2 respectively)
+        hg_red = SOFT_LIKELIHOOD_MATRIX['high_growth'][ind]['red']
+        hg_grn = SOFT_LIKELIHOOD_MATRIX['high_growth'][ind]['green']
+        hg_yellow = 1 - hg_red - hg_grn
+
+        st_red = SOFT_LIKELIHOOD_MATRIX['stable'][ind]['red']
+        st_grn = SOFT_LIKELIHOOD_MATRIX['stable'][ind]['green']
+        st_yellow = 1 - st_red - st_grn
+
+        tb_red = SOFT_LIKELIHOOD_MATRIX['time_bomb'][ind]['red']
+        tb_grn = SOFT_LIKELIHOOD_MATRIX['time_bomb'][ind]['green']
+        tb_yellow = 1 - tb_red - tb_grn
+
+        marginals['high_growth'].append(
+            hg_red * SOFT_COLOR_LIKELIHOODS['red'] +
+            hg_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
+            hg_grn * SOFT_COLOR_LIKELIHOODS['green']
+        )
+        marginals['stable'].append(
+            st_red * SOFT_COLOR_LIKELIHOODS['red'] +
+            st_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
+            st_grn * SOFT_COLOR_LIKELIHOODS['green']
+        )
+        marginals['time_bomb'].append(
+            tb_red * SOFT_COLOR_LIKELIHOODS['red'] +
+            tb_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
+            tb_grn * SOFT_COLOR_LIKELIHOODS['green']
+        )
+
+    return marginals
+
 
 def sample_independent_indicators(specified_colors=None):
     """
@@ -514,15 +578,17 @@ def generate_financials(independent_indicators):
     return financials
 
 
-def generate_synthetic_stocks(n_stocks: int) -> List[Dict[str, Any]]:
+def generate_synthetic_stocks(n_stocks: int, as_dataset: bool = True) -> List[Dict[str, Any]] | xr.Dataset:
     """
     Generate a specified number of synthetic stocks with full financial data.
 
     Args:
         n_stocks: Number of synthetic stocks to generate
+        as_dataset: Whether to return the stocks as an xarray Dataset
 
     Returns:
         List of dictionaries containing company category, indicators, and financials
+        or xarray.Dataset
     """
     # Company category probabilities (can be adjusted)
     category_probs = {
@@ -580,6 +646,9 @@ def generate_synthetic_stocks(n_stocks: int) -> List[Dict[str, Any]]:
 
         stocks.append(stock_data)
 
+    if as_dataset:
+        return stocks_to_xarray(stocks)
+
     return stocks
 
 
@@ -608,7 +677,7 @@ def print_stock_summary(stock_data: Dict[str, Any]) -> None:
     print("\nQuality Score:", f"{fin['verification']['quality_score']:.1%}")
 
 
-def stocks_to_xarray(stocks):
+def stocks_to_xarray(stocks) -> xr.Dataset:
     """
     Convert list of synthetic stocks into an xarray Dataset with both financial and soft indicators.
     """
@@ -638,9 +707,18 @@ def stocks_to_xarray(stocks):
     # Fill arrays
     for i, stock in enumerate(stocks):
         for j, indicator in enumerate(all_indicators):
-            colors[i, j] = stock['sampled_colors'][indicator]
+            color = stock['sampled_colors'][indicator]
+            colors[i, j] = color
             if indicator in financial_indicators:
                 values[i, j] = stock['indicators'][indicator]
+            else:
+                # Soft indicators, bernoulli sample based on color
+                if color == 'red':
+                    values[i, j] = np.random.binomial(1, 0.1)  # 10% change for red
+                elif color == 'green':
+                    values[i, j] = np.random.binomial(1, 0.9)
+                else:
+                    values[i, j] = np.random.binomial(1, 0.5)  # yellow
 
     # Create asset coordinates
     asset_coords = [f'asset_{i}' for i in range(n_stocks)]
@@ -663,6 +741,12 @@ def stocks_to_xarray(stocks):
     ds = ds.assign_coords(
         category=('asset', [stock['category'] for stock in stocks])
     )
+
+    # Add some 2025 simulated growths to ds
+    company_types = ['high_growth', 'stable', 'time_bomb']
+    company_type = np.array([company_types.index(val) for val in ds.category.values])
+    growth_2025 = rng.normal(loc=GROWTH_MU[company_type], scale=GROWTH_SCALE[company_type])
+    ds['growth_2025'] = xr.DataArray(growth_2025, dims='asset')
 
     # Add attributes for metadata
     ds.attrs['description'] = 'Synthetic stock data with financial and soft indicators'

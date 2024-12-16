@@ -5,11 +5,11 @@ if __name__ == '__main__':
     from alla.utils import synthetic as synth
 
     # Generate 5 synthetic stocks
-    stocks = synth.generate_synthetic_stocks(5)
+    stocks = synth.generate_synthetic_stocks(5, as_dataset=False)
 
     # Print summary for each stock
     for i, stock in enumerate(stocks, 1):
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Stock {i}")
         synth.print_stock_summary(stock)
 
@@ -18,12 +18,11 @@ if __name__ == '__main__':
         if quality_score < 0.8:
             print("\nWarning: Low quality score, check verification metrics.")
 
-
     # As xarray
     ds = synth.stocks_to_xarray(stocks)
 
     # Print summary
-    print(f"\n{'-'*50}")
+    print(f"\n{'-' * 50}")
     print("\nAs xr.Dataset\n")
     print(ds)
 
