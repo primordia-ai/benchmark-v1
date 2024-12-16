@@ -204,6 +204,23 @@ SOFT_LIKELIHOOD_MATRIX = {
     }
 }
 
+SOFT_INDICATOR_COSTS = {
+    'disruptor_stagnant': 6,  # Abstract market position.
+    'incumbent_stagnant': 3,  # Clearer in performance reviews.
+    'turnaround_plan': 7,  # Strategic execution subtle.
+    'succession_risk': 9,  # Hardest, requires leadership signals.
+    'mismanagement': 8,  # Implied via scandals or failures.
+    'geopolitical_risk': 2,  # Explicit in news and sanctions.
+    'environmental_risk': 4,  # Found in ESG reports.
+    'product_moat': 7,  # Competitive advantage is subtle.
+    'supply_chain_resilience': 8,  # Needs supplier analysis.
+    'regulatory_pressure': 5,  # Clear in regulatory actions.
+    'innovation_pipeline': 6,  # Patent and R&D mentions.
+    'customer_concentration': 7,  # Key clients often not clear.
+    'brand_strength': 4,  # Sentiment and brand mentions.
+    'digital_transformation': 5  # Explicit in strategy docs.
+}
+
 # Combine the above
 INDICATOR_LIKELIHOODS = {
     'high_growth': {**FINANCIAL_LIKELIHOOD_MATRIX['high_growth'], **SOFT_LIKELIHOOD_MATRIX['high_growth']},
