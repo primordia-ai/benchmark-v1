@@ -150,6 +150,7 @@ FINANCIAL_LIKELIHOOD_MATRIX = {
         'reinvestment_rate': {'red': 0.7, 'green': 0.1}  # Underinvestment
     }
 }
+
 SOFT_LIKELIHOOD_MATRIX = {
     'high_growth': {
         'disruptor_stagnant': {'red': 0.1, 'green': 0.7},  # Often disruptors
@@ -227,62 +228,64 @@ INDICATOR_LIKELIHOODS = {
     'time_bomb': {**FINANCIAL_LIKELIHOOD_MATRIX['time_bomb'], **SOFT_LIKELIHOOD_MATRIX['time_bomb']}
 }
 
-# Define soft color likelihoods
-# The Bernoulli probabilities of a soft indicator being true if it has this color attribute
-SOFT_COLOR_LIKELIHOODS = {
-    'red': 0.1,
-    'yellow': 0.5,
-    'green': 0.9
-}
-
 # Underlying growth parameters
 GROWTH_MU = np.array([0.097, 0.01, -0.048])
 GROWTH_SCALE = np.array([0.1, 0.01, 0.05])
 
 
-def get_soft_likelihoods() -> dict[str: list[float]]:
+def get_soft_indicator_xarray() -> xr.Dataset:
     """
-    Generate likelihoods for soft indicators based on color attribute.
+    Convert the SOFT_LIKELIHOOD_MATRIX into an xarray dataset
     """
-    # For soft indicator likelihoods, we marginalize over colors
-    marginals = {
-        "high_growth": [],
-        "stable": [],
-        "time_bomb": [],
-    }
-    soft_indicators = list(SOFT_LIKELIHOOD_MATRIX['high_growth'].keys())
+    # First we need to add yellow to the values
+    matrix_copy = SOFT_LIKELIHOOD_MATRIX.copy()
+    for category in matrix_copy:
+        for indicator in matrix_copy[category]:
+            matrix_copy[category][indicator]['yellow'] = 1.0 - sum(
+                matrix_copy[category][indicator].values()
+            )
 
-    for ind in soft_indicators:
-        # This ignores likelihood of being high_growth, stable, or time_bomb (which is .3, .5, .2 respectively)
-        hg_red = SOFT_LIKELIHOOD_MATRIX['high_growth'][ind]['red']
-        hg_grn = SOFT_LIKELIHOOD_MATRIX['high_growth'][ind]['green']
-        hg_yellow = 1 - hg_red - hg_grn
+    likelihoods = xr.Dataset(
+        {
+            indicator: (
+                ['category', 'color'],
+                [[matrix_copy[category][indicator][color] for color in ['red', 'yellow', 'green']]
+                    for category in ['high_growth', 'stable', 'time_bomb']]
+            )
+            for indicator in matrix_copy['high_growth']
+        },
+        coords={
+            'category': ['high_growth', 'stable', 'time_bomb'],
+            'color': ['red', 'yellow', 'green']
+        }
+    )
+    return likelihoods
 
-        st_red = SOFT_LIKELIHOOD_MATRIX['stable'][ind]['red']
-        st_grn = SOFT_LIKELIHOOD_MATRIX['stable'][ind]['green']
-        st_yellow = 1 - st_red - st_grn
 
-        tb_red = SOFT_LIKELIHOOD_MATRIX['time_bomb'][ind]['red']
-        tb_grn = SOFT_LIKELIHOOD_MATRIX['time_bomb'][ind]['green']
-        tb_yellow = 1 - tb_red - tb_grn
+def synthetic_indicator_cost(mu: float) -> float:
+    """
+    Add noise to an indicator cost
 
-        marginals['high_growth'].append(
-            hg_red * SOFT_COLOR_LIKELIHOODS['red'] +
-            hg_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
-            hg_grn * SOFT_COLOR_LIKELIHOODS['green']
-        )
-        marginals['stable'].append(
-            st_red * SOFT_COLOR_LIKELIHOODS['red'] +
-            st_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
-            st_grn * SOFT_COLOR_LIKELIHOODS['green']
-        )
-        marginals['time_bomb'].append(
-            tb_red * SOFT_COLOR_LIKELIHOODS['red'] +
-            tb_yellow * SOFT_COLOR_LIKELIHOODS['yellow'] +
-            tb_grn * SOFT_COLOR_LIKELIHOODS['green']
-        )
+    :param mu:  Expected budget cost
+    """
+    return max(0.5, np.random.normal(mu, mu / 10))
 
-    return marginals
+
+def synthetic_extractor_noise(distribution: np.ndarray) -> np.ndarray:
+    """
+    Simulate soft-indicator noise incurred by the soft-indicator extractor, using the color confusion matrix.
+
+    :param distribution:  [..., 3] array of color probabilities
+    :return:              [..., 3] array with applied noise
+    """
+    color_confusion = np.array(
+        [
+            [0.8, 0.15, 0.05],
+            [0.1, 0.8, 0.1],
+            [0.05, 0.15, 0.8],
+        ]
+    )
+    return np.dot(distribution, color_confusion)
 
 
 def sample_independent_indicators(specified_colors=None):
@@ -728,14 +731,14 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
             colors[i, j] = color
             if indicator in financial_indicators:
                 values[i, j] = stock['indicators'][indicator]
-            else:
-                # Soft indicators, bernoulli sample based on color
-                if color == 'red':
-                    values[i, j] = np.random.binomial(1, 0.1)  # 10% change for red
-                elif color == 'green':
-                    values[i, j] = np.random.binomial(1, 0.9)
-                else:
-                    values[i, j] = np.random.binomial(1, 0.5)  # yellow
+            # else:
+            #     # Soft indicators, bernoulli sample based on color
+            #     if color == 'red':
+            #         values[i, j] = np.random.binomial(1, 0.1)  # 10% change for red
+            #     elif color == 'green':
+            #         values[i, j] = np.random.binomial(1, 0.9)
+            #     else:
+            #         values[i, j] = np.random.binomial(1, 0.5)  # yellow
 
     # Create asset coordinates
     asset_coords = [f'asset_{i}' for i in range(n_stocks)]
