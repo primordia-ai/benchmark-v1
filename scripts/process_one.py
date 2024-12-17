@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = models.ALLA(stocks, asset_memory_depth=20, seed=1, budget=20)
+    alla = models.ALLA(stocks, asset_memory_depth=20, seed=1, budget=100)
 
     # Process the first stock
     print("Processing stock 'asset_0'")

@@ -65,6 +65,8 @@ class ALLA:
         # Known growth params
         self.mu_g = synth.GROWTH_MU
         self.sigma_g = synth.GROWTH_SCALE
+        # Shorthand
+        self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
 
         # Ordered list of soft indicator names
         self.soft_indicators = list(
@@ -89,18 +91,28 @@ class ALLA:
         """
         Reset the model to its initial state
         """
-        # Quantile predictions -- All values initialized to 0
-        # Updates will push oldest values out, where idx 0 is oldest
+        # Quantile predictions -- Quantiles initialized based on uniform class belief
+        init_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
+        weights = np.full(self.n_classes, 1 / self.n_classes)
+        quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
+            distributions=init_params,
+            weights=weights,
+            quantiles=self.quantiles
+        )
+        # Broadcast across assets and memory depth
+        init_quantiles = np.broadcast_to(
+            quantile_values.reshape(1, len(self.quantiles), 1),
+            (self.n_assets, len(self.quantiles), self.asset_memory_depth)
+        )
         self.stocks['quantile_pred'] = xr.DataArray(
-            np.zeros((self.stocks.sizes['asset'], 5, self.asset_memory_depth)),
+            init_quantiles.copy(),
             dims=['asset', 'quantile', 'time'],
             coords={
-                'quantile': [0.025, 0.16, 0.5, 0.84, 0.975],
+                'quantile': self.quantiles,
                 'time': list(range(self.asset_memory_depth))
             }
         )
         # Asset priors -- All values initialized to 1/3 (across time as well)
-        # Updates will push oldest values out, where idx 0 is oldest
         self.stocks['asset_prior'] = xr.DataArray(
             np.full((self.n_assets, self.n_classes, self.asset_memory_depth), 1 / self.n_classes),
             dims=['asset', 'asset_class', 'time'],
@@ -372,7 +384,7 @@ class ALLA:
         else:
             # Compute the quantiles
             # We use the known Mixture means and stds, and then the asset mixture weights
-            generator_params = [(self.mu_g[k], self.sigma_g[k]) for k in range(self.n_classes)]
+            generator_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
             weights = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
             quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
                 distributions=generator_params,

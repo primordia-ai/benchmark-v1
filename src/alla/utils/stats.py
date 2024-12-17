@@ -90,7 +90,7 @@ class MixtureDistribution:
         distributions: Union[list[stats.norm], list[tuple[float, float]]],
         weights,
         quantiles
-    ) -> list[float]:
+    ) -> np.ndarray:
         """
         Compute quantiles of a mixture distribution
 
