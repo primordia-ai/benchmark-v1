@@ -1,10 +1,11 @@
 """
 Process the first asset with ALLA
 """
-if __name__ == '__main__':
-    from alla import models
-    from alla.utils import synthetic as synth
+from alla import models
+from alla.utils import synthetic as synth
 
+
+if __name__ == '__main__':
     # Generate 5 synthetic stocks
     n_stock = 5
     print(f"Generating {n_stock} synthetic stocks...")
@@ -12,11 +13,11 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = models.ALLA(stocks, asset_memory_depth=20)
+    alla = models.ALLA(stocks, asset_memory_depth=20, seed=1)
 
     # Process the first stock
     print("Processing stock 'asset_0'")
-    alla.process_asset('asset_0', soft_only=True)
+    alla.process_asset('asset_0', budget=20)
     print("Done.")
 
     # Plot

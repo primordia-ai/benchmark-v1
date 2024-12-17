@@ -262,6 +262,32 @@ def get_soft_indicator_xarray() -> xr.Dataset:
     return likelihoods
 
 
+def synthetic_indicator_cost(mu: float) -> float:
+    """
+    Add noise to an indicator cost
+
+    :param mu:  Expected budget cost
+    """
+    return max(0.5, np.random.normal(mu, mu / 10))
+
+
+def synthetic_extractor_noise(distribution: np.ndarray) -> np.ndarray:
+    """
+    Simulate soft-indicator noise incurred by the soft-indicator extractor, using the color confusion matrix.
+
+    :param distribution:  [..., 3] array of color probabilities
+    :return:              [..., 3] array with applied noise
+    """
+    color_confusion = np.array(
+        [
+            [0.8, 0.15, 0.05],
+            [0.1, 0.8, 0.1],
+            [0.05, 0.15, 0.8],
+        ]
+    )
+    return np.dot(distribution, color_confusion)
+
+
 def sample_independent_indicators(specified_colors=None):
     """
     Generate random values for independent indicators based on specified interval colors,

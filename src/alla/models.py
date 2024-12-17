@@ -1,6 +1,7 @@
 """
 ALLA Models
 """
+import random
 from typing import Union
 
 import matplotlib.pyplot as plt
@@ -8,7 +9,6 @@ import numpy as np
 import xarray as xr
 from scipy import stats
 from tqdm import tqdm
-import random
 
 from alla.utils import stats as alla_stats, synthetic as synth
 
@@ -59,14 +59,17 @@ class ALLA:
         self.sigma_g = synth.GROWTH_SCALE
 
         # Ordered list of soft indicator names
-        self.soft_indicators = stocks_dataset.coords['indicator'].values[
-            stocks_dataset.coords['indicator_type'].values == 'soft'
-        ]
+        self.soft_indicators = list(
+            stocks_dataset.coords['indicator'].values[
+                stocks_dataset.coords['indicator_type'].values == 'soft'
+            ]
+        )
         self.n_soft = len(self.soft_indicators)
 
         # Get the soft likelihood dataset. Dimensions are indicator, asset-class, and color
         self.soft_likelihoods: xr.Dataset = synth.get_soft_indicator_xarray()
 
+        # Integer costs by indicator name
         self.soft_indicator_costs: dict = synth.SOFT_INDICATOR_COSTS
 
         # Init our results data, essentially
@@ -136,9 +139,9 @@ class ALLA:
         """Returns the soft indicators ranked by utility average, descending"""
         self.ranked_indicators = np.argsort(self.indicator_utility_avg[:, 1])[::-1]
 
-    def select_next_indicator(self, prior, candidates):
+    def rank_indicators(self, prior, candidates) -> list:
         """
-        Select next indicator using expected log Bayes factor for growth prediction
+        Rank indicators by expected utility using expected log Bayes factor for growth prediction
 
         Also updates observed indicator utility average
         """
@@ -151,14 +154,15 @@ class ALLA:
         # Current growth mixture params
         # prior_mean, prior_std = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
 
+        # For tracking utility
+        indicator_tuples = []
+
         for j in candidates:
             utility = 0
 
             indicator_name = self.soft_indicators[j]
             class_color_matrix = self.soft_likelihoods[indicator_name].values  # [classes, colors]
             # Sum over the colors for each asset-class
-            # class_likelihood = i_likes.sum(axis=0)
-            # class_likelihood /= class_likelihood.sum()
             color_likelihoods = np.dot(p_k, class_color_matrix)  # [p(red|p_k), p(yellow|p_k), p(green|p_k)]
 
             # TODO -- optimize
@@ -198,97 +202,8 @@ class ALLA:
                                 utility += p_col * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
                                            (g_points[1] - g_points[0])
 
-            # Update the utility of this indicator
-            if self.indicator_utility_avg[j, 0] == 0:
-                # First observation
-                self.indicator_utility_avg[j, 0] = 1
-                self.indicator_utility_avg[j, 1] = utility
-                avg_utility = utility
-            else:
-                # Running average
-                self.indicator_utility_avg[j, 0] += 1
-                self.indicator_utility_avg[j, 1] += ((utility - self.indicator_utility_avg[j, 1]) /
-                                                     self.indicator_utility_avg[j, 0])
-                avg_utility = self.indicator_utility_avg[j, 1]
-
-            if avg_utility > max_utility:
-                max_utility = avg_utility
-                best_j = j
-
-        return best_j, max_utility
-
-    def select_next_indicator_with_budget(self, prior, candidates, budget: int) -> tuple:
-        """
-        Select the next indicator to observe given a budget constraint.
-        This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
-        that can be afforded within the given budget. The utility is computed based on the expected log Bayes factor, which
-        measures the information gain from observing the indicator.
-        Parameters:
-        -----------
-        prior : np.ndarray
-            The prior probabilities for each class.
-        candidates : list
-            A list of candidate indicators to consider.
-        budget : int
-            The available budget for selecting indicators.
-        Returns:
-        --------
-        tuple
-            A tuple containing the selected indicator and its associated utility.
-        """
-        max_utility = -float('inf')
-        best_j = None
-
-        # Current probabilities
-        p_k = prior / np.sum(prior)
-
-        # Current growth mixture params
-        # prior_mean, prior_std = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
-        for j in candidates:
-            utility = 0
-            # check if we can afford this indicator
-            if self.soft_indicator_costs[j] > budget:
-                continue
-
-            for x_ij in [0, 1]:
-                # P(x_ij | current beliefs)
-                p_xj = np.sum(
-                    p_k * (self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij))
-                )
-
-                if p_xj > 0:  # only compute if observation is possible
-                    # Posterior class probabilities if we observe x_ij
-                    likelihood = self.soft_likelihoods[j, :] ** x_ij * (1 - self.soft_likelihoods[j, :]) ** (1 - x_ij)
-                    gamma = p_k * likelihood
-                    gamma = gamma / np.sum(gamma)
-
-                    # Posterior growth mixture params
-                    # post_mean, post_std = alla_stats.mixture_stats(gamma, self.mu_g, self.sigma_g)
-
-                    # Expected log Bayes factor is expected log ratio of the densities
-                    # Note: we need to integrate over possible g values
-                    g_points = np.linspace(
-                        min(self.mu_g - 3 * max(self.sigma_g)),
-                        max(self.mu_g + 3 * max(self.sigma_g)),
-                        100
-                    )
-
-                    for g in g_points:
-                        # P(g|posterior)
-                        post_prob = sum(
-                            gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
-                        )
-                        # P(g|prior)
-                        prior_prob = sum(
-                            p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
-                        )
-
-                        if post_prob > 0 and prior_prob > 0:
-                            # Weight by posterior probability of g
-                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
-                                       (g_points[1] - g_points[0])
+            # Add to list
+            indicator_tuples.append((j, utility))
 
             # Update the utility of this indicator
             if self.indicator_utility_avg[j, 0] == 0:
@@ -303,18 +218,134 @@ class ALLA:
                                                      self.indicator_utility_avg[j, 0])
                 avg_utility = self.indicator_utility_avg[j, 1]
 
-            if avg_utility > max_utility:
-                max_utility = avg_utility
-                best_j = j
-            #given the calculated expected utility, check if we should use the indicator
-            
-            #update the budget
-            budget -= self.soft_indicator_costs[j]
-            if budget <= 0:
+        # Return the sorted list of candidates, descending
+        return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
+
+    def process_asset(self, asset: Union[xr.Dataset, str], budget: float | None = None, soft_only=True) -> None:
+        """
+        Process an asset to infer its class and growth forecast
+
+        :param asset:       xr.Dataset for the selected asset
+        :param budget:      Optionally provide a budget
+        :param soft_only:   Operate on only soft indicators
+        """
+        if not soft_only:
+            raise NotImplementedError("Only soft indicators are supported for now.")
+
+        if isinstance(asset, str):
+            # Get the asset by its name
+            asset = self.stocks.sel(asset=asset)
+
+        # Get the soft indicators, by masking with indicator_type
+        observed_colors = asset.ryg.values[asset.indicator_type.values == 'soft']
+        # Get most recent prior
+        prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
+        candidates = list(self.ranked_indicators.copy())
+
+        selected_indicators = []
+        prior_history = []
+        growth_means = []
+        growth_stds = []
+
+        for i_ind in tqdm(range(self.n_soft), desc="Soft Ind."):
+            print(f"Remaining budget: {budget}")
+            p_k = prior.copy()
+            prior_history.append(p_k)
+
+            # Track growth predictions
+            mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
+            growth_means.append(mean_g)
+            growth_stds.append(std_g)
+
+            next_ranking = self.rank_indicators(prior, candidates)
+            selected_indicator = None
+            if budget:
+                # Iterate through the ranked indicators and accept the first one that is within budget
+                for j in next_ranking:
+                    expected_cost = self.soft_indicator_costs[self.soft_indicators[j]]
+                    if expected_cost > budget:
+                        # Remove this one and continue
+                        print(f"Skipping {j}: {self.soft_indicators[j]} due to expected cost: {expected_cost}")
+                        candidates.remove(j)
+                        continue
+                    else:
+                        print(
+                            f"Selecting {j}: {self.soft_indicators[j]} with expected cost"
+                            f" {self.soft_indicator_costs[self.soft_indicators[j]]}"
+                        )
+                        selected_indicator = j
+                        break
+            else:
+                # Just take the first one as best
+                selected_indicator = next_ranking[0]
+
+            if selected_indicator is None:
+                print("No indicators left within budget. Exiting.")
                 break
-        return best_j, max_utility
 
-    def select_next_indicator_with_budget_evolutionary(self, prior, candidates, budget: int, population_size=2, generations=2, mutation_rate=0.1) -> tuple:
+            selected_indicators.append(selected_indicator)
+            candidates.remove(selected_indicator)
+            indicator_name = self.soft_indicators[selected_indicator]
+
+            # Call SE
+            extracted_color_pred, cost = self._call_soft_extractor(
+                asset, indicator_name, observed_colors[selected_indicator]
+            )
+            if budget:
+                budget -= cost
+
+            # Inference
+            # Likelihood of asset-classes given color predictions
+            A = self.soft_likelihoods[indicator_name].values  # [classes, colors]
+            likelihood = A @ extracted_color_pred.reshape(-1, 1)
+            likelihood = likelihood.reshape(3, )
+            posterior = p_k * likelihood
+            posterior /= np.sum(posterior)
+            prior = posterior * np.sum(prior)
+            prior /= np.sum(prior)
+
+            # Update the stocks dataset with class probabilities and growth quantiles
+            self._update_asset_prior(asset, prior)
+            # TODO -- Calculate the quantiles properly
+            quantiles = [
+                mean_g - std_g,
+                mean_g,
+                mean_g + std_g
+            ]
+            self._update_quantile_pred(asset, quantiles)
+
+            if budget and budget <= 0:
+                print(f"Budget exhausted after {i_ind} loops")
+                break
+
+        # Refresh indicator rank at the end
+        self.refresh_indicator_rank()
+
+    def _call_soft_extractor(self, asset: xr.Dataset, indicator_name: str, observed_color: str) -> tuple:
+        """
+        Call Soft-Indicator Extractor to get color prediction
+        Artificial at this point
+
+        :param asset:           Selected asset
+        :param indicator_name:  Soft indicator name
+        :param observed_color:  Synthetic observed color
+        :return: Tuple of color prediction, and simulated cost
+        """
+        color_to_ind = {
+            "red": 0, "yellow": 1, "green": 2
+        }
+
+        extracted_color_pred = np.eye(3)[color_to_ind[observed_color]]  # one-hot
+        # Simulate SE noise
+        extracted_color_pred = synth.synthetic_extractor_noise(extracted_color_pred)
+        # Simulate SE cost
+        cost = synth.synthetic_indicator_cost(self.soft_indicator_costs[indicator_name])
+
+        return extracted_color_pred, cost
+
+    def select_next_indicator_with_budget_evolutionary(
+        self, prior, candidates, budget: int, population_size=2, generations=2, mutation_rate=0.1
+    ) -> tuple:
         """
         Select the next indicator to observe given a budget constraint using an evolutionary algorithm.
         This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
@@ -339,16 +370,18 @@ class ALLA:
         tuple
             A tuple containing the selected indicator and its associated utility.
         """
-        
+
         def fitness(indicator):
             utility = 0
             p_k = prior / np.sum(prior)
             for x_ij in [0, 1]:
                 p_xj = np.sum(
-                    p_k * (self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij))
+                    p_k * (self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (
+                            1 - x_ij))
                 )
                 if p_xj > 0:
-                    likelihood = self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij)
+                    likelihood = self.soft_likelihoods[indicator, :] ** x_ij * (
+                            1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij)
                     gamma = p_k * likelihood
                     gamma = gamma / np.sum(gamma)
                     g_points = np.linspace(
@@ -359,14 +392,15 @@ class ALLA:
                     for g in g_points:
                         post_prob = sum(
                             gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                            for k in range(self.n_classes)
+                                for k in range(self.n_classes)
                         )
                         prior_prob = sum(
                             p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                            for k in range(self.n_classes)
+                                for k in range(self.n_classes)
                         )
                         if post_prob > 0 and prior_prob > 0:
-                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * (g_points[1] - g_points[0])
+                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * (
+                                    g_points[1] - g_points[0])
             return utility
 
         def mutate(indicator):
@@ -385,10 +419,10 @@ class ALLA:
         for generation in tqdm(range(generations)):
             # Evaluate fitness
             fitness_values = [fitness(ind) for ind in population]
-            
+
             # Select parents
             parents = random.choices(population, weights=fitness_values, k=population_size)
-            
+
             # Generate new population
             new_population = []
             for i in range(0, population_size, 2):
@@ -397,9 +431,9 @@ class ALLA:
                 child1 = mutate(crossover(parent1, parent2))
                 child2 = mutate(crossover(parent1, parent2))
                 new_population.extend([child1, child2])
-            
+
             population = new_population
-            
+
             # Update best indicator
             for ind in population:
                 if self.soft_indicator_costs[ind] <= budget:
@@ -409,77 +443,6 @@ class ALLA:
                         best_indicator = ind
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
-
-    def process_asset(self, asset: Union[xr.Dataset, str], budget: int | None = None, soft_only=True) -> None:
-        """
-        Process an asset to infer its class and growth forecast
-
-        :param asset:       xr.Dataset for the selected asset
-        :param budget:      Optionally provide an integer budget
-        :param soft_only:   Operate on only soft indicators
-        """
-        if not soft_only:
-            raise NotImplementedError("Only soft indicators are supported for now.")
-
-        if isinstance(asset, str):
-            # Get the asset by its name
-            asset = self.stocks.sel(asset=asset)
-
-        # Get the soft indicators, by masking with indicator_type
-        observed_colors = asset.ryg.values[asset.indicator_type.values == 'soft']
-        # Get most recent prior
-        prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
-        candidates = list(self.ranked_indicators.copy())
-
-        selected_js = []
-        utilities = []
-        prior_history = []
-        growth_means = []
-        growth_stds = []
-
-        for count in tqdm(range(self.n_soft), desc="Soft Ind."):
-            p_k = prior.copy()
-            prior_history.append(p_k)
-
-            # Track growth predictions
-            mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
-            growth_means.append(mean_g)
-            growth_stds.append(std_g)
-
-            if budget:
-                j, utility = self.select_next_indicator_with_budget_evolutionary(prior, candidates, budget=budget)
-            else:
-                j, utility = self.select_next_indicator(prior, candidates)
-
-            utilities.append(utility)
-            selected_js.append(j)
-            candidates.remove(j)
-            indicator_name = self.soft_indicators[j]
-
-            # Observed
-            observed_color = observed_colors[j]
-
-            # Inference
-            # Likelihood of asset-class given color
-            likelihood = self.soft_likelihoods[indicator_name].sel(color=observed_color).values  # [3,]
-            posterior = p_k * likelihood
-            posterior /= np.sum(posterior)
-            prior = posterior * np.sum(prior)
-            prior /= np.sum(prior)
-
-            # Update the stocks dataset with class probabilities and growth quantiles
-            self._update_asset_prior(asset, prior)
-            # TODO -- Calculate the quantiles properly
-            quantiles = [
-                mean_g - std_g,
-                mean_g,
-                mean_g + std_g
-            ]
-            self._update_quantile_pred(asset, quantiles)
-
-        # Refresh indicator rank at the end
-        self.refresh_indicator_rank()
-
 
     def plot_prior_history(self, asset: str, save_path: str | None = None):
         """
