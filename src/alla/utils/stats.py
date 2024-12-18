@@ -107,7 +107,7 @@ class MixtureDistribution:
         # Filter items with zero weight
         filtered_items, filtered_weights = [], []
         for item, w in zip(items, weights):
-            if w > 0:
+            if w > 1e-6:
                 filtered_items.append(item)
                 filtered_weights.append(w)
 
