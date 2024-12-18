@@ -93,10 +93,10 @@ class ALLA:
         """
         # Quantile predictions -- Quantiles initialized based on uniform class belief
         init_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
-        weights = np.full(self.n_classes, 1 / self.n_classes)
+        mix_weights = np.full(self.n_classes, 1 / self.n_classes)
         quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
             distributions=init_params,
-            weights=weights,
+            weights=mix_weights,
             quantiles=self.quantiles
         )
         # Broadcast across assets and memory depth
@@ -112,9 +112,11 @@ class ALLA:
                 'time': list(range(self.asset_memory_depth))
             }
         )
-        # Asset priors -- All values initialized to 1/3 (across time as well)
-        self.stocks['asset_prior'] = xr.DataArray(
-            np.full((self.n_assets, self.n_classes, self.asset_memory_depth), 1 / self.n_classes),
+        # Asset priors
+        # We will use a Dirichlet prior for our Categorical variable
+        init_alpha_prior = np.ones((self.n_assets, self.n_classes, self.asset_memory_depth))  # No bias
+        self.stocks['alphas'] = xr.DataArray(
+            init_alpha_prior,
             dims=['asset', 'asset_class', 'time'],
             coords={
                 'asset_class': list(self.classes.keys()),
@@ -129,6 +131,16 @@ class ALLA:
         self.indicator_utility_avg[:, 1] = -np.inf
         self.ranked_indicators = np.arange(self.n_soft)
 
+    def get_mixture_weights(self, asset: xr.Dataset) -> np.ndarray:
+        """
+        Get the mixture weights for an asset across history
+
+        :param asset: xr.Dataset for the selected asset
+        :return:      np.ndarray of shape (n_classes, memory)
+        """
+        alphas = self.stocks.alphas.sel(asset=asset.asset).values
+        return alphas / np.sum(alphas, axis=0)
+
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
         Update the quantile history
@@ -141,17 +153,17 @@ class ALLA:
         )
         self.stocks['quantile_pred'].loc[asset.asset][:, -1] = quantile_pred
 
-    def _update_asset_prior(self, asset: xr.Dataset, asset_prior):
+    def _update_alphas(self, asset: xr.Dataset, alphas):
         """
-        Update the asset prior history
+        Update alphas
 
         :param asset: xr.Dataset for the selected asset
         """
-        # Update the asset priors -- place the new value at the end
-        self.stocks['asset_prior'].loc[asset.asset] = np.roll(
-            self.stocks['asset_prior'].loc[asset.asset], -1, axis=1
+        # Update the alphas -- place the new value at the end
+        self.stocks['alphas'].loc[asset.asset] = np.roll(
+            self.stocks['alphas'].loc[asset.asset], -1, axis=1
         )
-        self.stocks['asset_prior'].loc[asset.asset][:, -1] = asset_prior
+        self.stocks['alphas'].loc[asset.asset][:, -1] = alphas
 
     def refresh_indicator_rank(self):
         """Returns the soft indicators ranked by utility average, descending"""
@@ -169,12 +181,6 @@ class ALLA:
 
         Also updates observed indicator utility average
         """
-        # Current asset-class probabilities
-        p_k = prior / np.sum(prior)
-
-        # Current growth mixture params
-        # prior_mean, prior_std = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
-
         # For tracking utility
         indicator_tuples = []
 
@@ -184,7 +190,7 @@ class ALLA:
             indicator_name = self.soft_indicators[j]
             class_color_matrix = self.soft_likelihoods[indicator_name].values  # [classes, colors]
             # Sum over the colors for each asset-class
-            color_likelihoods = np.dot(p_k, class_color_matrix)  # [p(red|p_k), p(yellow|p_k), p(green|p_k)]
+            color_likelihoods = np.dot(prior, class_color_matrix)  # [p(red|prior), p(yellow|prior), p(green|prior)]
 
             # TODO -- optimize
             for ic, c in enumerate(["red", "yellow", "green"]):
@@ -194,7 +200,7 @@ class ALLA:
                 if p_col > 0:
                     # Posterior class probabilities if we observe color
                     cls_likelihood = class_color_matrix[:, ic]
-                    gamma = p_k * cls_likelihood
+                    gamma = prior * cls_likelihood
                     if np.sum(gamma) > 1e-6:
                         gamma = gamma / np.sum(gamma)
 
@@ -214,7 +220,7 @@ class ALLA:
                             )
                             # P(g|prior)
                             prior_prob = sum(
-                                p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
+                                prior[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
                                     for k in range(self.n_classes)
                             )
 
@@ -260,12 +266,11 @@ class ALLA:
 
         # Get the soft indicators, by masking with indicator_type
         observed_colors = asset.ryg.values[asset.indicator_type.values == 'soft']
-        # Get most recent prior
-        prior = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
+        # Get most recent alphas
+        alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
         candidates = list(self.ranked_indicators.copy())
 
         selected_indicators = []
-        prior_history = []
         growth_means = []
         growth_stds = []
 
@@ -287,8 +292,8 @@ class ALLA:
                     break
 
                 # Prior
-                p_k = prior.copy()
-                prior_history.append(p_k)
+                p_k = alphas / np.sum(alphas)
+
                 # Track growth predictions
                 mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
                 growth_means.append(mean_g)
@@ -320,13 +325,20 @@ class ALLA:
                 A = self.soft_likelihoods[indicator_name].values  # [classes, colors]
                 likelihood = A @ extracted_color_pred.reshape(-1, 1)
                 likelihood = likelihood.reshape(3, )
-                posterior = p_k * likelihood
-                posterior /= np.sum(posterior)
-                prior = posterior * np.sum(prior)
-                prior /= np.sum(prior)
+                # Using Dirichlet, we need only increment the observed category alpha
+                alphas += likelihood
+
+                # Likelihood of asset-classes given color predictions
+                # A = self.soft_likelihoods[indicator_name].values  # [classes, colors]
+                # likelihood = A @ extracted_color_pred.reshape(-1, 1)
+                # likelihood = likelihood.reshape(3, )
+                # posterior = p_k * likelihood
+                # posterior /= np.sum(posterior)
+                # prior = posterior * np.sum(prior)
+                # prior /= np.sum(prior)
 
                 # Update the stocks dataset with class probabilities and growth quantiles
-                self._update_asset_prior(asset, prior)
+                self._update_alphas(asset, alphas)
                 self.compute_growth_quantiles(asset=asset)
 
                 if budget <= 0:
@@ -368,7 +380,7 @@ class ALLA:
     def compute_growth_quantiles(
         self,
         quantiles: tuple[float] = (0.025, 0.16, 0.5, 0.84, 0.975),
-        asset: Union[xr.Dataset, str] | None = None
+        asset: Union[xr.Dataset, str] | None = None,
     ) -> None:
         """
         Compute the growth quantiles for either a specific asset, or if None, all assets
@@ -385,7 +397,10 @@ class ALLA:
             # Compute the quantiles
             # We use the known Mixture means and stds, and then the asset mixture weights
             generator_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
-            weights = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
+            alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1]
+            # Normalize alphas to get mixture weights
+            weights = alphas / np.sum(alphas)
+
             quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
                 distributions=generator_params,
                 weights=weights,
@@ -519,7 +534,7 @@ class ALLA:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
 
         # Plot class probabilities
-        class_probs = self.stocks.asset_prior.sel(asset=asset.asset).values
+        class_probs = self.get_mixture_weights(asset)
         for name, idx in self.class_idx.items():
             lbl = self.classes[name]
             if name == asset_class:
