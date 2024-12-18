@@ -104,5 +104,12 @@ class MixtureDistribution:
         """
         # distributions = [stats.norm(loc=mean, scale=std) for mean, std in zip(means, stds)]
         items = [stats.norm(dist[0], dist[1]) if isinstance(dist, tuple) else dist for dist in distributions]
-        mixture = cls(items, weights)
+        # Filter items with zero weight
+        filtered_items, filtered_weights = [], []
+        for item, w in zip(items, weights):
+            if w > 0:
+                filtered_items.append(item)
+                filtered_weights.append(w)
+
+        mixture = cls(filtered_items, filtered_weights)
         return mixture.ppf(quantiles)

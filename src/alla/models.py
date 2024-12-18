@@ -388,7 +388,7 @@ class ALLA:
             weights = self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1]
             quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
                 distributions=generator_params,
-                weights=self.stocks.asset_prior.sel(asset=asset.asset).values[:, -1],
+                weights=weights,
                 quantiles=quantiles
             )
             self._update_quantile_pred(asset, quantile_values)
