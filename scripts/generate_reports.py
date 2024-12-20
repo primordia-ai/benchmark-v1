@@ -31,22 +31,92 @@ def get_prompt(indicator, value):
         Format the report in markdown.
         The description and value of the indicator are given below:
         '''
+    
     prompt_dict = {
-    "disruptor_stagnant": """A measure of whether a company identified as a disruptor in its industry has plateaued or ceased innovating, risking its competitive advantage. """,
-    "incumbent_stagnant": """An indicator of whether a traditional or established company is failing to adapt to market changes, technological advancements, or evolving consumer preferences.""",
-    "turnaround_plan": """Assessment of the existence, feasibility, and progress of a strategic plan aimed at recovering from financial, operational, or reputational difficulties.""",
-    "succession_risk": """Evaluation of potential risks to the company due to lack of clear succession planning for key leadership roles, which can impact stability and strategic continuity.""",
-    "mismanagement": """Indicator of inefficient, unethical, or otherwise poor management practices that could negatively impact the company’s performance or reputation.""",
-    "geopolitical_risk": """Assessment of the company’s exposure to risks stemming from international political tensions, trade disputes, sanctions, or instability in key operational regions.""",
-    "environmental_risk": """Measure of the company’s exposure to risks related to environmental issues, such as climate change, regulatory changes, or resource scarcity.""",
-    "product_moat": """Evaluation of the company’s ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors.""",
-    "supply_chain_resilience": """Assessment of the robustness and adaptability of the company’s supply chain to disruptions, including natural disasters, geopolitical events, or supplier failures.""",
-    "regulatory_pressure": """Indicator of the extent to which the company is subject to regulatory scrutiny or compliance challenges, potentially affecting its operations or financial performance.""",
-    "innovation_pipeline": """Analysis of the company’s capacity for ongoing innovation, including investments in R&D, new product development, and ability to adapt to technological advancements.""",
-    "customer_concentration": """Evaluation of risks associated with a company’s revenue being overly dependent on a small number of customers, which can affect bargaining power and revenue stability.""",
-    "brand_strength": """Measure of the company’s brand value, reputation, and customer loyalty, which contribute to competitive positioning and pricing power.""",
-    "digital_transformation": """Assessment of the company’s progress in leveraging digital technologies to enhance operations, customer experience, and overall competitiveness."""
-}
+        "disruptor_stagnant": """
+        A measure of whether a company identified as a disruptor in its industry has plateaued or ceased innovating,
+        risking its competitive advantage. This can include signs such as declining market share, reduced investment
+        in research and development (R&D), or stagnation in product launches.
+        """,
+
+        "incumbent_stagnant": """
+        An indicator of whether a traditional or established company is failing to adapt to market changes,
+        technological advancements, or evolving consumer preferences. Examples include lagging adoption of digital tools
+        or inability to pivot in response to competitor advancements.
+        """,
+
+        "turnaround_plan": """
+        Assessment of the existence, feasibility, and progress of a strategic plan aimed at recovering from financial,
+        operational, or reputational difficulties. This includes milestones like leadership restructuring, cost-cutting
+        initiatives, or launching new revenue streams.
+        """,
+
+        "succession_risk": """
+        Evaluation of potential risks to the company due to lack of clear succession planning for key leadership roles,
+        which can impact stability and strategic continuity. Indicators include unfilled critical roles or dependency on
+        a single leader without a backup plan.
+        """,
+
+        "mismanagement": """
+        Indicator of inefficient, unethical, or otherwise poor management practices that could negatively impact the
+        company’s performance or reputation. Examples include inconsistent decision-making, lack of financial oversight,
+        or ignoring stakeholder concerns.
+        """,
+
+        "geopolitical_risk": """
+        Assessment of the company’s exposure to risks stemming from international political tensions, trade disputes,
+        sanctions, or instability in key operational regions. Specific risks may include currency fluctuations or impacts
+        on supply chain operations.
+        """,
+
+        "environmental_risk": """
+        Measure of the company’s exposure to risks related to environmental issues, such as climate change, regulatory
+        changes, or resource scarcity. Examples include penalties for non-compliance with emissions regulations or
+        increased costs due to resource shortages.
+        """,
+
+        "product_moat": """
+        Evaluation of the company’s ability to maintain a competitive advantage through unique products, intellectual
+        property, or high barriers to entry for competitors. Signs of a strong moat include patents, exclusive
+        partnerships, or economies of scale.
+        """,
+
+        "supply_chain_resilience": """
+        Assessment of the robustness and adaptability of the company’s supply chain to disruptions, including natural
+        disasters, geopolitical events, or supplier failures. Key factors include supplier diversification, inventory
+        management strategies, and technology integration.
+        """,
+
+        "regulatory_pressure": """
+        Indicator of the extent to which the company is subject to regulatory scrutiny or compliance challenges,
+        potentially affecting its operations or financial performance. Examples include antitrust investigations, data
+        privacy mandates, or sector-specific compliance burdens.
+        """,
+
+        "innovation_pipeline": """
+        Analysis of the company’s capacity for ongoing innovation, including investments in R&D, new product
+        development, and ability to adapt to technological advancements. Strong pipelines often feature consistent
+        funding, cross-functional collaboration, and successful product rollouts.
+        """,
+
+        "customer_concentration": """
+        Evaluation of risks associated with a company’s revenue being overly dependent on a small number of customers,
+        which can affect bargaining power and revenue stability. Metrics include percentage of revenue from top customers
+        and diversification efforts.
+        """,
+
+        "brand_strength": """
+        Measure of the company’s brand value, reputation, and customer loyalty, which contribute to competitive
+        positioning and pricing power. Factors influencing brand strength include customer satisfaction, marketing
+        effectiveness, and presence in strategic markets.
+        """,
+
+        "digital_transformation": """
+        Assessment of the company’s progress in leveraging digital technologies to enhance operations, customer
+        experience, and overall competitiveness. Initiatives may include adopting cloud-based systems, automating
+        workflows, and implementing AI-driven analytics.
+        """
+    }
 
     prompt = prompt_dict[indicator] + f"""The indicator value is: {value}"""
     return prompt_template + prompt
