@@ -2,6 +2,7 @@
 ALLA Models
 """
 import logging
+import os
 import random
 from typing import Union
 
@@ -9,12 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import xarray as xr
+from pandas.conftest import observed
 from scipy import stats
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.llm import models as llm_models
+from alla.llm import Llama
+from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
 
@@ -45,6 +48,7 @@ class ALLA:
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
+        self.llm = Llama(temperature=0.)
 
         self.n_assets = len(self.stocks.asset)
         self.classes = {
@@ -275,8 +279,20 @@ class ALLA:
             # Get the asset by its name
             asset = self.stocks.sel(asset=asset)
 
-        # Get the indicators, by masking with indicator_type
-        observed_colors = asset.ryg.values
+        synthetic = False
+        if synthetic:
+            # Get the indicators from synthetic data
+            observed_colors = asset.ryg.values
+        else:
+            # Get extracted color values
+            # First look for save results
+            extract_path = os.path.join(
+                PROJECT_ROOT, "data/extracted_indicators", self.llm.code, asset.asset, ".json"
+            )
+            if os.path.exists(extract_path):
+                logger.info(f"Loading extracted indicator results from '{extract_path}'")
+                observed_colors =
+
 
         # Get most recent alphas
         alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
@@ -325,7 +341,10 @@ class ALLA:
 
                 # Call SE if we have a soft indicator
                 if indicator_name in self.soft_indicators:
-                    extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                    # extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                    #     asset, indicator_name, observed_colors[selected_indicator]
+                    # )
+                    extracted_color_pred, realized_cost = self._(
                         asset, indicator_name, observed_colors[selected_indicator]
                     )
                 else:
@@ -374,14 +393,14 @@ class ALLA:
         return True
 
     def _call_soft_extractor(
-        self, asset: xr.Dataset, indicator_name: str, llm_model: Union[str, llm_models.LLMBaseClass]) -> tuple:
+        self, asset: xr.Dataset, indicator_name: str) -> tuple:
         """
         Call the Soft-Indicator Extractor to get color prediction from asset company booklet
 
         :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
-        :param llm_model:       LLM model to use for soft extraction
         """
+        return self.llm.extract_soft_indicator(asset, indicator_name)
 
     def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, observed_color: str) -> tuple:
         """

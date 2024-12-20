@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = ALLA(stocks, asset_memory_depth=20, budget=100)
+    alla = ALLA(stocks, asset_memory_depth=20, budget=20)
 
     # Process the first stock
     print(f"Processing '{category_select}' stock '{asset_name}'")
