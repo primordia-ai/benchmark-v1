@@ -27,7 +27,7 @@ def get_prompt(indicator, value):
         Your task is to write a business report based on the given indicator and its value. 
         Do not use the actual indicator name anywhere the report.
         Also do not use the actual value of the indicator in the report.
-        Do not give your report a headline that might give awway the indicator name.
+        Do not give your report a headline that might give away the indicator name.
         Format the report in markdown.
         The description and value of the indicator are given below:
         '''
@@ -121,7 +121,7 @@ def get_prompt(indicator, value):
     prompt = prompt_dict[indicator] + f"""The indicator value is: {value}"""
     return prompt_template + prompt
 
-def generate_report(indicator: str, value: str, asset_id : str='', save_path : str ='../reports', model_name : str='llama3.1:8b')->str:
+def generate_report(indicator: str, value: str, asset_id : str='', save_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->str:
     """
     Generates a report based on the given indicator and value using a specified model.
     Args:
@@ -130,13 +130,14 @@ def generate_report(indicator: str, value: str, asset_id : str='', save_path : s
         asset_id (str, optional): The asset ID for which the report is being generated. Defaults to ''.
         save_path (str, optional): The path where the report will be saved. Defaults to 'reports'.
         model_name (str, optional): The name of the model to be used for generating the report. Defaults to 'llama3.1:8b'.
+        verbose (bool, optional): Whether to print verbose output. Defaults to False.
     Returns:
         str: The generated report as a string.
     Raises:
         KeyError: If the prompt for the given indicator is not found.
     """
-    
-    tqdm.write(f'Generating report for {indicator} with value {value}')
+    if verbose==True:
+        tqdm.write(f'Generating report for {indicator} with value {value}')
     try:
         prompt = get_prompt(indicator, value)
     except KeyError:
@@ -171,8 +172,7 @@ if __name__ == '__main__':
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
-        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values)):
+        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values), desc="Assets", leave=True, position=0):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
-            for indicator, value in tqdm(data.items()):
+            for indicator, value in tqdm(data.items(), desc="generating reports for indicators", position=1,leave=False):
                 generate_report(indicator=indicator, value=value, asset_id=asset_id)
-        

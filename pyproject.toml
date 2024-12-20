@@ -33,6 +33,9 @@ xarray = "^2024.11.0"
 pandas = "^2.2.3"
 tqdm = "^4.67.1"
 ollama = "^0.4.4"
+openai = "^1.58.1"
+instructor = "^1.7.0"
+pydantic = "^2.10.4"
 
 [tool.poetry.dev-dependencies]
 notebook = "*"
