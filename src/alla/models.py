@@ -200,7 +200,8 @@ class ALLA:
             indicator_name = self.soft_indicators[j]
             class_color_matrix = self.soft_likelihoods[indicator_name].values  # [classes, colors]
             # Sum over the colors for each asset-class
-            color_likelihoods = np.dot(prior, class_color_matrix)  # [p(red|prior), p(yellow|prior), p(green|prior)]
+            color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
+            color_likelihoods = color_likelihoods.reshape(-1, )
 
             # TODO -- optimize
             for ic, c in enumerate(["red", "yellow", "green"]):
@@ -405,13 +406,13 @@ class ALLA:
             # Compute the quantiles
             # We use the known Mixture means and stds, and then the asset mixture weights
             generator_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
-            alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1]
+            prior = self.stocks.prior.sel(asset=asset.asset).values[:, -1]
             # Normalize alphas to get mixture weights
-            weights = alphas / np.sum(alphas)
+            # weights = alphas / np.sum(alphas)
 
             quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
                 distributions=generator_params,
-                weights=weights,
+                weights=prior,
                 quantiles=quantiles
             )
             self._update_quantile_pred(asset, quantile_values)

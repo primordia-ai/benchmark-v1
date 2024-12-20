@@ -24,7 +24,7 @@ if __name__ == '__main__':
     stocks = synth.generate_synthetic_stocks(n_stock)
 
     # Select the first stock that is of this category
-    category_select = "stable"
+    category_select = "high_growth"
     asset_name = None
     for asset in stocks.asset:
         if asset['category'] == category_select:
