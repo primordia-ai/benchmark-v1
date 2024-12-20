@@ -14,6 +14,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla.utils import stats as alla_stats, synthetic as synth
+from alla.llm import models as llm_models
 
 logger = logging.getLogger("alla")
 
@@ -68,23 +69,30 @@ class ALLA:
         # Shorthand
         self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
 
-        # Ordered list of soft indicator names
+        # List of soft indicator names
         self.soft_indicators = list(
             stocks_dataset.coords['indicator'].values[
                 stocks_dataset.coords['indicator_type'].values == 'soft'
             ]
         )
-        self.n_soft = len(self.soft_indicators)
+        self.indicators = self.ordered_indicators = stocks_dataset.coords['indicator'].values.tolist()
+        self.n_indicator = len(self.ordered_indicators)
 
-        # Get the soft likelihood dataset. Dimensions are indicator, asset-class, and color
-        self.soft_likelihoods: xr.Dataset = synth.get_soft_indicator_xarray()
+        # Get the likelihood dataset. Dimensions are indicator, asset-class, and color
+        self.ind_likelihoods: xr.Dataset = synth.get_indicator_dataset()
 
         # Integer costs by indicator name
-        self.soft_indicator_costs: dict = synth.SOFT_INDICATOR_COSTS
+        self.indicator_costs: dict = {}
+        for ind in self.ordered_indicators:
+            try:
+                self.indicator_costs[ind] = synth.SOFT_INDICATOR_COSTS[ind]
+            except KeyError:
+                # Hard Indicator
+                self.indicator_costs[ind] = 0.5
 
         # Init our results data, essentially
         self.indicator_utility_avg = None
-        self.ranked_indicators = np.arange(self.n_soft)
+        self.ranked_indicators = np.arange(self.n_indicator)
         self.reset()
 
     def reset(self):
@@ -135,9 +143,9 @@ class ALLA:
         # Indicator utility -- how much information in each indicator (for ranking)
         # We use a running average where [i, 0] and [i, 1] are the number of observations and current mean
         # for indicator i, respectively
-        self.indicator_utility_avg = np.zeros((self.n_soft, 2))
+        self.indicator_utility_avg = np.zeros((self.n_indicator, 2))
         self.indicator_utility_avg[:, 1] = -np.inf
-        self.ranked_indicators = np.arange(self.n_soft)
+        self.ranked_indicators = np.arange(self.n_indicator)
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
@@ -176,7 +184,7 @@ class ALLA:
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
     def refresh_indicator_rank(self):
-        """Returns the soft indicators ranked by utility average, descending"""
+        """Returns the indicators ranked by utility average, descending"""
         self.ranked_indicators = np.argsort(self.indicator_utility_avg[:, 1])[::-1]
 
     def add_budget(self, budget: float):
@@ -197,8 +205,8 @@ class ALLA:
         for j in candidates:
             utility = 0
 
-            indicator_name = self.soft_indicators[j]
-            class_color_matrix = self.soft_likelihoods[indicator_name].values  # [classes, colors]
+            indicator_name = self.ordered_indicators[j]
+            class_color_matrix = self.ind_likelihoods[indicator_name].values  # [classes, colors]
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
             color_likelihoods = color_likelihoods.reshape(-1, )
@@ -257,26 +265,23 @@ class ALLA:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def process_asset(self, asset: Union[xr.Dataset, str], soft_only=True, max_budget: float = None) -> bool:
+    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> bool:
         """
         Process an asset to infer its class and growth forecast
 
         :param asset:       xr.Dataset for the selected asset
-        :param soft_only:   Operate on only soft indicators
         :param max_budget:  Max budget to use for this asset
         :return:            Boolean indicating whether there was enough budget to perform at least one iteration
         """
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
 
-        if not soft_only:
-            raise NotImplementedError("Only soft indicators are supported for now.")
-
         if isinstance(asset, str):
             # Get the asset by its name
             asset = self.stocks.sel(asset=asset)
 
-        # Get the soft indicators, by masking with indicator_type
-        observed_colors = asset.ryg.values[asset.indicator_type.values == 'soft']
+        # Get the indicators, by masking with indicator_type
+        observed_colors = asset.ryg.values
+
         # Get most recent alphas
         alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
         p_k = self.stocks.prior.sel(asset=asset.asset).values[:, -1].copy()
@@ -288,16 +293,16 @@ class ALLA:
 
         # Shorthand
         ind_cost = {
-            j: self.soft_indicator_costs[self.soft_indicators[j]] for j in candidates
+            j: self.indicator_costs[self.ordered_indicators[j]] for j in candidates
         }
 
         with logging_redirect_tqdm():
-            for i_ind in tqdm(range(self.n_soft), desc="Soft Ind."):
+            for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
                 logger.info(f"Remaining asset budget: {budget}")
                 # Iterate through remaining candidates and filter by remaining budget
                 for j in candidates.copy():
                     if ind_cost[j] > budget:
-                        logger.debug(f"Skipping {j}: {self.soft_indicators[j]} due to expected cost: {ind_cost[j]}")
+                        logger.debug(f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}")
                         candidates.remove(j)
 
                 if not candidates:
@@ -315,23 +320,31 @@ class ALLA:
                 # We should have already filtered out candidates with expected costs outside of budget
                 # Therefore we pick the first ranked indicator
                 selected_indicator = next_ranking[0]
-                indicator_name = self.soft_indicators[selected_indicator]
+                indicator_name = self.ordered_indicators[selected_indicator]
                 selected_indicators.append(selected_indicator)
                 candidates.remove(selected_indicator)
                 logger.info(
                     f"Selecting {selected_indicator}: '{indicator_name}' with expected cost {ind_cost[selected_indicator]}"
                 )
 
-                # Call SE
-                extracted_color_pred, realized_cost = self._call_soft_extractor(
-                    asset, indicator_name, observed_colors[selected_indicator]
-                )
+                # Call SE if we have a soft indicator
+                if indicator_name in self.soft_indicators:
+                    extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                        asset, indicator_name, observed_colors[selected_indicator]
+                    )
+                else:
+                    color_to_ind = {
+                        "red": 0, "yellow": 1, "green": 2
+                    }
+                    extracted_color_pred = np.eye(3)[color_to_ind[observed_colors[selected_indicator]]]  # one-hot
+                    realized_cost = 0.5
+
                 self.budget -= realized_cost
                 budget -= realized_cost
 
                 # Inference
                 # Likelihood of asset-classes given color predictions
-                A = self.soft_likelihoods[indicator_name].values  # [classes, colors]
+                A = self.ind_likelihoods[indicator_name].values  # [classes, colors]
                 likelihood = A @ extracted_color_pred.reshape(-1, 1)
                 likelihood = likelihood.reshape(3, )
 
@@ -364,7 +377,17 @@ class ALLA:
 
         return True
 
-    def _call_soft_extractor(self, asset: xr.Dataset, indicator_name: str, observed_color: str) -> tuple:
+    def _call_soft_extractor(
+        self, asset: xr.Dataset, indicator_name: str, llm_model: Union[str, llm_models.LLMBaseClass]) -> tuple:
+        """
+        Call the Soft-Indicator Extractor to get color prediction from asset company booklet
+
+        :param asset:           Selected asset
+        :param indicator_name:  Soft indicator name
+        :param llm_model:       LLM model to use for soft extraction
+        """
+
+    def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, observed_color: str) -> tuple:
         """
         Call Soft-Indicator Extractor to get color prediction
         Artificial at this point
@@ -382,7 +405,7 @@ class ALLA:
         # Simulate SE noise
         extracted_color_pred = synth.synthetic_extractor_noise(extracted_color_pred)
         # Simulate SE cost
-        cost = synth.synthetic_indicator_cost(self.soft_indicator_costs[indicator_name])
+        cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
 
         return extracted_color_pred, cost
 
@@ -450,12 +473,12 @@ class ALLA:
             p_k = prior / np.sum(prior)
             for x_ij in [0, 1]:
                 p_xj = np.sum(
-                    p_k * (self.soft_likelihoods[indicator, :] ** x_ij * (1 - self.soft_likelihoods[indicator, :]) ** (
+                    p_k * (self.ind_likelihoods[indicator, :] ** x_ij * (1 - self.ind_likelihoods[indicator, :]) ** (
                             1 - x_ij))
                 )
                 if p_xj > 0:
-                    likelihood = self.soft_likelihoods[indicator, :] ** x_ij * (
-                            1 - self.soft_likelihoods[indicator, :]) ** (1 - x_ij)
+                    likelihood = self.ind_likelihoods[indicator, :] ** x_ij * (
+                            1 - self.ind_likelihoods[indicator, :]) ** (1 - x_ij)
                     gamma = p_k * likelihood
                     gamma = gamma / np.sum(gamma)
                     g_points = np.linspace(
@@ -510,7 +533,7 @@ class ALLA:
 
             # Update best indicator
             for ind in population:
-                if self.soft_indicator_costs[ind] <= budget:
+                if self.indicator_costs[ind] <= budget:
                     ind_utility = fitness(ind)
                     if ind_utility > max_utility:
                         max_utility = ind_utility

@@ -4,8 +4,16 @@ RANDOM_SEED = 8927
 rng = np.random.default_rng(RANDOM_SEED)
 from typing import List, Dict, Any
 
+from pathlib import Path
 import xarray as xr
 import numpy as np
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+# Climb up the paths until we find the pyproject toml
+while not (PROJECT_ROOT / 'pyproject.toml').exists():
+    if PROJECT_ROOT.parent == PROJECT_ROOT:  # We've reached the root of the filesystem
+        raise FileNotFoundError("pyproject.toml not found in any parent directories.")
+    PROJECT_ROOT = PROJECT_ROOT.parent
 
 # Core independent indicators with more realistic bounds
 INDEPENDENT_INDICATOR_INTERVALS = {
@@ -233,12 +241,16 @@ GROWTH_MU = np.array([0.097, 0.01, -0.048])
 GROWTH_SCALE = np.array([0.1, 0.01, 0.05])
 
 
-def get_soft_indicator_xarray() -> xr.Dataset:
+def get_indicator_dataset(soft_only: bool = False) -> xr.Dataset:
     """
-    Convert the SOFT_LIKELIHOOD_MATRIX into an xarray dataset
+    Convert the INDICATOR_LIKELIHOODS into an xarray dataset
     """
+    if soft_only:
+        matrix_copy = SOFT_LIKELIHOOD_MATRIX.copy()
+    else:
+        matrix_copy = INDICATOR_LIKELIHOODS.copy()
+
     # First we need to add yellow to the values
-    matrix_copy = SOFT_LIKELIHOOD_MATRIX.copy()
     for category in matrix_copy:
         for indicator in matrix_copy[category]:
             matrix_copy[category][indicator]['yellow'] = 1.0 - sum(
@@ -731,14 +743,6 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
             colors[i, j] = color
             if indicator in financial_indicators:
                 values[i, j] = stock['indicators'][indicator]
-            # else:
-            #     # Soft indicators, bernoulli sample based on color
-            #     if color == 'red':
-            #         values[i, j] = np.random.binomial(1, 0.1)  # 10% change for red
-            #     elif color == 'green':
-            #         values[i, j] = np.random.binomial(1, 0.9)
-            #     else:
-            #         values[i, j] = np.random.binomial(1, 0.5)  # yellow
 
     # Create asset coordinates
     asset_coords = [f'asset_{i}' for i in range(n_stocks)]
@@ -775,3 +779,12 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     ds.ryg.attrs['description'] = 'Red/Yellow/Green classification of indicators'
 
     return ds
+
+#==================
+# Ground Truth data
+
+def load_indicators() -> xr.Dataset:
+    return np.load(f"{PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
+
+def load_stocks() -> dict:
+    return np.load(f"{PROJECT_ROOT}/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
