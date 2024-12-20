@@ -49,7 +49,8 @@ def get_prompt(indicator, read_path, asset_id):
         """,
 
         "incumbent_stagnant": """
-        An indicator of whether a traditional or established company is failing to adapt to market changes,
+        An indicator of whether a traditional o
+        r established company is failing to adapt to market changes,
         technological advancements, or evolving consumer preferences. Examples include lagging adoption of digital tools
         or inability to pivot in response to competitor advancements.
 
