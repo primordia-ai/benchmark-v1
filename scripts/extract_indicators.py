@@ -137,7 +137,7 @@ def get_prompt(indicator, read_path, asset_id):
                 read_documents += file.read() + "\n"
 
     prompt = prompt_dict[indicator]
-    return prompt_template + prompt + read_documents
+    return prompt_template + prompt + read_documents + f"The indicator name to evaluate is: {indicator}"
 
 def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->str:
     """
@@ -175,6 +175,7 @@ def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../
     )
     response = client.chat.completions.create(
         model=model_name,
+        temperature=0,
         messages=[
             {"role": "user", "content": prompt},
         ],
