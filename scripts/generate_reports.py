@@ -66,11 +66,11 @@ def generate_report(indicator: str, value: str, asset_id : str='', save_path : s
         KeyError: If the prompt for the given indicator is not found.
     """
     
-    print(f'Generating report for {indicator} with value {value}')
+    tqdm.write(f'Generating report for {indicator} with value {value}')
     try:
         prompt = get_prompt(indicator, value)
     except KeyError:
-        print(f'Prompt for {indicator} not found')
+        tqdm.write(f'Prompt for {indicator} not found')
         return f'Prompt for {indicator} not found'
     
     # Use LangChain Ollama API to call a local LLM and generate a report
@@ -90,7 +90,7 @@ def generate_report(indicator: str, value: str, asset_id : str='', save_path : s
         
 if __name__ == '__main__':
     # Read the pkl file
-    test=True
+    test=False
     if test==True:
         generate_report(indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../reports', model_name='llama3.1:8b')
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
-        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values)):
+        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values[:2], soft_indicators_data['ryg'].values[:2])):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
             for indicator, value in tqdm(data.items()):
                 generate_report(indicator=indicator, value=value, asset_id=asset_id)
