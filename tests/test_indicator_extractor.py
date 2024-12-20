@@ -2,8 +2,7 @@
 Process the first asset with ALLA
 """
 if __name__ == '__main__':
-    from alla import models
-    from alla.utils import synthetic as synth
+    from alla import models, synthetic as synth
 
     # Generate 5 synthetic stocks
     n_stock = 5

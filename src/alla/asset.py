@@ -6,7 +6,7 @@ import pickle
 from enum import Enum
 from typing import Any
 
-from alla.utils.synthetic import PROJECT_ROOT
+from alla.synthetic import PROJECT_ROOT
 
 
 class AssetCategory(Enum):

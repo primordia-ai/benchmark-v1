@@ -13,7 +13,7 @@ from scipy import stats
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from alla.utils import stats as alla_stats, synthetic as synth
+from alla import stats as alla_stats, synthetic as synth
 from alla.llm import models as llm_models
 
 logger = logging.getLogger("alla")

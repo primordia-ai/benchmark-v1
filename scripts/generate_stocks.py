@@ -2,7 +2,7 @@
 Generate and display info of synthetic stocks
 """
 if __name__ == '__main__':
-    from alla.utils import synthetic as synth
+    from alla import synthetic as synth
 
     # Generate 5 synthetic stocks
     stocks = synth.generate_synthetic_stocks(5, as_dataset=False)
