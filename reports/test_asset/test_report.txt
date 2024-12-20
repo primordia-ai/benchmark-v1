@@ -1,0 +1,17 @@
+The sky appears blue to us because of a phenomenon called scattering, which occurs when sunlight interacts with the tiny molecules of gases in the atmosphere.
+
+Here's a simplified explanation:
+
+1. **Sunlight enters Earth's atmosphere**: When the sun shines, it emits a wide range of electromagnetic radiation, including visible light. This light travels through space and enters our atmosphere.
+2. **Light is scattered by gas molecules**: As sunlight enters the atmosphere, it encounters tiny molecules of gases such as nitrogen (N2) and oxygen (O2). These molecules are much smaller than the wavelength of light, so they scatter the light in all directions.
+3. **Blue light is scattered more than other colors**: The scattering effect is more pronounced for shorter wavelengths of light, like blue and violet. This is why the sky appears blue � the blue light is being scattered in all directions by the tiny molecules in the atmosphere.
+4. **Red light travels in a straight line**: Longer wavelengths of light, like red and orange, are not scattered as much. These colors travel in a relatively straight line to our eyes, which is why we see them as distinct colors.
+
+The combination of these factors gives us the blue sky we're familiar with:
+
+* During the day, when the sun is overhead, the blue light is scattered in all directions, making the sky appear blue.
+* In the morning and evening, when the sun is lower in the sky, the sunlight has to travel through more of the atmosphere, which scatters the shorter wavelengths (like blue) even more. This is why we often see a reddish hue during these times.
+
+Remember that this explanation is a simplification, but it should give you a good understanding of why the sky appears blue!
+
+Do you have any follow-up questions or would you like me to elaborate on any aspect?
