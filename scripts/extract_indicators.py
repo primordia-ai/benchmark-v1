@@ -4,14 +4,10 @@ import os
 from tqdm import tqdm
 from openai import OpenAI
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Literal
 import json
 import instructor
 
-class Indicator(BaseModel):
-    indicator: str = Field(..., title="Indicator name", description="The name of the indicator to evaluate the company's performance as given by the prompt.")
-    value: str = Field(..., title="Indicator value", description="The value of the indicator, represented by the colors red, yellow, and green.")
-    reason: str = Field(..., title="Value reason", description="The reason behind the indicators value based on the company reports. This text can be long and detailed.")
 
 
 #call a local llm and create reports for each soft indiactor in the data
@@ -27,7 +23,7 @@ def get_prompt(indicator, read_path, asset_id):
     Returns:
         str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
     """
-   
+
     prompt_template = f'''
         You are a financial analyst reading a report on a company's financial performance. 
         You have been given the following information:
@@ -37,7 +33,7 @@ def get_prompt(indicator, read_path, asset_id):
         The indicator you are evlauating is: {indicator}
         Your task is to read the business report based and infer the value of the indicator. 
         Your output should be one of the following: red, yellow, or green.
-        Also give a detailed explanation of why you chose that value.
+        Also give an explanation of why you chose that value.
         The description of the indicator and the company reports are given below:
         '''
     
@@ -138,7 +134,7 @@ def get_prompt(indicator, read_path, asset_id):
     prompt = prompt_dict[indicator]
     return prompt_template + prompt + read_documents + f"The indicator name to evaluate is: {indicator}"
 
-def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->dict:
+def get_indicator_value(indicator_name: str, asset_id : str='', read_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->dict:
     """
     Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
     Args:
@@ -150,17 +146,29 @@ def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../
     Returns:
         dict: A dictionary containing the indicator name, value, and reason.
     """
+    #has to be defined here because we need the indicator name in the Indicator class maybe this can be done in a better way?
+    class Indicator(BaseModel):
+        """
+        Indicator model representing the performance evaluation of a company.
+        Attributes:
+            indicator (Literal[indicator_name]): The name of the indicator to evaluate the company's performance as given by the prompt.
+            value (Literal['red', 'yellow', 'green']): The value of the indicator, represented by the colors red, yellow, and green.
+            reason (str): The reason behind the indicator's value based on the company reports. This text can be long and detailed.
+        """
+        indicator: Literal[indicator_name] = Field(..., title="Indicator name", description="The name of the indicator to evaluate the company's performance as given by the prompt.")
+        value: Literal['red', 'yellow', 'green'] = Field(..., title="Indicator value", description="The value of the indicator, represented by the colors red, yellow, and green.")
+        reason: str = Field(..., title="Value reason", description="The reason behind the indicators value based on the company reports. This text can be long and detailed.")
 
     if verbose is True:
-        tqdm.write(f'Infering value from report for asset_id {asset_id} for {indicator}')
+        tqdm.write(f'Infering value from report for asset_id {asset_id} for {indicator_name}')
     try:
-        prompt = get_prompt(indicator, read_path, asset_id)
+        prompt = get_prompt(indicator_name, read_path, asset_id)
     except KeyError:
-        tqdm.write(f'Prompt for {indicator} not found')
-        return {'indicator': indicator, 'value': 'red', 'reason': f'Prompt for {indicator} not found'}
+        tqdm.write(f'Prompt for {indicator_name} not found')
+        return {'indicator': indicator_name, 'value': 'red', 'reason': f'Prompt for {indicator_name} not found'}
     except FileNotFoundError:
         tqdm.write(f'File not found for asset_id {asset_id}')
-        return {'indicator': indicator, 'value': 'red', 'reason': f'File not found for asset_id {asset_id}'}
+        return {'indicator': indicator_name, 'value': 'red', 'reason': f'File not found for asset_id {asset_id}'}
     
     # Use LangChain Ollama API to call a local LLM and generate a report
     #response = ollama.generate(model=model_name, prompt=prompt)
@@ -184,6 +192,6 @@ def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../
     return json.loads(response.model_dump_json())
         
 if __name__ == '__main__':
-    ind = 'mismanagement'
-    indicator = get_indicator_value(indicator=ind, asset_id='asset_0', read_path='../reports', model_name='llama3.1:8b')
+    ind = 'innovation_pipeline'#'geopolitical_risk'#'mismanagement'
+    indicator = get_indicator_value(indicator_name=ind, asset_id='asset_0', read_path='../reports', model_name='llama3.1:8b')
     print(indicator)
