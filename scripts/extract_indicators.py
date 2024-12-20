@@ -19,14 +19,13 @@ class Indicator(BaseModel):
 # Output: reports for each soft indicator in the data
 def get_prompt(indicator, read_path, asset_id):
     """
-    Generates a prompt for a financial analyst based on a specific indicator and company reports.
+    Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
     Args:
-        indicator (str): The type of indicator to evaluate the company's performance. 
-                         Must be one of the keys in the `prompt_dict`.
-        read_path (str): The path to the directory containing company report files.
+        indicator (str): The name of the financial indicator to evaluate.
+        read_path (str): The path to the directory containing company report documents.
         asset_id (str): The identifier for the specific asset whose reports are to be read.
     Returns:
-        str: A formatted prompt string that includes the description of the indicator and the content of the company reports.
+        str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
     """
    
     prompt_template = f'''
@@ -139,29 +138,29 @@ def get_prompt(indicator, read_path, asset_id):
     prompt = prompt_dict[indicator]
     return prompt_template + prompt + read_documents + f"The indicator name to evaluate is: {indicator}"
 
-def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->str:
+def get_indicator_value(indicator: str, asset_id : str='', read_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->dict:
     """
     Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
     Args:
         indicator (str): The name of the indicator to retrieve.
-        asset_id (str, optional): The ID of the asset for which to retrieve the indicator value. Defaults to an empty string.
+        asset_id (str, optional): The ID of the asset for which to retrieve the indicator. Defaults to an empty string.
         read_path (str, optional): The path to the directory containing the reports. Defaults to '../reports'.
         model_name (str, optional): The name of the model to use for generating the report. Defaults to 'llama3.1:8b'.
         verbose (bool, optional): If True, prints additional information during execution. Defaults to False.
     Returns:
-        str: The value of the specified indicator, or an error message if the prompt or file is not found.
+        dict: A dictionary containing the indicator name, value, and reason.
     """
-    
+
     if verbose is True:
         tqdm.write(f'Infering value from report for asset_id {asset_id} for {indicator}')
     try:
         prompt = get_prompt(indicator, read_path, asset_id)
     except KeyError:
         tqdm.write(f'Prompt for {indicator} not found')
-        return f'Prompt for {indicator} not found'
+        return {'indicator': indicator, 'value': 'red', 'reason': f'Prompt for {indicator} not found'}
     except FileNotFoundError:
         tqdm.write(f'File not found for asset_id {asset_id}')
-        return f'File not found for asset_id {asset_id}'
+        return {'indicator': indicator, 'value': 'red', 'reason': f'File not found for asset_id {asset_id}'}
     
     # Use LangChain Ollama API to call a local LLM and generate a report
     #response = ollama.generate(model=model_name, prompt=prompt)
