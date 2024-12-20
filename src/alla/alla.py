@@ -33,7 +33,6 @@ class ALLA:
         stocks_dataset: xr.Dataset,
         asset_memory_depth: int = 20,
         budget: float = 100,
-        seed: int = 777,
     ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
@@ -41,10 +40,7 @@ class ALLA:
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
         :param asset_memory_depth:  How many Bayesian updates to remember for each asset
         :param budget:              Budget for ALLA to spend on inference
-        :param seed:                Seed
         """
-        np.random.seed(seed)
-
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth

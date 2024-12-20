@@ -15,7 +15,7 @@ if __name__ == '__main__':
     SEED = 10
     np.random.seed(SEED)
 
-    from alla import models, synthetic as synth
+    from alla import alla, synthetic as synth
 
     # Generate synthetic stocks
     n_stock = 111

@@ -1,19 +1,7 @@
+from typing import Any, Dict, List
+
 import numpy as np
-
-RANDOM_SEED = 8927
-rng = np.random.default_rng(RANDOM_SEED)
-from typing import List, Dict, Any
-
-from pathlib import Path
 import xarray as xr
-import numpy as np
-
-PROJECT_ROOT = Path(__file__).resolve().parent
-# Climb up the paths until we find the pyproject toml
-while not (PROJECT_ROOT / 'pyproject.toml').exists():
-    if PROJECT_ROOT.parent == PROJECT_ROOT:  # We've reached the root of the filesystem
-        raise FileNotFoundError("pyproject.toml not found in any parent directories.")
-    PROJECT_ROOT = PROJECT_ROOT.parent
 
 # Core independent indicators with more realistic bounds
 INDEPENDENT_INDICATOR_INTERVALS = {
@@ -780,11 +768,13 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
 
     return ds
 
-#==================
+
+# ==================
 # Ground Truth data
 
 def load_indicators() -> xr.Dataset:
     return np.load(f"{PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
+
 
 def load_stocks() -> dict:
     return np.load(f"{PROJECT_ROOT}/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
