@@ -15,7 +15,9 @@ if __name__ == '__main__':
     SEED = 10
     np.random.seed(SEED)
 
-    from alla import alla, synthetic as synth
+    from alla import synthetic as synth
+    from alla.alla import ALLA
+
 
     # Generate synthetic stocks
     n_stock = 111
@@ -34,7 +36,7 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = models.ALLA(stocks, asset_memory_depth=20, seed=SEED, budget=100)
+    alla = ALLA(stocks, asset_memory_depth=20, seed=SEED, budget=100)
 
     # Process the first stock
     print(f"Processing '{category_select}' stock '{asset_name}'")

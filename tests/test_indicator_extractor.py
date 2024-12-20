@@ -2,7 +2,8 @@
 Process the first asset with ALLA
 """
 if __name__ == '__main__':
-    from alla import alla, synthetic as synth
+    from alla import synthetic as synth
+    from alla.alla import ALLA
 
     # Generate 5 synthetic stocks
     n_stock = 5
@@ -11,7 +12,7 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = models.ALLA(stocks, asset_memory_depth=20)
+    alla = ALLA(stocks, asset_memory_depth=20)
 
     # Process the first stock
     print("Processing stock 'asset_0'")
