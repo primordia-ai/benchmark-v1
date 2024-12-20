@@ -139,16 +139,6 @@ class ALLA:
         self.indicator_utility_avg[:, 1] = -np.inf
         self.ranked_indicators = np.arange(self.n_soft)
 
-    def get_mixture_weights(self, asset: xr.Dataset) -> np.ndarray:
-        """
-        Get the mixture weights for an asset across history
-
-        :param asset: xr.Dataset for the selected asset
-        :return:      np.ndarray of shape (n_classes, memory)
-        """
-        alphas = self.stocks.alphas.sel(asset=asset.asset).values
-        return alphas / np.sum(alphas, axis=0)
-
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
         Update the quantile history
@@ -552,8 +542,6 @@ class ALLA:
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 6))
 
         # Plot class probabilities
-        # class_probs = self.get_mixture_weights(asset)
-        # class_probs = self.get_mixture_weights(asset)
         alphas = self.stocks.alphas.sel(asset=asset.asset).values
         prior = self.stocks.prior.sel(asset=asset.asset).values
 
