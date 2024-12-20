@@ -9,16 +9,22 @@ if __name__ == '__main__':
     logger = logging.getLogger("alla")
     logger.setLevel(logging.INFO)
 
+    import numpy as np
+
+    # Set seed
+    SEED = 10
+    np.random.seed(SEED)
+
     from alla import models
     from alla.utils import synthetic as synth
 
     # Generate synthetic stocks
-    n_stock = 10
+    n_stock = 111
     print(f"Generating {n_stock} synthetic stocks...")
     stocks = synth.generate_synthetic_stocks(n_stock)
 
     # Select the first stock that is of this category
-    category_select = "time_bomb"
+    category_select = "stable"
     asset_name = None
     for asset in stocks.asset:
         if asset['category'] == category_select:
@@ -29,7 +35,7 @@ if __name__ == '__main__':
 
     # Create ALLA model
     print("Initializing ALLA")
-    alla = models.ALLA(stocks, asset_memory_depth=100, seed=1, budget=200)
+    alla = models.ALLA(stocks, asset_memory_depth=20, seed=SEED, budget=100)
 
     # Process the first stock
     print(f"Processing '{category_select}' stock '{asset_name}'")
