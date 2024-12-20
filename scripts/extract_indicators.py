@@ -251,5 +251,15 @@ def get_indicator_value(indicator_name: str, asset_id : str='', read_path : str 
         
 if __name__ == '__main__':
     ind = 'innovation_pipeline'#'geopolitical_risk'#'mismanagement'
-    indicator = get_indicator_value(indicator_name=ind, asset_id='asset_0', read_path='../reports', model_name='llama3.1:8b')
-    print(indicator)
+    soft_indicators = ['disruptor_stagnant', 'incumbent_stagnant', 'turnaround_plan', 'succession_risk', 'mismanagement', 'geopolitical_risk', 'environmental_risk', 'product_moat', 'supply_chain_resilience', 'regulatory_pressure', 'innovation_pipeline', 'customer_concentration', 'brand_strength', 'digital_transformation']
+    asset_ids = ['asset_0', 'asset_15']#, 'asset_25', 'asset_35', 'asset_45']
+    test_list = {}
+    for asset in tqdm(asset_ids):
+        ind_list = []
+        for ind in tqdm(soft_indicators, leave=False):
+            indicator = get_indicator_value(indicator_name=ind, asset_id=asset, read_path='../reports', model_name='llama3.1:8b')
+            #print(indicator)
+            ind_list.append(indicator)
+        test_list[asset] = ind_list
+    with open('../tests/test_indicator_results.json', 'w') as f:
+        json.dump(test_list, f, indent=4)
