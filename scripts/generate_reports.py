@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
-        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values[:2], soft_indicators_data['ryg'].values[:2])):
+        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values)):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
             for indicator, value in tqdm(data.items()):
                 generate_report(indicator=indicator, value=value, asset_id=asset_id)
