@@ -250,6 +250,18 @@ def get_indicator_value(indicator_name: str, asset_id : str='', read_path : str 
     return json.loads(response.model_dump_json())
         
 if __name__ == '__main__':
+    import logging
+
+    # Set this up before importing other classes
+    logger = logging.getLogger("alla")
+    logger.setLevel(logging.INFO)
+
+    import numpy as np
+
+    # Set seed
+    SEED = 10
+    np.random.seed(SEED)
+
     ind = 'innovation_pipeline'#'geopolitical_risk'#'mismanagement'
     soft_indicators = ['disruptor_stagnant', 'incumbent_stagnant', 'turnaround_plan', 'succession_risk', 'mismanagement', 'geopolitical_risk', 'environmental_risk', 'product_moat', 'supply_chain_resilience', 'regulatory_pressure', 'innovation_pipeline', 'customer_concentration', 'brand_strength', 'digital_transformation']
     asset_ids = ['asset_0', 'asset_15']#, 'asset_25', 'asset_35', 'asset_45']
