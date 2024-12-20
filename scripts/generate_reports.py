@@ -220,10 +220,10 @@ if __name__ == '__main__':
     # Read the pkl file
     test=False
     if test==True:
-        generate_report(indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../reports', model_name='llama3.1:8b')
+        generate_report(indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports', model_name='llama3.1:8b')
 
     else:
-        ground_truth_path = '../ground-truth/stock_indicators.pkl'
+        ground_truth_path = '../data/ground-truth/stock_indicators.pkl'
         with open(ground_truth_path, 'rb') as f:
             ground_truth = pickle.load(f)
 

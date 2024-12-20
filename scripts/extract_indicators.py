@@ -257,7 +257,7 @@ if __name__ == '__main__':
     for asset in tqdm(asset_ids):
         ind_list = []
         for ind in tqdm(soft_indicators, leave=False):
-            indicator = get_indicator_value(indicator_name=ind, asset_id=asset, read_path='../reports', model_name='llama3.1:8b')
+            indicator = get_indicator_value(indicator_name=ind, asset_id=asset, read_path='../data/reports', model_name='llama3.1:8b')
             #print(indicator)
             ind_list.append(indicator)
         test_list[asset] = ind_list
