@@ -185,4 +185,4 @@ def load_extracted_indicators(json_path: str):
     Load the extracted indicators from the JSON file.
     """
     with open(json_path, 'r') as f:
-        return json.loads(f)
+        return json.load(f)
