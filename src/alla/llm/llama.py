@@ -75,12 +75,5 @@ class Llama(LLMBaseClass):
             ],
             response_model=self._create_indicator_class(indicator_name),
         )
-        result: dict = response.model_dump()
 
-        write_path = os.path.join(
-            PROJECT_ROOT, "data/extracted_indicators/", self.code, asset_id, ".json"
-        )
-        with open(write_path, 'w') as f:
-            json.dump(result, f, indent=4)
-
-        return result
+        return response.model_dump()

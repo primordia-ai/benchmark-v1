@@ -25,21 +25,23 @@ if __name__ == '__main__':
     stocks = synth.generate_synthetic_stocks(n_stock)
 
     # Select the first stock that is of this category
-    category_select = "high_growth"
-    asset_name = None
-    for asset in stocks.asset:
-        if asset['category'] == category_select:
-            asset_name = str(asset['asset'].values)
-            break
-    if asset_name is None:
-        raise RuntimeError(f"No {category_select} asset generated")
+    # asset_name = None
+    # category_select = "high_growth"
+    # for asset in stocks.asset:
+    #     if asset['category'] == category_select:
+    #         asset_name = str(asset['asset'].values)
+    #         break
+    #
+    # if asset_name is None:
+    #     raise RuntimeError(f"No {category_select} asset generated")
 
+    asset_name = "asset_0"
     # Create ALLA model
     print("Initializing ALLA")
-    alla = ALLA(stocks, asset_memory_depth=20, budget=20)
+    alla = ALLA(stocks, asset_memory_depth=40, budget=100)
 
     # Process the first stock
-    print(f"Processing '{category_select}' stock '{asset_name}'")
+    # print(f"Processing '{category_select}' stock '{asset_name}'")
     while alla.budget > 0:
         logger.info(f"Calling process_asset with remaining budget: {alla.budget}")
         success = alla.process_asset(asset_name, max_budget=None)

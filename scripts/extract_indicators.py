@@ -42,7 +42,10 @@ if __name__ == '__main__':
             )
             # print(indicator)
             ind_list.append(indicator)
-        test_list[asset] = ind_list
 
-    with open('../tests/test_indicator_results.json', 'w') as f:
-        json.dump(test_list, f, indent=4)
+        write_path = os.path.join(
+            PROJECT_ROOT, "data/extracted_indicators/", llm.code, f"{asset}.json"
+        )
+
+        with open(write_path, 'w') as f:
+            json.dump(ind_list, f, indent=4)

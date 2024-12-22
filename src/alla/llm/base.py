@@ -72,7 +72,7 @@ class LLMBaseClass(ABC):
         reports = ""
 
         for filename in os.listdir(report_dir):
-            if filename in exclude:
+            if exclude is not None and filename in exclude:
                 continue
             if include is not None and filename not in include:
                 continue

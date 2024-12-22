@@ -180,9 +180,21 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
-def load_extracted_indicators(json_path: str):
+def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:
     """
     Load the extracted indicators from the JSON file.
+
+    Args:
+        json_path (str): The path to the JSON file containing the extracted indicators.
+        keys (list[str]): The keys to extract from the JSON file. Any of ["value", "indicator", "reason"]
     """
     with open(json_path, 'r') as f:
-        return json.load(f)
+        result = json.load(f)
+
+    keys = keys or ["value", "indicator", "reason"]
+
+    return [
+        {
+            key: r[key] for key in keys
+        } for r in result
+    ]
