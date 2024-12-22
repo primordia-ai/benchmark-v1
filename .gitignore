@@ -167,6 +167,7 @@ outputs/
 
 *tmp.py
 *tmp.yaml
+tmp.*
 
 results/tmp/*
 !results/tmp/.gitignore
