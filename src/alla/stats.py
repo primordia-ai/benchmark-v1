@@ -4,7 +4,9 @@ from typing import Union
 import numpy as np
 from scipy import stats
 from scipy.optimize import root_scalar
+import logging
 
+logger = logging.getLogger("alla")
 
 def mixture_entropy(weights, means, stds):
     """Compute entropy of a Gaussian mixture."""
@@ -102,14 +104,16 @@ class MixtureDistribution:
         Returns:
             List of quantiles
         """
-        # distributions = [stats.norm(loc=mean, scale=std) for mean, std in zip(means, stds)]
         items = [stats.norm(dist[0], dist[1]) if isinstance(dist, tuple) else dist for dist in distributions]
-        # Filter items with zero weight
-        filtered_items, filtered_weights = [], []
-        for item, w in zip(items, weights):
-            if w > 1e-6:
-                filtered_items.append(item)
-                filtered_weights.append(w)
 
-        mixture = cls(filtered_items, filtered_weights)
+        if abs(1 - sum(weights)) > 1e-4:
+            raise ValueError(f"Mixture weight sum exceeds 1e-4 padding, sum = {sum(weights)}")
+
+        if abs(1 - sum(weights)) > 1e-6:
+            # Normalize weights if needed
+            logger.warning(f"Renormalizing Mixture weights, sum = {sum(weights)}")
+            weights /= np.sum(weights)
+
+        mixture = cls(items, weights)
+
         return mixture.ppf(quantiles)

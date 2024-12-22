@@ -3,6 +3,8 @@ from typing import Any, Dict, List
 import numpy as np
 import xarray as xr
 
+from alla import utils
+
 # Core independent indicators with more realistic bounds
 INDEPENDENT_INDICATOR_INTERVALS = {
     # Profitability fundamentals (even troubled companies rarely go below -0.2)
@@ -757,7 +759,7 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     # Add some 2025 simulated growths to ds
     company_types = ['high_growth', 'stable', 'time_bomb']
     company_type = np.array([company_types.index(val) for val in ds.category.values])
-    growth_2025 = rng.normal(loc=GROWTH_MU[company_type], scale=GROWTH_SCALE[company_type])
+    growth_2025 = np.random.normal(loc=GROWTH_MU[company_type], scale=GROWTH_SCALE[company_type])
     ds['growth_2025'] = xr.DataArray(growth_2025, dims='asset')
 
     # Add attributes for metadata
@@ -773,8 +775,13 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
 # Ground Truth data
 
 def load_indicators() -> xr.Dataset:
-    return np.load(f"{PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
+    return np.load(f"{utils.PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
-def load_stocks() -> dict:
-    return np.load(f"{PROJECT_ROOT}/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
+    if as_dataset:
+        return stocks_to_xarray(
+            np.load(f"{utils.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+        )
+    else:
+        return np.load(f"{utils.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)

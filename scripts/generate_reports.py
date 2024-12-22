@@ -1,9 +1,11 @@
-import pickle
-import ollama
 import os
+import pickle
+
+import ollama
 from tqdm import tqdm
 
-#call a local llm and create reports for each soft indiactor in the data
+
+# call a local llm and create reports for each soft indiactor in the data
 # Usage: python generate_reports.py
 # Output: reports for each soft indicator in the data
 def get_prompt(indicator, value):
@@ -17,7 +19,7 @@ def get_prompt(indicator, value):
     Raises:
         KeyError: If the provided indicator is not found in the prompt dictionary.
     """
-   
+
     prompt_template = '''
         You are a financial reporter writing a report on a company's financial performance. 
         You have been given the following information:
@@ -31,7 +33,7 @@ def get_prompt(indicator, value):
         Format the report in markdown.
         The description and value of the indicator are given below:
         '''
-    
+
     prompt_dict = {
         "disruptor_stagnant": """
         A measure of whether a company identified as a disruptor in its industry has plateaued or ceased innovating,
@@ -174,11 +176,14 @@ def get_prompt(indicator, value):
         """
     }
 
-
     prompt = prompt_dict[indicator] + f"""The indicator value is: {value}"""
     return prompt_template + prompt
 
-def generate_report(indicator: str, value: str, asset_id : str='', save_path : str ='../reports', model_name : str='llama3.1:8b', verbose=False)->str:
+
+def generate_report(
+    indicator: str, value: str, asset_id: str = '', save_path: str = '../reports', model_name: str = 'llama3.1:8b',
+    verbose=False
+) -> str:
     """
     Generates a report based on the given indicator and value using a specified model.
     Args:
@@ -193,14 +198,14 @@ def generate_report(indicator: str, value: str, asset_id : str='', save_path : s
     Raises:
         KeyError: If the prompt for the given indicator is not found.
     """
-    if verbose==True:
+    if verbose == True:
         tqdm.write(f'Generating report for {indicator} with value {value}')
     try:
         prompt = get_prompt(indicator, value)
     except KeyError:
         tqdm.write(f'Prompt for {indicator} not found')
         return f'Prompt for {indicator} not found'
-    
+
     # Use LangChain Ollama API to call a local LLM and generate a report
     response = ollama.generate(model=model_name, prompt=prompt)
     report = response['response']
@@ -215,7 +220,8 @@ def generate_report(indicator: str, value: str, asset_id : str='', save_path : s
     with open(report_path, 'w') as report_file:
         report_file.write(report)
     return report
-        
+
+
 if __name__ == '__main__':
     import logging
 
@@ -230,9 +236,12 @@ if __name__ == '__main__':
     np.random.seed(SEED)
 
     # Read the pkl file
-    test=False
-    if test==True:
-        generate_report(indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports', model_name='llama3.1:8b')
+    test = False
+    if test == True:
+        generate_report(
+            indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports',
+            model_name='llama3.1:8b'
+        )
 
     else:
         ground_truth_path = '../data/ground-truth/stock_indicators.pkl'
@@ -241,7 +250,12 @@ if __name__ == '__main__':
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
-        for asset_id, soft_indicator_values in tqdm(zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values), desc="Assets", leave=True, position=0):
+        for asset_id, soft_indicator_values in tqdm(
+                zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values), desc="Assets",
+                leave=True, position=0
+        ):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
-            for indicator, value in tqdm(data.items(), desc="generating reports for indicators", position=1,leave=False):
+            for indicator, value in tqdm(
+                    data.items(), desc="generating reports for indicators", position=1, leave=False
+            ):
                 generate_report(indicator=indicator, value=value, asset_id=asset_id)
