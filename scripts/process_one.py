@@ -18,11 +18,10 @@ if __name__ == '__main__':
     from alla import synthetic as synth
     from alla.alla import ALLA
 
-
     # Generate synthetic stocks
-    n_stock = 111
-    print(f"Generating {n_stock} synthetic stocks...")
-    stocks = synth.generate_synthetic_stocks(n_stock)
+    # n_stock = 111
+    # print(f"Generating {n_stock} synthetic stocks...")
+    # stocks = synth.generate_synthetic_stocks(n_stock)
 
     # Select the first stock that is of this category
     # asset_name = None
@@ -34,6 +33,9 @@ if __name__ == '__main__':
     #
     # if asset_name is None:
     #     raise RuntimeError(f"No {category_select} asset generated")
+
+
+    stocks = synth.load_stocks(as_dataset=True)
 
     asset_name = "asset_0"
     # Create ALLA model

@@ -778,5 +778,10 @@ def load_indicators() -> xr.Dataset:
     return np.load(f"{utils.PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
-def load_stocks() -> dict:
-    return np.load(f"{utils.PROJECT_ROOT}/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
+    if as_dataset:
+        return stocks_to_xarray(
+            np.load(f"{utils.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+        )
+    else:
+        return np.load(f"{utils.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
