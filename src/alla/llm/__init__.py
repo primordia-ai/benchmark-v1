@@ -1,5 +1,6 @@
 from .llama import Llama
 
 AVAILABLE_MODELS = {
-    "llama": Llama
+    # Model codes to classes
+    Llama.code: Llama
 }

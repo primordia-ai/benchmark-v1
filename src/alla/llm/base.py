@@ -6,12 +6,25 @@ import os
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from pydantic import create_model, Field
-
+from pydantic import create_model, Field, BaseModel
 from alla.asset import Asset
 from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
+
+
+class GrowthEstimate(BaseModel):
+    mean: float
+    std: float
+
+class CategoryDistribution(BaseModel):
+    high_growth: float
+    stable: float
+    time_bomb: float
+
+class AssetEvaluation(BaseModel):
+    growth: GrowthEstimate
+    category: CategoryDistribution
 
 
 class LLMBaseClass(ABC):
@@ -107,5 +120,15 @@ class LLMBaseClass(ABC):
         :param verbose:         If True, prints additional information during execution.
 
         :return:                A dictionary with keys "name", "value", "reason"
+        """
+        raise NotImplementedError()
+
+    def evaluate_asset(self, asset: Asset) -> AssetEvaluation:
+        """
+        Evaluates an asset given its reports and indicators.
+        Produces this model's estimate of the asset's growth forecast and category distribution.
+
+        :param asset:   The asset to evaluate.
+        :return:        AssetEvaluation
         """
         raise NotImplementedError()

@@ -6,6 +6,7 @@ import os
 import random
 from typing import Union
 
+import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -15,7 +16,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.llm import Llama, utils as llm_utils
+from alla.llm import AVAILABLE_MODELS, utils as llm_utils
 from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
@@ -29,6 +30,7 @@ class ALLA:
     Stores a belief model of stock classes and their indicator likelihoods, etc.
     Stocks are one of High Growth, Stable, or Time Bomb.
     """
+    _version: str = "0.1"
 
     def __init__(
         self,
@@ -47,7 +49,10 @@ class ALLA:
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
-        self.llm = Llama(temperature=0.)
+
+        # LLM -- Llama for now
+        llm_model = AVAILABLE_MODELS["llama3.1:8b"]
+        self.llm = llm_model(temperature=0.)
 
         self.n_assets = len(self.stocks.asset)
         self.classes = {
@@ -603,6 +608,116 @@ class ALLA:
                         best_indicator = ind
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
+
+    def save_model(self) -> bool:
+        """
+        Save the model in the form of its various attribute states:
+            stocks:             The main stocks xr.Dataset.
+                                This also contains the 'quantile_pred', 'alphas', and 'prior' histories
+            ind_likelihoods:    The indicator likelihood matrix
+            indicator_costs:    The expected indicator costs object
+            indicator_utility_avg:  The running indicator utility average
+            ranked_indicators:  Current indicator rankings
+            llm:                The code of the LLM used
+            mu_g, sigma_g:      The truth mu and sigma generators
+            quantiles:          Quantiles
+        """
+        # The date as dd-mm-yyyy
+        date_str = datetime.datetime.now().strftime("%d-%m-%Y")
+        save_dir = os.path.join(PROJECT_ROOT, "models", date_str, f"alla_{self.llm.code}")
+        os.makedirs(save_dir, exist_ok=True)
+        logger.info(f"Saving model to {save_dir}")
+
+        try:
+            # Save xr dataset individually
+            self.stocks.to_netcdf(
+                os.path.join(save_dir, "stocks.nc")
+            )
+
+            # Save as npz
+            npz_path = os.path.join(save_dir, "alla.npz")
+            np.savez(
+                npz_path,
+                ind_likelihoods=self.ind_likelihoods,
+                indicator_costs=self.indicator_costs,
+                indicator_utility_avg=self.indicator_utility_avg,
+                ranked_indicators=self.ranked_indicators,
+                llm_code=self.llm.code,
+                llm_temp=self.llm.temperature,
+                mu_g=self.mu_g,
+                sigma_g=self.sigma_g,
+                quantiles=self.quantiles,
+            )
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to save model: {e}")
+            return False
+
+    @classmethod
+    def load_model(cls, model_dir: str) -> "ALLA":
+        """
+        Load model from its directory
+        """
+        logger.info(f"Loading model from {model_dir}...")
+        try:
+            stocks_path = os.path.join(model_dir, "stocks.nc")
+            model_path = os.path.join(model_dir, "alla.npz")
+            # Check these are valid paths
+            if not os.path.exists(model_dir):
+                raise FileNotFoundError(f"Model directory '{model_dir}' not found")
+            if not os.path.exists(stocks_path):
+                raise FileNotFoundError(f"Stocks dataset not found at '{stocks_path}'. Is it named 'stocks.nc'?")
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"Could not find ALLA model at '{model_path}'. Is it named 'alla.npz'?")
+
+            # Load the xr dataset
+            stocks = xr.open_dataset(stocks_path)
+            # Load the npz
+            model_data = np.load(model_path)
+
+            try:
+                ind_likelihoods = model_data['ind_likelihoods']
+                indicator_costs = model_data['indicator_costs']
+                indicator_utility_avg = model_data['indicator_utility_avg']
+                ranked_indicators = model_data['ranked_indicators']
+                llm_code = model_data['llm_code']
+                llm_temp = model_data['llm_temp']
+                mu_g = model_data['mu_g']
+                sigma_g = model_data['sigma_g']
+                quantiles = model_data['quantiles']
+            except KeyError as e:
+                raise KeyError(f"Failed to load model data: {e}")
+
+            # We infer the memory depth from stocks dataset
+            asset_memory_depth = stocks.time.size
+
+            # Create the model
+            alla = cls(
+                stocks_dataset=stocks, asset_memory_depth=asset_memory_depth
+            )
+            # Set the loaded data
+            alla.ind_likelihoods = ind_likelihoods
+            alla.indicator_costs = indicator_costs
+            alla.indicator_utility_avg = indicator_utility_avg
+            alla.ranked_indicators = ranked_indicators
+            alla.mu_g = mu_g
+            alla.sigma_g = sigma_g
+            alla.quantiles = quantiles
+            if llm_code not in AVAILABLE_MODELS:
+                logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
+                alla.llm = None
+            else:
+                alla.llm = AVAILABLE_MODELS[llm_code](
+                    temperature=llm_temp
+                )
+
+            logger.info("Model loaded successfully")
+            return alla
+
+        except Exception as e:
+            logger.error(f"Failed to load model: {e}")
 
     def plot_history(self, asset: str, save_path: str | None = None):
         """

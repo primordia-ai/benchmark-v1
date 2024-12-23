@@ -6,8 +6,9 @@ import instructor
 from openai import OpenAI
 from tqdm import tqdm
 
+from alla.asset import Asset
 from alla.llm import utils as llm_utils
-from alla.llm.base import LLMBaseClass
+from alla.llm.base import AssetEvaluation, LLMBaseClass
 from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
@@ -77,3 +78,22 @@ class Llama(LLMBaseClass):
         )
 
         return response.model_dump()
+
+    def evaluate_asset(self, asset: Asset) -> AssetEvaluation:
+        """See base class for description"""
+
+
+
+        # Extract indicators from the reports
+        indicators = {}
+        for indicator_name in asset.indicators:
+            indicators[indicator_name] = self.extract_indicator(
+                indicator_name,
+                asset.asset_id,
+                reports_text=asset.reports,
+            )
+
+        return AssetEvaluation(
+            asset_id=asset.asset_id,
+            indicators=indicators,
+        )
