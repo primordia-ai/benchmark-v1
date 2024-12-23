@@ -40,13 +40,13 @@ if __name__ == '__main__':
     asset_name = "asset_0"
     # Create ALLA model
     print("Initializing ALLA")
-    alla = ALLA(stocks, asset_memory_depth=40, budget=100)
+    m = ALLA(stocks, asset_memory_depth=40, budget=100)
 
     # Process the first stock
     # print(f"Processing '{category_select}' stock '{asset_name}'")
-    while alla.budget > 0:
-        logger.info(f"Calling process_asset with remaining budget: {alla.budget}")
-        success = alla.process_asset(asset_name, max_budget=None)
+    while m.budget > 0:
+        logger.info(f"Calling process_asset with remaining budget: {m.budget}")
+        success = m.process_asset(asset_name, max_budget=None)
         if not success:
             # Insufficient budget to iterate
             break
@@ -54,4 +54,4 @@ if __name__ == '__main__':
 
     # Plot
     save_path = "../results/tmp/latest.png"
-    alla.plot_history(asset_name, save_path=save_path)
+    m.plot_history(asset_name, save_path=save_path)

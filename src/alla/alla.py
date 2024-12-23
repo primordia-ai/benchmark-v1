@@ -1,12 +1,12 @@
 """
 ALLA Models
 """
+import datetime
 import logging
 import os
 import random
 from typing import Union
 
-import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -633,12 +633,14 @@ class ALLA:
             self.stocks.to_netcdf(
                 os.path.join(save_dir, "stocks.nc")
             )
+            self.ind_likelihoods.to_netcdf(
+                os.path.join(save_dir, "ind_likelihoods.nc")
+            )
 
             # Save as npz
             npz_path = os.path.join(save_dir, "alla.npz")
             np.savez(
                 npz_path,
-                ind_likelihoods=self.ind_likelihoods,
                 indicator_costs=self.indicator_costs,
                 indicator_utility_avg=self.indicator_utility_avg,
                 ranked_indicators=self.ranked_indicators,
@@ -661,63 +663,65 @@ class ALLA:
         Load model from its directory
         """
         logger.info(f"Loading model from {model_dir}...")
-        try:
-            stocks_path = os.path.join(model_dir, "stocks.nc")
-            model_path = os.path.join(model_dir, "alla.npz")
-            # Check these are valid paths
-            if not os.path.exists(model_dir):
-                raise FileNotFoundError(f"Model directory '{model_dir}' not found")
-            if not os.path.exists(stocks_path):
-                raise FileNotFoundError(f"Stocks dataset not found at '{stocks_path}'. Is it named 'stocks.nc'?")
-            if not os.path.exists(model_path):
-                raise FileNotFoundError(f"Could not find ALLA model at '{model_path}'. Is it named 'alla.npz'?")
+        # Check this is valid dir
+        if not os.path.exists(model_dir):
+            raise FileNotFoundError(f"Model directory '{model_dir}' not found")
 
-            # Load the xr dataset
-            stocks = xr.open_dataset(stocks_path)
-            # Load the npz
-            model_data = np.load(model_path)
+        stocks_path = os.path.join(model_dir, "stocks.nc")
+        ind_path = os.path.join(model_dir, "ind_likelihoods.nc")
+        model_path = os.path.join(model_dir, "alla.npz")
 
-            try:
-                ind_likelihoods = model_data['ind_likelihoods']
-                indicator_costs = model_data['indicator_costs']
-                indicator_utility_avg = model_data['indicator_utility_avg']
-                ranked_indicators = model_data['ranked_indicators']
-                llm_code = model_data['llm_code']
-                llm_temp = model_data['llm_temp']
-                mu_g = model_data['mu_g']
-                sigma_g = model_data['sigma_g']
-                quantiles = model_data['quantiles']
-            except KeyError as e:
-                raise KeyError(f"Failed to load model data: {e}")
+        stocks = xr.open_dataset(stocks_path)
+        ind_likelihoods = xr.open_dataset(ind_path)
+        model_data = np.load(model_path, allow_pickle=True)
 
-            # We infer the memory depth from stocks dataset
-            asset_memory_depth = stocks.time.size
+        indicator_costs = model_data['indicator_costs'].item()
+        indicator_utility_avg = model_data['indicator_utility_avg']
+        ranked_indicators = model_data['ranked_indicators']
+        llm_code = model_data['llm_code'].item()
+        llm_temp = model_data['llm_temp'].item()
+        mu_g = model_data['mu_g']
+        sigma_g = model_data['sigma_g']
+        quantiles = model_data['quantiles']
 
-            # Create the model
-            alla = cls(
-                stocks_dataset=stocks, asset_memory_depth=asset_memory_depth
+        # We infer the memory depth from stocks dataset
+        asset_memory_depth = stocks.time.size
+
+        # Create the model
+        m = cls(
+            stocks_dataset=stocks, asset_memory_depth=asset_memory_depth
+        )
+        # Set the loaded data
+        m.ind_likelihoods = ind_likelihoods
+        m.indicator_costs = indicator_costs
+        m.indicator_utility_avg = indicator_utility_avg
+        m.ranked_indicators = ranked_indicators
+        m.mu_g = mu_g
+        m.sigma_g = sigma_g
+        m.quantiles = quantiles
+        if llm_code not in AVAILABLE_MODELS:
+            logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
+            m.llm = None
+        else:
+            m.llm = AVAILABLE_MODELS[llm_code](
+                temperature=llm_temp
             )
-            # Set the loaded data
-            alla.ind_likelihoods = ind_likelihoods
-            alla.indicator_costs = indicator_costs
-            alla.indicator_utility_avg = indicator_utility_avg
-            alla.ranked_indicators = ranked_indicators
-            alla.mu_g = mu_g
-            alla.sigma_g = sigma_g
-            alla.quantiles = quantiles
-            if llm_code not in AVAILABLE_MODELS:
-                logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
-                alla.llm = None
-            else:
-                alla.llm = AVAILABLE_MODELS[llm_code](
-                    temperature=llm_temp
-                )
 
-            logger.info("Model loaded successfully")
-            return alla
+        # Some extras
+        # List of soft indicator names
+        m.soft_indicators = list(
+            stocks.coords['indicator'].values[
+                stocks.coords['indicator_type'].values == 'soft'
+            ]
+        )
+        m.indicators = m.ordered_indicators = stocks.coords['indicator'].values.tolist()
+        m.name_to_idx = {name: i for i, name in enumerate(m.ordered_indicators)}
+        m.idx_to_name = {i: name for i, name in enumerate(m.ordered_indicators)}
 
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
+        m.n_indicator = len(m.ordered_indicators)
+
+        logger.info("Model loaded successfully")
+        return m
 
     def plot_history(self, asset: str, save_path: str | None = None):
         """
