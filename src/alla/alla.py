@@ -609,7 +609,7 @@ class ALLA:
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
 
-    def save_model(self) -> bool:
+    def save_model(self, model_name: str | None = None) -> bool:
         """
         Save the model in the form of its various attribute states:
             stocks:             The main stocks xr.Dataset.
@@ -621,10 +621,15 @@ class ALLA:
             llm:                The code of the LLM used
             mu_g, sigma_g:      The truth mu and sigma generators
             quantiles:          Quantiles
+
+        :param model_name:  String name, relative to `models/` directory
         """
-        # The date as dd-mm-yyyy
-        date_str = datetime.datetime.now().strftime("%d-%m-%Y")
-        save_dir = os.path.join(PROJECT_ROOT, "models", date_str, f"alla_{self.llm.code}")
+        if not model_name:
+            # The date as dd-mm-yyyy
+            date_str = datetime.datetime.now().strftime("%d-%m-%Y_%H%M")
+            model_name = os.path.join(date_str, f"alla_{self.llm.code}")
+
+        save_dir = os.path.join(PROJECT_ROOT, "models", model_name)
         os.makedirs(save_dir, exist_ok=True)
         logger.info(f"Saving model to {save_dir}")
 
