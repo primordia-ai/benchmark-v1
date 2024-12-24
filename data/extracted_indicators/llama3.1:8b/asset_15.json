@@ -1,0 +1,72 @@
+[
+  {
+    "indicator": "disruptor_stagnant",
+    "value": "red",
+    "reason": "The company's ability to manage its operations effectively and sustainably, as well as its resilience in the face of disruptions."
+  },
+  {
+    "indicator": "incumbent_stagnant",
+    "value": "red",
+    "reason": "The company's ability to manage its operations effectively and sustainably, as well as its leadership continuity and supply chain resilience."
+  },
+  {
+    "indicator": "turnaround_plan",
+    "value": "red",
+    "reason": "The company's turnaround plan is red because of the recent financial losses."
+  },
+  {
+    "indicator": "succession_risk",
+    "value": "red",
+    "reason": "The risk of leadership continuity and stability within an organization."
+  },
+  {
+    "indicator": "mismanagement",
+    "value": "red",
+    "reason": "The company has been experiencing mismanagement due to poor leadership."
+  },
+  {
+    "indicator": "geopolitical_risk",
+    "value": "red",
+    "reason": "The company's exposure to regulatory hurdles and compliance challenges has reached a critical level."
+  },
+  {
+    "indicator": "environmental_risk",
+    "value": "red",
+    "reason": "This indicator evaluates a company's ability to manage its operations effectively and sustainably, with a focus on environmental risks."
+  },
+  {
+    "indicator": "product_moat",
+    "value": "red",
+    "reason": "The company's product has a strong moat, making it difficult for competitors to enter the market."
+  },
+  {
+    "indicator": "supply_chain_resilience",
+    "value": "green",
+    "reason": "The company has demonstrated robustness and adaptability in managing supply chain disruptions. It has diversified its suppliers, managed inventory levels effectively, and integrated technology into its operations to enhance visibility and control over the supply chain."
+  },
+  {
+    "indicator": "regulatory_pressure",
+    "value": "red",
+    "reason": "The level of scrutiny from relevant authorities that may impact the company's operational efficiency and financial standing."
+  },
+  {
+    "indicator": "innovation_pipeline",
+    "value": "red",
+    "reason": "This indicator evaluates a company's ability to manage its operations effectively and sustainably, including its commitment to innovation and investment in research and development."
+  },
+  {
+    "indicator": "customer_concentration",
+    "value": "red",
+    "reason": "This indicator evaluates a company's exposure to risks associated with relying heavily on a small number of customers."
+  },
+  {
+    "indicator": "brand_strength",
+    "value": "green",
+    "reason": "good performance"
+  },
+  {
+    "indicator": "digital_transformation",
+    "value": "red",
+    "reason": "The company's ability to manage its operations effectively and sustainably through digital transformation."
+  }
+]

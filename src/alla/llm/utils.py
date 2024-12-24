@@ -6,7 +6,7 @@ import json
 
 from alla.utils import PROJECT_ROOT
 
-PROMPT_SRC = os.path.join(PROJECT_ROOT, "src/llm/prompts/")
+PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
 
 SOFT_INDICATOR_DESC = {
     "disruptor_stagnant": """
