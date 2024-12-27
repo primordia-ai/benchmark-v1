@@ -79,11 +79,8 @@ class Llama(LLMBaseClass):
 
         return response.model_dump()
 
-    def evaluate_asset(self, asset: Asset) -> AssetEvaluation:
+    def evaluate_asset(self, asset: Asset, reports_txt: str, prompt: str) -> AssetEvaluation:
         """See base class for description"""
-
-
-
         # Extract indicators from the reports
         indicators = {}
         for indicator_name in asset.indicators:

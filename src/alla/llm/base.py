@@ -123,12 +123,14 @@ class LLMBaseClass(ABC):
         """
         raise NotImplementedError()
 
-    def evaluate_asset(self, asset: Asset) -> AssetEvaluation:
+    def evaluate_asset(self, asset: Asset, reports_txt: str, prompt: str) -> AssetEvaluation:
         """
         Evaluates an asset given its reports and indicators.
         Produces this model's estimate of the asset's growth forecast and category distribution.
 
-        :param asset:   The asset to evaluate.
-        :return:        AssetEvaluation
+        :param asset:           The asset to evaluate.
+        :param reports_txt:     The reports data in a block of text.
+        :param prompt:          The prompt to use for the evaluation.
+        :return:                AssetEvaluation
         """
         raise NotImplementedError()
