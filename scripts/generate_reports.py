@@ -41,7 +41,11 @@ def get_prompt(indicator, value):
 
 
 def generate_report(
-    indicator: str, value: str, asset_id: str = '', save_path: str = '../reports', model_name: str = 'llama3.1:8b',
+    indicator: str,
+    value: str,
+    model_code: str,
+    asset_id: str = '',
+    save_path: str = '../reports',
     verbose=False
 ) -> str:
     """
@@ -49,9 +53,9 @@ def generate_report(
     Args:
         indicator (str): The indicator for which the report is to be generated.
         value (str): The value associated with the indicator.
+        model_code (str): The name of the code to be used for generating the report.
         asset_id (str, optional): The asset ID for which the report is being generated. Defaults to ''.
         save_path (str, optional): The path where the report will be saved. Defaults to 'reports'.
-        model_name (str, optional): The name of the model to be used for generating the report. Defaults to 'llama3.1:8b'.
         verbose (bool, optional): Whether to print verbose output. Defaults to False.
     Returns:
         str: The generated report as a string.
@@ -67,7 +71,7 @@ def generate_report(
         return f'Prompt for {indicator} not found'
 
     # Use LangChain Ollama API to call a local LLM and generate a report
-    response = ollama.generate(model=model_name, prompt=prompt)
+    response = ollama.generate(model=model_code, prompt=prompt)
     report = response['response']
     # Save the report to the specified path
 

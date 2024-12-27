@@ -55,11 +55,6 @@ class LLMBaseClass(ABC):
         """
         return create_model(
             'LLMIndicator',
-            indicator=(Literal[indicator_name], Field(
-                ...,
-                title="Indicator name",
-                description="The name of the indicator to evaluate the company's performance as given by the prompt."
-            )),
             value=(Literal['red', 'yellow', 'green'], Field(
                 ...,
                 title="Indicator value",

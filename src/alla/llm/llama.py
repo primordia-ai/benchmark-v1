@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 
@@ -14,13 +13,16 @@ from alla.utils import PROJECT_ROOT
 logger = logging.getLogger("alla")
 
 
-class Llama(LLMBaseClass):
+class LlamaSmall(LLMBaseClass):
     """
-    Llama model
+    Small Llama model
     """
-    name = "Llama"
-    code = 'llama3.1:8b'
-
+    name = "Llama 3.1:8b"
+    code = "llama3.1:8b"
+    aliases = [
+        "llama-small",
+        "llama-8b",
+    ]
 
     def __init__(self, temperature: float = 0.0):
         super().__init__(temperature)
@@ -49,7 +51,7 @@ class Llama(LLMBaseClass):
             reports_text = self.read_reports(report_dir, include, exclude)
 
         if verbose is True:
-            tqdm.write(f'Inferring value from report for asset_id {asset_id} for {indicator_name}')
+            tqdm.write(f"Inferring value from report for '{asset_id}' for {indicator_name}")
 
         try:
             prompt = llm_utils.prompt_se_context(indicator_name, reports_text)
@@ -68,16 +70,23 @@ class Llama(LLMBaseClass):
             ),
             mode=instructor.Mode.JSON,
         )
+
+        resp_model = self._create_indicator_class(indicator_name)
+
         response = client.chat.completions.create(
             model=self.code,
             temperature=self.temperature,
             messages=[
                 {"role": "user", "content": prompt},
             ],
-            response_model=self._create_indicator_class(indicator_name),
+            response_model=resp_model,
+            max_retries=3,
         )
+        py_response = response.model_dump()
+        # Add the indicator value
+        py_response["indicator"] = indicator_name
 
-        return response.model_dump()
+        return py_response
 
     def evaluate_asset(self, asset: Asset, reports_txt: str, prompt: str) -> AssetEvaluation:
         """See base class for description"""
@@ -94,3 +103,12 @@ class Llama(LLMBaseClass):
             asset_id=asset.asset_id,
             indicators=indicators,
         )
+
+
+class LlamaTiny(LlamaSmall):
+    name = "Llama 3.2:1b"
+    code = "llama3.2:1b"
+    aliases = [
+        "llama-tiny",
+        "llama-1b",
+    ]
