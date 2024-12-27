@@ -34,11 +34,13 @@ if __name__ == '__main__':
 
     for asset in tqdm(asset_ids, desc="Asset"):
         ind_list = []
+        # Read all the reports for this asset
+        reports_dir = os.path.join(PROJECT_ROOT, f"data/reports/{asset}")
+        reports_text = llm.read_reports(reports_dir)
+
         for ind in tqdm(soft_indicators, leave=False, desc="Indicator"):
-            # Read all the reports for this asset
-            os.path.join(PROJECT_ROOT, f"data/reports/{asset}")
             indicator = llm.extract_indicator(
-                indicator_name=ind, asset_id=asset,
+                indicator_name=ind, asset_id=asset, reports_text=reports_text,
             )
             # print(indicator)
             ind_list.append(indicator)
