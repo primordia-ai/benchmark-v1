@@ -105,6 +105,14 @@ class LlamaSmall(LLMBaseClass):
         )
 
 
+
+class LlamaSmallAlt(LlamaSmall):
+    """Another 8B model, that works with older versions of Ollama : / """
+    name = "Llama 3:8b"
+    code = "llama3:8b"
+    aliases = []
+
+
 class LlamaTiny(LlamaSmall):
     name = "Llama 3.2:1b"
     code = "llama3.2:1b"
