@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's market share has shown a decline over the past quarter, indicating a potential loss of momentum. Investment in research and development (R&D) has decreased significantly, raising concerns about the company's ability to stay ahead of competitors. Product launches have become less frequent, suggesting that the company is not introducing new offerings at the same pace as before.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company is struggling to keep pace with changing market conditions and technological advancements, indicating a lack of agility in responding to emerging trends. This suggests that the company is not adapting quickly enough to stay ahead of competitors, which aligns with the 'red' value for an incumbent_stagnant indicator.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has maintained a neutral stance in its efforts to recover from recent challenges. While progress has been made, it remains to be seen whether these steps will ultimately lead to a significant improvement.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's vulnerability to disruptions stemming from international events has worsened, indicating high exposure to unstable regions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's performance reveals a concerning trend in its exposure to environmental risks. Specifically, we have identified a negative impact on the company's operations related to regulatory changes and resource scarcity.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors is under threat. Despite efforts to establish itself as a leader, the company appears to be vulnerable to competition from other firms.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's ability to withstand disruptions in its supply chain remains a pressing concern. The supplier diversification efforts are not sufficient, and inventory management strategies may not provide adequate protection against stockouts or overstocking situations. Additionally, technology integration requires attention for real-time monitoring and response capabilities. These factors indicate a fragile and single-source dependent supply chain, which is represented by the color red.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a heightened level of regulatory scrutiny, indicating that the company is subject to active investigations or issues. This warrants attention due to an increased exposure to regulatory challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "According to the report, the company has become overly reliant on a small number of customers, which can lead to an imbalance in bargaining power and create instability in their revenue. This suggests that the value of the 'customer_concentration' indicator is red, indicating a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's overall standing has remained stable over the past quarter, indicating a neutral performance. The reputation and customer loyalty are viewed as average by industry peers, which suggests that there are opportunities for improvement in terms of customer satisfaction and marketing effectiveness.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company has struggled to make significant progress in leveraging digital technologies to drive operational efficiency, customer engagement, and competitiveness. Despite efforts to adopt cloud-based systems and automate workflows, the results have been underwhelming.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has demonstrated continued momentum in its industry, with no signs of plateauing or ceasing to innovate. This is reflected in a robust pipeline of new product launches, significant investment in research and development (R&D), and a growing market share.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has failed to adapt to changing market conditions, technological advancements, and evolving consumer preferences, which indicates a negative performance. The fact that the company has struggled to keep pace with its competitors in adopting digital tools and processes also suggests stagnation.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's efforts to recover from its recent challenges have been assessed, and the results are concerning. Despite some initial steps, it appears that the company still faces significant hurdles in achieving its goals.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant progress in addressing concerns about key personnel changes by identifying and developing suitable candidates for critical roles, reducing the risk of instability and strategic disruption.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Recent developments suggest that steps have been taken to address underlying issues with management practices, and the results are beginning to show.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated strength in navigating complex global market conditions, implementing effective strategies to manage risks and ensure business continuity. This stability is expected to continue driving long-term growth and success for the organization.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates that the company has successfully mitigated potential negative impacts related to climate change, regulatory changes, and resource scarcity. The company's effective compliance with emissions regulations has resulted in no penalties or fines, and its proactive approach has allowed it to identify and capitalize on opportunities arising from changes in environmental regulations.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The evaluation of our ability to maintain a significant market advantage through innovative products and strategic partnerships shows positive results. Our efforts to secure exclusive agreements with key suppliers have paid off, while our research and development initiatives continue to yield valuable intellectual property.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's ability to withstand disruptions in its supply chain has revealed a strong and resilient infrastructure. Despite potential risks such as natural disasters or supplier failures, the company's strategy for managing its supply chain has proven effective.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company appears to be well-positioned in terms of its ability to navigate and comply with regulatory requirements. Our review indicates that the company is not currently subject to any significant regulatory scrutiny or compliance challenges, which could potentially impact its operations or financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance in the area of innovation pipeline has shown significant improvement, with substantial progress made in investing in future growth prospects. The successful rollout of new products and commitment to cross-functional collaboration have contributed to this improvement, positioning the company for continued leadership in its industry.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's reliance on a select group of customers has not led to significant concerns about revenue stability, indicating a moderate concentration. Management's efforts to diversify the customer base and reduce dependence on a few large clients appear to be yielding positive results.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's brand strength has not met expectations, raising concerns about its competitive positioning and pricing power. Several factors contribute to this assessment.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company still relies heavily on manual systems, which can lead to inefficiencies and delays in decision-making. Additionally, customer feedback indicates that their experience with the company's digital platforms is often frustrating, with many citing difficulty navigating the website or mobile app.",
+        "indicator": "digital_transformation"
+    }
+]

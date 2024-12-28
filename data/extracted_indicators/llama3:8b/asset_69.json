@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's market share has been declining over time, indicating that it is no longer able to compete effectively with its peers. This could be a result of reduced investment in research and development (R&D), as well as stagnation in product launches.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to changing market conditions and technological advancements, which indicates that it is not stagnant. The willingness to embrace new ideas and technologies, improve operational efficiency, enhance customer experience, and expand its market reach all suggest that the company is dominant in its industry.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place for key leadership roles, high dependence on a single individual without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis revealed a concerning trend in management practices, with inconsistent decision-making and lack of financial oversight. While not necessarily indicative of catastrophic failure, there are indications that certain decisions may be lacking in consistency and oversight.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our review of the company's performance has highlighted a neutral assessment of its exposure to global risks. While not indicating a positive or negative trend, this evaluation suggests that the company is managing these risks effectively.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's recent performance indicates a significant concern in its handling of environmental risks. While the company has made efforts to mitigate these risks, our indicators suggest that it still faces substantial exposure.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a robust ability to maintain its competitive advantage in the market through unique offerings, strategic partnerships, and economies of scale. This has created significant barriers to entry for competitors and solidified its position as a leader in the industry.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that there are areas of concern with regards to the company's ability to withstand disruptions in its supply chain. While the company has made efforts to diversify its suppliers, our assessment suggests that this strategy may not be effective enough to mitigate potential risks.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "Despite no significant red flags, there are also no indicators of outstanding success. The company is facing moderate levels of regulatory scrutiny or compliance challenges, which could potentially impact its operations or financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's analysis of its capacity for ongoing innovation has yielded a strong result, with a robust pipeline for new products and technologies. The review indicates consistent funding, successful product rollouts, effective cross-functional collaboration, and the ability to adapt to technological advancements.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully diversified its customer base, which should help reduce reliance on any single client. This proactive approach is likely to have a positive impact on bargaining power and overall revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's performance suggests a negative trend in its ability to maintain strong relationships with customers and effectively compete in the market. This is reflected in several key areas.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's efforts in embracing digital technologies have not been successful. While there are some initiatives underway to adopt cloud-based systems and automate workflows, these efforts have fallen short of expectations.",
+        "indicator": "digital_transformation"
+    }
+]

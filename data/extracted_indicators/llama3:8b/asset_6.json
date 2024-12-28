@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's innovation trajectory has been on a downward slope, indicating a possible plateau or even stagnation in its ability to stay ahead of the competition. The lack of investment in research and development (R&D) is evident, which can have long-term consequences for its market share and competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has been moderately successful in keeping pace with industry developments, but there are areas where it may be struggling to respond quickly enough to emerging trends. While not critical at this time, these issues could potentially impact the company's long-term competitiveness and growth prospects.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of [Company Name]'s performance indicates a concerning trend with respect to its ability to navigate complex global economic environments. The company remains vulnerable to unforeseen events that could impact its operations and profitability, specifically in areas where the supply chain may be exposed to disruptions or currency fluctuations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's recent financials reveals a positive trend in its ability to manage risks related to environmental issues. This aspect of the business has shown a significant improvement, indicating that the company is well-prepared to navigate potential challenges.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to maintain its competitive edge remains robust, with formidable barriers to entry for potential competitors, a portfolio of patents and exclusive partnerships, and economies of scale providing a strong foundation for the company's continued growth and dominance in its industry.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on a limited number of suppliers has exposed it to significant risks. The inventory management strategies appear to be inadequate, and the integration of technology into its supply chain processes appears to be lacking.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company is facing heightened regulatory scrutiny with potential implications for its financial performance. The report highlights active investigations/issues, which aligns with the red value description.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The analysis reveals a concerning trend in the company's capacity for ongoing innovation, with a lack of consistent funding, inadequate cross-functional collaboration, and disappointing results from new product rollouts. This suggests that the company is struggling to keep pace with industry trends and may be falling behind its competitors.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the company has stabilized its reliance on a select few customers, with efforts to diversify and expand its customer base yielding positive results. The company is actively working to reduce its dependence on these large customers, which should help mitigate risks associated with revenue instability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The recent assessment has shown a negative trend in this area, reflecting a decline in customer satisfaction and loyalty. This may have implications for competitive positioning and pricing power.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's lack of progress in harnessing digital technologies to drive growth and falling behind its peers in this critical area suggests a negative performance, represented by the color red.",
+        "indicator": "digital_transformation"
+    }
+]

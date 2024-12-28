@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "While the company's overall trajectory remains steady, there are indications that it may be due for a shift in strategy. The company has begun to stagnate in terms of innovation, reflected in its reduced investment in research and development (R&D) over the past quarter. Despite this, we do not see any immediate cause for alarm.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company is struggling to keep pace with industry developments, falling behind in its ability to adapt to changing market conditions, technological advancements, and shifting consumer preferences. Its inability to pivot and respond effectively to emerging trends may hinder the company's ability to stay competitive in the long term.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's efforts to implement a comprehensive recovery plan have not yet yielded the desired results. Key initiatives, such as leadership restructuring and cost-cutting measures, have been slow in materializing or have encountered setbacks.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights that the company's decision-making processes are being consistently executed with a focus on oversight and stakeholder engagement. This suggests that there were previously instances of poor governance or neglect of stakeholder concerns, but these issues have been addressed. The recommendation to review internal policies and procedures also implies that management practices have improved.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's operations are particularly vulnerable to unforeseen events or policy changes that could impact its supply chain and financials, indicating a high exposure to unstable regions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's exposure to risks associated with climate change, regulatory changes, or resource scarcity is at its best level in recent history. This indicates that the management's efforts to mitigate these risks are paying off, and the company is well-positioned to navigate any challenges that may arise from environmental issues.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made significant investments in research and development, it does not appear to have yet achieved a sustainable competitive edge. Partnerships and collaborations are in place, but they do not seem to be exclusive or particularly advantageous.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has implemented some strategies to mitigate risks, it appears to be vulnerable to external shocks. Specifically, the robustness and adaptability of its supply chain to disruptions such as natural disasters or supplier failures could be improved.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company enjoys a favorable position when it comes to navigating complex regulatory requirements, having effectively implemented compliance protocols and robust governance structures. This has allowed the organization to minimize potential disruptions to its operations and maintain a stable financial footing.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's capacity for ongoing innovation has been a significant driver of its growth and success. The strong pipeline of innovative products and services has been a key factor in the company's ability to adapt quickly to changing market conditions.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report indicates that the company's reliance on a select group of customers has stabilized, but there are still opportunities for improvement in terms of diversifying revenue streams. This suggests a moderate level of concentration, which corresponds to the yellow indicator value.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Unfortunately, our analysis indicates that this indicator is currently in a negative position. While the company continues to make significant strides in certain areas, there are several factors contributing to this downward trend.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a significant improvement in its capacity to harness the power of cloud-based systems, automated workflows, and AI-driven analytics. This strategic pivot is yielding positive results, as evidenced by the company's enhanced agility, reduced costs, and improved decision-making capabilities.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's performance review suggests that innovation has slowed significantly, and the company is showing signs of stagnation. This includes declining market share, reduced investment in research and development (R&D), and a slowdown in new product launches.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has failed to adapt to changing market conditions and technological advancements, indicating a potential vulnerability to disruption from competitors. This suggests that the company is not dominant in its sector and is at risk of falling behind.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "Plan in development",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a concerning trend in the company's management practices, including inconsistent decision-making and lack of financial oversight. These issues could negatively impact the company's performance or reputation if not addressed.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company has experienced a significant challenge related to its global operations, which poses a risk to its supply chain and may lead to currency fluctuations. This suggests high exposure to unstable regions, indicating a red value for the geopolitical_risk indicator.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report indicates a negative performance in this area, suggesting that the company is facing significant challenges related to its environmental practices. This could have long-term implications for the company's bottom line and reputation.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors has been underwhelming. The analysis reveals a lack of meaningful barriers to entry for competitors and failed partnerships, which may ultimately erode the company's market position.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's supply chain is not adequately diversified, leaving it vulnerable to supplier failures or geopolitical events. This lack of diversification is compounded by insufficient inventory management strategies, which can lead to stockouts and lost sales during times of disruption.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company is currently facing significant regulatory headwinds, which may impact its operations and financial performance going forward. This development has been flagged as a major risk factor by our team of analysts.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's ongoing innovation capacity reveals areas of concern. While investments in research and development are crucial for long-term growth, our evaluation suggests that these efforts may be falling short.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's revenue is still heavily dependent on a small group of customers, which creates an imbalance that could lead to difficulties if any one of these key clients were to cease doing business with the company or reduce their activity levels.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights the company's struggles to create value for customers, maintain strong relationships with its customer base, and establish itself as a leader in its market. The weak brand reputation and loyalty are major concerns, indicating that the brand strength is currently 'red', representing a negative performance.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there have been some positive developments, such as the adoption of cloud-based systems and automation of workflows, more work needs to be done to fully realize the benefits of these initiatives.",
+        "indicator": "digital_transformation"
+    }
+]

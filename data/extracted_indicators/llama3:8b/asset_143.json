@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company's performance has revealed mixed signals, with a decline in market share, reduced investment in R&D, and stagnation in product launches. While these signs are concerning, they do not necessarily indicate a catastrophic situation.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has struggled to keep pace with market changes, technological advancements, and evolving consumer preferences. It has been slow to adapt to changing circumstances, often lagging behind competitors in adopting new technologies and strategies. This lack of agility has put the company at a disadvantage in terms of market share and revenue growth.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The evaluation of potential risks to the company due to lack of clear succession planning for key leadership roles has shown a positive trend. This suggests that the company is well-prepared to handle any future challenges or changes in its leadership structure, ensuring stability and strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis has revealed a concerning trend in the company's management practices. It appears that there are inconsistencies in decision-making, which may indicate a lack of effective oversight and governance.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively managed external risks, exhibiting a robust and resilient posture. The assessment of potential disruptions from global events, trade agreements, or regional instability has been highly favorable.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's current standing reveals a concerning trend in its ability to mitigate risks associated with environmental issues. Specifically, the company's exposure to potential liabilities and operational disruptions stemming from climate change, regulatory changes, or resource scarcity has resulted in a negative performance.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's investments in research and development, strategic partnerships, and operational efficiency have paid off, allowing it to maintain a significant competitive advantage in its market. The presence of a strong moat can be attributed to several factors, including the successful deployment of patents and other forms of intellectual property, as well as the establishment of exclusive partnerships with key suppliers and customers.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to disruptions, including natural disasters and geopolitical events. This is evident from its effective management strategies, which include diversifying suppliers, implementing efficient inventory management systems, and integrating technology into its supply chain processes.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to navigate regulatory environments with minimal disruption to operations or financial performance reported, indicating a clean regulatory history.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance indicates that it is well-equipped to continue innovating and adapting to changing technological landscapes. This bodes well for future growth and success, and provides a strong foundation for the company to build on in the coming quarters.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in managing its revenue reliance on a select few clients, resulting in a more stable revenue stream. This positive trend is expected to continue, as the company remains committed to expanding its client portfolio and reducing its reliance on a few key customers.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in building a robust brand presence, enhancing customer satisfaction, optimizing marketing strategies, and expanding its market reach. This positive trend is expected to translate into increased pricing power and competitive positioning for the company in the long term.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that there has been a setback in the company's efforts to adopt digital solutions. While some initiatives have shown promise, others have failed to deliver expected results.",
+        "indicator": "digital_transformation"
+    }
+]

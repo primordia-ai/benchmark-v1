@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company has plateaued and ceased innovating, facing challenges in maintaining its market share, reduced investment in R&D, and stagnation in product launches.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong capacity for innovation and agility in response to shifting consumer preferences and technological advancements, which indicates that it is well-positioned to continue thriving in a rapidly evolving business landscape.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant progress in addressing its past challenges and positioning itself for future growth. The leadership team has implemented a comprehensive strategic plan, which is yielding positive results.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "The lack of clear succession planning for key positions creates an environment where the organization is vulnerable to disruptions caused by unexpected departures or absences, indicating a heightened risk to the company's long-term success.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Management has failed to address stakeholder concerns, creating an environment of mistrust among key partners and investors. This lack of transparency and accountability is a significant red flag that warrants immediate attention.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report suggests that the company has a neutral trend in navigating global situations, with no major concerns or opportunities standing out. This indicates a moderate exposure to external factors, which aligns with the yellow value.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights significant challenges related to environmental issues, including substantial costs due to regulatory changes and resource scarcity, as well as the threat of penalties for non-compliance with emissions regulations. This suggests a high environmental impact/risk, which corresponds to the 'red' value.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to maintain a sustainable edge over competitors is currently struggling, and there are no barriers to entry for new rivals. The absence of certain essential elements necessary to safeguard its competitive advantage has become apparent.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on a limited number of suppliers, combined with inadequate inventory management strategies, has left it vulnerable to external shocks. Despite efforts to integrate technology into its operations, the company appears to be struggling to adapt to changing circumstances.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company's management has demonstrated a proactive approach in addressing regulatory scrutiny and compliance challenges, it remains an important consideration for stakeholders. The issue is likely to continue being a focus area for the company in the near term, requiring ongoing attention from its leadership team.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a concerning trend in the company's ability to drive innovation, with a weak pipeline, lack of successful product rollouts, and struggles to adapt to technological advancements. This suggests that the company is falling behind, which aligns with the definition of 'red' for this indicator.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Few large customers (>20%) have been observed, indicating an over-reliance on a limited number of customers, which may impact the company's bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The indicators point towards a negative trend in how customers perceive the brand and their loyalty towards it. The current situation suggests that marketing efforts may not yield immediate results, which could affect the company's pricing power and customer satisfaction levels.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's efforts in adopting cutting-edge technologies are progressing steadily, yet without significant momentum. This indicates a neutral assessment, which corresponds to the yellow value.",
+        "indicator": "digital_transformation"
+    }
+]

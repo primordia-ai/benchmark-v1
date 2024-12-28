@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's continued decline in market share, reduced investment in research and development (R&D), and lack of significant product launches indicate a plateau in its disruptive influence, suggesting that the company is not innovative and is following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong capacity for innovation and responsiveness to shifts in consumer preferences, indicating that it is effectively navigating the complexities of a rapidly changing market environment.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "Despite some initial progress, the overall trajectory suggests that the company is not making sufficient strides towards recovery. Key milestones such as leadership restructuring, cost-cutting initiatives, or launching new revenue streams are still pending, and there is a lack of tangible progress in these areas.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully identified and addressed potential gaps in its leadership structure, ensuring a well-planned succession strategy. This stability will undoubtedly have a positive impact on the company's strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The review indicates that there are no significant issues with regard to poor management practices that could negatively impact the company's performance or reputation. Decision-making processes appear consistent, financial oversight is robust, and stakeholders' concerns are being addressed effectively.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to navigate and mitigate risks associated with international political tensions suggests limited exposure. The favorable assessment of the company's exposure to such risks, its efforts to diversify its supply chain and manage currency fluctuations, and its resilience in the face of external headwinds all support a green value for this indicator.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong capacity to mitigate exposure to factors such as climate change, regulatory changes, and resource scarcity. The results indicate that the company is well-positioned to navigate these challenges, with minimal risk of adverse consequences.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights the company's inability to maintain a competitive advantage, despite efforts to establish unique products and intellectual property. The lack of sustainable barriers to entry for competitors and the failure to translate innovations into long-term advantages indicate that the company is struggling to maintain its market share.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our diversified supplier base, robust inventory management strategies, and effective technology integration have all contributed to the company's resilience in the face of potential disruptions.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights increasing regulatory scrutiny, posing a threat to operational efficiency and financial stability, which indicates a negative performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The analysis reveals that the company's performance in driving ongoing innovation has been a subject of scrutiny. The pace of innovation appears to be slow, and the pipeline for new product launches has been underwhelming, with inconsistent funding and cross-functional collaboration.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's financial performance review reveals that the company is heavily reliant on a small number of large customers, which poses significant risks to its bargaining power and long-term revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's brand strength is viewed as neutral, with no significant concerns or red flags raised by our assessment. While not exceptionally strong, the factors contributing to competitive positioning and pricing power are stable. The analysis indicates that efforts to build brand strength through effective marketing strategies and strategic market presence are paying off gradually.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's progress in leveraging digital technologies has been sluggish, with initiatives falling short of expectations. The ability to utilize AI-driven analytics effectively is hindered by various factors, resulting in stagnation rather than growth.",
+        "indicator": "digital_transformation"
+    }
+]

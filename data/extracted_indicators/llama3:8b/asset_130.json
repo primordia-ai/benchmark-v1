@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has continued to invest in research and development (R&D), which is a key driver of growth and competitive advantage. This strategic focus on innovation has enabled the company to maintain its market share and stay ahead of competitors.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's inability to adapt to market changes, technological advancements, and evolving consumer preferences suggests that it may be falling behind in its efforts to stay relevant. This lack of agility may put the company at a disadvantage as competitors continue to innovate and disrupt traditional industries.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "Preliminary results indicate that these initiatives are yielding positive outcomes. The company's ability to execute this strategy is a testament to its resilience and commitment to growth.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has taken proactive steps to address concerns around stability and strategic continuity, ensuring that critical positions are filled in a timely manner, reducing reliance on individual leaders without adequate backup plans.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights significant progress in decision-making, financial oversight, and stakeholder engagement, indicating a strong execution history and a positive shift in management practices.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a heightened risk profile in key regions where the company operates due to international tensions and trade disputes, which puts pressure on the company's supply chain operations. This has resulted in a negative impact on the company's ability to manage currency fluctuations, further exacerbating the situation.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates a positive trend in managing risks related to environmental issues. The company has demonstrated a proactive approach to mitigating potential impacts, such as those associated with climate change, regulatory changes, or resource scarcity.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The recent trend indicates that the company is successfully defending its position against competitors. This strategic advantage is crucial for long-term sustainability and growth.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on a single supplier increases the risk of supply chain disruption, which could have significant consequences on operations and bottom-line performance.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully navigated a key area of regulatory focus, demonstrated its ability to adapt and comply with changing regulations, and received a favorable assessment from regulators. This positive trend indicates that the company's regulatory pressure is low, represented by the color green.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has some promising projects, its capacity for ongoing innovation is not yet yielding significant returns. There are areas where it could improve, but there is still potential for growth and development.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company is heavily reliant on a small number of customers for a significant portion of its revenue, which can lead to reduced bargaining power and increased vulnerability to potential disruptions in revenue streams. This indicates a negative performance, represented by the color red.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's ability to maintain a strong brand image and reputation has been negatively impacted. This may be attributed to various factors including decreased customer satisfaction, ineffective marketing strategies, and reduced presence in key markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The evaluation indicates that the company has made progress in adopting new systems and processes, but there are still areas for improvement. While some initiatives have shown promise in enhancing customer experience and competitiveness, others require further development to reach their full potential.",
+        "indicator": "digital_transformation"
+    }
+]

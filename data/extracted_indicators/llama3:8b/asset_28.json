@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company's innovative edge appears to be weakening, with stagnation in product launches and reduced investment in research and development (R&D). These indicators suggest a neutral stance on the company's competitive advantage, implying that while the status quo may persist for now, there are potential risks associated with complacency.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to stay ahead of changing market trends and adapt to new technologies has been stable, but not outstanding. While the company has not shown any significant weaknesses in this area, it also hasn't demonstrated a strong commitment to innovation.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "While progress has been made, there remains significant work to be done. The assessment of the company's ability to recover from recent difficulties suggests that efforts have not yet translated into tangible results.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "Based on the report, it is clear that all critical positions have a clear succession plan in place, ensuring continued stability even in the event of unforeseen changes. Additionally, there are no single points of failure, with multiple individuals capable of taking over should any key leader be unable to perform their duties. This indicates a strong bench and clear succession, which aligns with the green indicator value.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report highlights some areas of concern regarding decision-making processes being inconsistent at times, which could impact performance or reputation. However, it also emphasizes the need for proactive steps to improve oversight and ensure stakeholder concerns are considered, indicating a mixed track record.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are no major concerns, the company's exposure to risks stemming from international political tensions and instability in operational regions requires careful monitoring and management. This indicates a moderate level of risk, which corresponds to the yellow value.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's preparedness and resilience against various environmental challenges are neutral, indicating a yellow value. The report highlights that the current state of affairs may not indicate a significant risk or opportunity, but proactive strategies can often mitigate future challenges.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are some encouraging signs, they do not yet demonstrate a clear path to sustained market leadership.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis indicates that the company's ability to adapt to disruptions in its supply chain has been impacted. This suggests that there may be vulnerabilities in the system that need to be addressed.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company has a favorable regulatory environment, with minimal scrutiny from government agencies and regulatory bodies. The company has been able to maintain a strong track record of compliance, ensuring that its operations are aligned with relevant laws and regulations.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's efforts in driving innovation are currently meeting expectations, with a solid foundation in place. While there are opportunities for improvement, the company has made significant strides in developing a robust pipeline of new products and technologies.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has been successful in diversifying its customer base, reducing its reliance on a small number of key customers. This strategic move has strengthened the company's bargaining power and improved revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment suggests that the company's efforts in building customer loyalty and reputation are having a neutral impact on its overall competitive positioning and pricing power.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's digital transformation initiatives are lagging behind expectations, leading to inefficiencies and missed opportunities.",
+        "indicator": "digital_transformation"
+    }
+]

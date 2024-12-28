@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company's commitment to research and development has not wavered, with significant investments made in new technologies and product launches. The company's competitive advantage remains strong, with no signs of stagnation or plateauing.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company demonstrates an excellent ability to pivot in response to competitor innovations, and there is clear evidence of proactive adoption and utilization of digital tools, which has contributed significantly to the company's continued success.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant progress in addressing its strategic challenges. The leadership team has successfully implemented a series of initiatives designed to drive growth and improve efficiency, which suggests that the plan is clear, credible, and yielding positive results.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has established clear succession plans for critical leadership roles, reducing unfilled positions and minimizing reliance on any single individual without a contingency plan in place. This demonstrates a strong commitment to ensuring continuity and minimizing potential disruptions.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to navigate complex geopolitical environments and effectively mitigate potential disruptions to supply chain operations suggests a limited exposure to risks, indicating a green value.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in managing its exposure to environmental risks, which has minimized potential losses due to environmental issues. Compliance costs are lower than industry averages, resource costs are more manageable, and long-term risks associated with environmental issues are reduced.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in establishing a competitive advantage through unique products and intellectual property. The presence of a robust 'moat' has enabled the company to maintain a strong market position.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively diversified its supplier base, optimized inventory management strategies, and integrated technology within the supply chain, indicating a strong ability to withstand disruptions and maintain a stable flow of goods and services.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates that the company has effectively managed regulatory scrutiny and compliance challenges, with no significant regulatory issues impacting its operations or financial performance. This suggests a clean regulatory history, which aligns with the green value of the indicator.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has demonstrated a stable foundation for ongoing innovation, but there are no clear indicators of strong pipelines either. The ability to adapt to technological advancements is present but could be improved upon. Funding and cross-functional collaboration are sufficient, however, product rollouts have been inconsistent.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's revenue is heavily dependent on a limited number of customers, which poses significant risks to revenue stability and bargaining power. This concentration exceeds 20%, indicating a red value for the 'customer_concentration' indicator.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's brand value, reputation, and customer loyalty are all strong, contributing positively to its overall competitive positioning. The results suggest that the company's marketing efforts have been successful in enhancing customer satisfaction and loyalty, and its presence in key markets has helped to further solidify its competitive position.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment reveals that the company has made significant strides in this area, with a notable emphasis on adopting cloud-based systems and automating workflows. However, while these efforts are certainly encouraging, they do not yet appear to be yielding the level of impact one might expect.",
+        "indicator": "digital_transformation"
+    }
+]

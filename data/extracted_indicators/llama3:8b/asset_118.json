@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's market share has been declining, investment in R&D has decreased significantly, and product launches have slowed, indicating a lack of innovation and stagnation.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated flexibility and responsiveness in adopting new technologies and tools, successfully pivoting in response to emerging trends, and maintaining a strong market presence. This suggests that the company is adapting well to market changes and technological advancements, indicating a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights several positive developments in the company's management practices, including the implementation of robust financial oversight mechanisms, establishment of clear protocols and procedures, and timely addressing of stakeholder concerns. These advancements demonstrate a commitment to responsible business practices, ultimately benefitting the company's performance and reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effective risk management strategies in place, diversified supply chain operations, and a proactive approach to monitoring currency fluctuations. These efforts have enabled the company to maintain a robust resilience to external shocks, ensuring continued stability and growth.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's exposure to environmental risks is a pressing concern, with the consequences of non-compliance with emissions regulations or resource shortages having far-reaching and costly implications for the business.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to maintain a competitive advantage through unique products and intellectual property has remained neutral. While it has made significant investments in research and development, these efforts have not yet translated into a sustainable market lead.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's supply chain remains resilient, albeit with some areas requiring attention. While there are opportunities for improvement, the company's supply chain is adequately positioned to withstand disruptions.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to navigate complex regulatory environments and comply with relevant laws and regulations. Our analysis indicates that the company's operations and financial performance are not significantly impacted by regulatory scrutiny or compliance challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Our review indicates that the company continues to face challenges related to the concentration of revenue from a small number of customers. This raises concerns about the potential impact on bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's competitive positioning is not meeting expectations, with limited pricing power due to low customer satisfaction. This suggests that the brand strength is weak or damaged.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that the company's efforts to adopt cloud-based systems, automate workflows, and implement AI-driven analytics have yielded positive results.",
+        "indicator": "digital_transformation"
+    }
+]

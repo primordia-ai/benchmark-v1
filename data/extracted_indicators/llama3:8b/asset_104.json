@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that the company's innovative edge remains strong, with no indication of a decline in its disruptor status. This is reflected in its continued market share growth, steady investment in research and development (R&D), and active product launch pipeline.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has fallen behind in adapting to market changes, technological advancements, and evolving consumer preferences. The data indicates a concerning trend where the company is struggling to keep pace with industry developments.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights poor decision-making, lack of financial oversight, and ignoring stakeholder concerns, which are all indicative of inefficient or unethical management practices. These issues can negatively impact the company's performance and reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are no immediate signs of distress, there is also no indication of a significant improvement in this aspect. This suggests that the company is maintaining a cautious approach and remains vigilant about potential disruptions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company's efforts to mitigate the impact of climate change, regulatory changes, and resource scarcity have been successful. The associated costs and risks have been effectively managed, with no adverse effects on our bottom line.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company has maintained its competitive advantage through strategic investments in unique products and intellectual property. This positions the company favorably against competitors, with a strong foundation for sustained growth.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has some mechanisms in place to manage inventory levels and mitigate risks, its supplier base is not highly diversified, which may not be sufficient to withstand significant external shocks. Additionally, there is a lack of investment in technology integration, which could exacerbate the issue if it were to encounter a major supply chain disruption.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to manage and mitigate risks associated with regulatory scrutiny, successfully navigating recent data privacy mandates and maintaining a high level of operational efficiency. This proactive approach has minimized disruptions to business operations and ensured continued compliance with regulatory requirements.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's investment in research and development (R&D) has been a notable strength, with significant resources dedicated to exploring new technologies and product lines. This commitment to innovation has enabled the company to stay ahead of the curve, leveraging emerging trends to drive growth.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates that the company has successfully implemented measures to diversify its customer base and reduce dependence on a few key accounts, which suggests a well-diversified customer base.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's customers are highly satisfied, and its marketing efforts have been successful in creating a strong presence in strategic markets. As a result, the company has been able to command premium pricing for its products and services, which is a testament to its brand's value and reputation.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The assessment reveals a strong focus on leveraging digital technologies to streamline operations, improve customer engagement, and enhance overall competitiveness. Notably, initiatives such as adopting cloud-based systems, automating workflows, and implementing AI-driven analytics have been successfully implemented.",
+        "indicator": "digital_transformation"
+    }
+]

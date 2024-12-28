@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company remains at the forefront of its industry, continues to invest in R&D, and has ongoing product launches, indicating that it has not plateaued or ceased innovating.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The subject company is facing challenges in keeping pace with market developments and consumer expectations. While not yet at crisis levels, our assessment suggests that the company may struggle to pivot effectively in response to shifting marketplace conditions.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "A thorough examination of the critical roles within the organization has revealed a robust plan in place to address future needs. This proactive approach has eliminated any reliance on a single individual without a clear backup plan, mitigating the risk of instability.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Despite robust financial results, our review suggests that the company's management is not prioritizing essential oversight and stakeholder engagement. This lack of attention to these critical areas raises concerns about the company's long-term resilience.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's performance has revealed a positive trend in its ability to navigate complex global risks. This includes its ability to adapt to changing market conditions, manage currency fluctuations and mitigate potential disruptions to its supply chain operations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to navigate environmental risks is a key strength. This performance metric has shown a favorable trend in recent periods. The company's proactive approach to sustainability is likely driving these results.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment indicates that this aspect is currently neutral, with no significant indication of either strong or weak performance.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to withstand disruptions from external sources, such as natural disasters or supplier failures, falls short of expectations. The management team's strategies for mitigating these risks appear inadequate, potentially leaving the company exposed in times of crisis.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis reveals that the company's exposure to regulatory scrutiny and compliance challenges has been a significant concern in recent periods. The results indicate a negative trend, with potential implications for operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance in ongoing innovation has shown significant improvement, with consistent funding of new projects, effective collaboration across functional teams, and successful product rollouts. This indicates a strong, well-funded pipeline.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company's assessment indicates that it is maintaining a balanced approach in terms of customer concentration, without compromising its growth prospects. The diversification efforts undertaken by the company appear to be yielding positive results, with no significant signs of over-reliance on a few key customers.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's brand strength remains unchanged from previous periods, maintaining its neutral standing.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in harnessing digital technologies to drive growth and improvement, successfully integrating digital technologies into its operations, enhancing customer experience through targeted marketing initiatives, and increasing competitiveness due to improved efficiency and agility.",
+        "indicator": "digital_transformation"
+    }
+]

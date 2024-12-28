@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's declining market share and reduced investment in research and development (R&D) suggest that it may be losing momentum in terms of innovation, which aligns with the description of 'red' as not innovative, following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has shown a willingness to adopt new technologies and adjust its business model in response to evolving consumer preferences, indicating that it is adapting well to market changes.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are no glaring red flags indicating severe issues, we have identified a need for improvement in certain aspects. Specifically, there appears to be inconsistent decision-making and a lack of attention to stakeholder concerns.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has effectively managed certain risks associated with global instability, but there are areas where it could improve its resilience to external shocks. The stability is likely due in part to the company's diversified global footprint and proactive risk management strategies.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's vulnerability to environmental risks has taken a turn for the worse, with significant implications for future profitability and potential severe consequences of non-compliance or increased costs due to resource shortages.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests a challenging landscape for sustaining market leadership, with no significant patents, exclusive partnerships, or economies of scale. This indicates that the company may struggle to maintain its competitive edge in the long term.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The recent disruptions to the company's supply chain have highlighted vulnerabilities in the company's ability to adapt to unforeseen circumstances. The company has made efforts to diversify its suppliers and implement inventory management strategies, but these measures are not sufficient to mitigate the risks posed by external factors such as natural disasters and geopolitical events.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Ongoing antitrust investigations, data privacy mandates, and sector-specific compliance burdens are negatively impacting the company's operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report indicates that the company is struggling to consistently fund its R&D initiatives, has opportunities for improvement in cross-functional collaboration, and may be falling behind industry peers in adapting to technological advancements. These factors suggest a weak pipeline, which corresponds to the 'red' value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's revenue stream is heavily influenced by a small group of key customers, which raises concerns about the company's bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's competitive edge has been eroded, resulting in reduced pricing power. Decreasing customer satisfaction, ineffective marketing strategies, and a diminished presence in key markets are contributing factors.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company still has work to do in adopting digital technologies, with slow pace of innovation and inconsistent integration across departments. The adoption of artificial intelligence-driven analytics has been slow, and the company's ability to drive business growth through digital transformation remains a concern.",
+        "indicator": "digital_transformation"
+    }
+]

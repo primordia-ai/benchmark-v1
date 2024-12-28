@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The stagnation in product launches and reduced investment in research and development (R&D) are particularly concerning indicators. This lack of innovation may signal that the company has become complacent and is failing to adapt to changing industry conditions.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated an ability to pivot and respond effectively to emerging trends, adopting new technologies and digital tools. This flexibility will undoubtedly serve the company well in an increasingly fast-paced and competitive landscape.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company's efforts to recover from recent challenges are gaining momentum. Key aspects of the recovery plan are on track and demonstrating positive trends.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company's approach to succession planning for its top leaders demonstrates a proactive stance on potential future challenges. This is evident in the clear and well-established plan in place to ensure that critical roles do not remain unfilled indefinitely, which could otherwise have significant impacts on the organization's operations and direction.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a positive trend in management practices, including effective communication, transparency and accountability, and strong governance and oversight. This suggests that the company has a consistent decision-making process, robust financial oversight, and adequately addresses stakeholder concerns.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's risk assessment has yielded a positive outcome, indicating a stable and secure operating environment. Our evaluation suggests that the company is well-positioned to navigate potential risks associated with international political tensions and trade disputes.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to navigate and mitigate potential pitfalls related to environmental risks, showing a keen awareness of these issues and taking proactive steps to address them. This bodes well for long-term growth and profitability.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's portfolio of patented technologies and strategic partnerships provides a solid foundation for long-term growth, but we have not observed any significant increases in market share or revenue growth that would indicate a clear sustainable edge over competitors.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made progress in developing a robust supply chain, there is still room for improvement. The report highlights that further work is needed to fully integrate technology into its processes and enhance supplier diversification efforts.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has managed to navigate complex regulatory environments, minimizing potential disruptions to its operations and financial performance. This is a testament to its ability to adapt and comply with changing regulatory requirements.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a concerning trend regarding the company's ability to invest in research and development (R&D), new product development, and adaptability to technological advancements. The evaluation suggests that these efforts are not yielding desired outcomes, indicating a weak pipeline.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's financial review highlights concerns regarding its exposure to a limited number of key customers, making it vulnerable to fluctuations in demand or changes in customer behavior. The reliance on a small group of large customers is a significant concern, and the report recommends prioritizing strategies to reduce this dependence.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's strong and positive performance across key drivers of its market position, including high customer satisfaction levels, effective marketing strategies, and presence in strategic markets, indicates a strong and valuable brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made efforts to adopt cloud-based systems, automate workflows, and implement AI-driven analytics, but more work is needed to fully realize the benefits of these initiatives. While some positive steps have been taken, there are still opportunities for growth and improvement in this area.",
+        "indicator": "digital_transformation"
+    }
+]

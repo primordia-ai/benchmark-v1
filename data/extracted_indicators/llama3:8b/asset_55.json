@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's ability to maintain its edge in its industry has taken a concerning turn. There are signs of stagnation and reduced innovation, including reduced investment in research and development (R&D) and slowed new product launches.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company continues to generate revenue and maintain a stable market presence, but it's facing challenges in adapting to new technologies and evolving consumer preferences. This indicates that the company is not dominant, but also not failing completely.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The assessment of the strategic plan aimed at addressing financial, operational, and reputational challenges indicates a negative trajectory. The progress towards milestones such as restructuring leadership, implementing cost-cutting measures, or launching new revenue streams is hindered by several factors.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "There are signs of inconsistency in decision-making at various levels within the organization. This has resulted in a mixed approach to financial oversight, leaving some areas vulnerable to potential risk exposure.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance indicates stability and resilience in the face of global uncertainties. This bodes well for its long-term prospects and ability to navigate any potential disruptions that may arise in the future.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the company is successfully managing its exposure to environmental risks, indicating a low impact/strong practices. The positive trend in the key metric and the company's commitment to sustainability initiatives support this assessment.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to maintain a competitive advantage through unique products and intellectual property has been weakened. The lack of patents, exclusive partnerships, and economies of scale has made it easier for new entrants to gain traction in the market.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to adapt to disruptions and show resilience in the face of various challenges such as natural disasters and geopolitical events, along with its supplier diversification strategies, indicate a well-diversified and resilient supply chain.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully navigated various regulatory hurdles, including antitrust investigations and data privacy mandates. This achievement demonstrates its ability to adapt to evolving regulatory requirements and minimize disruptions to its operations.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company has been making significant investments in research and development, new product creation, and adapting to emerging technologies. This is reflected in its consistent funding, effective collaboration across different functions, and successful launches of new products.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis has revealed a concerning trend in the company's business model. Specifically, our evaluation suggests that there is an excessive reliance on a limited number of key clients.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's brand value, reputation, and customer loyalty have reached an optimal level, positioning it favorably in the market. This is a testament to the effectiveness of the company's marketing efforts and its presence in strategic markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made progress in adopting cloud-based systems and automating certain workflows, but it appears that there is still room for improvement. While these efforts have had some positive impact on operational efficiency, they do not yet appear to be having a significant effect on customer experience or competitiveness.",
+        "indicator": "digital_transformation"
+    }
+]

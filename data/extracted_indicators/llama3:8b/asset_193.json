@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's declining market share, reduced investment in R&D, and stagnation in product launches suggest that it may be struggling to innovate and adapt to industry changes, which aligns with the description of 'Not innovative, following others'.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's willingness to invest in and adopt new technologies, as well as its ability to pivot quickly in response to competitor advancements, suggests that it is a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in addressing its recent challenges. A well-structured plan aimed at recovering from financial, operational, and reputational difficulties has been implemented, with key milestones such as strategic restructuring and cost-cutting initiatives contributing to a more efficient operating model. New revenue streams have also been successfully launched, demonstrating the company's ability to adapt and innovate in response to market demands.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates a strong stance against poor management practices within the company. This suggests that the organization's leadership has implemented effective measures to prevent inefficient, unethical, or otherwise detrimental behavior.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates that the company's exposure to risks associated with international tensions and trade disputes is currently stable, suggesting a limited exposure. This stability in an increasingly unpredictable global environment is a positive development for the company.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in minimizing its exposure to potential pitfalls, such as regulatory changes or resource scarcity. This improvement is particularly noteworthy given the increasing importance of environmental considerations in today's business landscape.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the company has a strong, sustainable moat due to its robust intellectual property portfolio, exclusive partnerships, and economies of scale. This indicates a positive performance, which corresponds to the green value.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our assessment suggests that the company is well-equipped to navigate potential disruptions, which should provide a competitive advantage in an increasingly unpredictable business environment.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong position in managing regulatory risks, its ability to navigate complex compliance requirements and minimize potential disruptions to its operations or financial performance is a significant strength.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company has been successful in creating a robust pipeline of innovative projects. This is characterized by consistent funding, effective collaboration between different departments, and successful product launches.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The percentage of revenue generated from its top customers is well within a healthy range, demonstrating a strong ability to maintain revenue stability. Furthermore, efforts to diversify revenue streams have been successful, reducing dependence on any single customer.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The assessment of our client's brand strength has resulted in a negative rating, indicating a potential issue with customer satisfaction, marketing effectiveness, and market presence.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong commitment to embracing innovative solutions, including cloud-based systems, automated workflows, and AI-driven analytics. These initiatives have not only improved operational efficiency but also enhanced the overall customer experience, setting the organization apart from its peers in the industry.",
+        "indicator": "digital_transformation"
+    }
+]
