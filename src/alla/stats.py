@@ -1,12 +1,13 @@
 import functools
+import logging
 from typing import Union
 
 import numpy as np
 from scipy import stats
 from scipy.optimize import root_scalar
-import logging
 
 logger = logging.getLogger("alla")
+
 
 def mixture_entropy(weights, means, stds):
     """Compute entropy of a Gaussian mixture."""

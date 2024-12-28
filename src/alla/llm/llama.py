@@ -103,7 +103,6 @@ class LlamaSmall(LLMBaseClass):
         )
 
 
-
 class LlamaSmallAlt(LlamaSmall):
     """Another 8B model, that works with older versions of Ollama : / """
     name = "Llama 3:8b"

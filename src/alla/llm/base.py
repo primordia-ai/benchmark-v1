@@ -6,7 +6,8 @@ import os
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from pydantic import create_model, Field, BaseModel
+from pydantic import BaseModel, create_model, Field
+
 from alla.asset import Asset
 from alla.utils import PROJECT_ROOT
 
@@ -17,10 +18,12 @@ class GrowthEstimate(BaseModel):
     mean: float
     std: float
 
+
 class CategoryDistribution(BaseModel):
     high_growth: float
     stable: float
     time_bomb: float
+
 
 class AssetEvaluation(BaseModel):
     growth: GrowthEstimate

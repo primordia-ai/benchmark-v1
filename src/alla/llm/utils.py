@@ -1,8 +1,8 @@
 """
 LLM Utils. In particular, those for retrieving and constructing prompts
 """
-import os
 import json
+import os
 
 from alla.utils import PROJECT_ROOT
 

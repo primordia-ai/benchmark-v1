@@ -2,13 +2,13 @@
 ALLA Models
 """
 import datetime
+import json
 import logging
-import time
 import os
 import random
-import json
-from typing import Union, TYPE_CHECKING, Optional
+import time
 from enum import Enum
+from typing import Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -381,7 +381,9 @@ class ALLA:
                     # Iterate through remaining candidates and filter by remaining budget
                     for j in candidates.copy():
                         if ind_cost[j] > budget:
-                            logger.debug(f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}")
+                            logger.debug(
+                                f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}"
+                            )
                             candidates.remove(j)
 
                 if not candidates:
