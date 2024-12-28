@@ -3,9 +3,12 @@ ALLA Models
 """
 import datetime
 import logging
+import time
 import os
 import random
-from typing import Union
+import json
+from typing import Union, TYPE_CHECKING, Optional
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +22,16 @@ from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS, utils as llm_utils
 from alla.utils import PROJECT_ROOT
 
+if TYPE_CHECKING:
+    from alla.llm.base import LLMBaseClass
+
 logger = logging.getLogger("alla")
+
+
+class BudgetMode(Enum):
+    SYNTH = "synthetic"  # Uses the synthetic, unitless costs
+    WALL = "wall"
+    CPU_HR = "cpu_hr"
 
 
 class ALLA:
@@ -35,24 +47,27 @@ class ALLA:
     def __init__(
         self,
         stocks_dataset: xr.Dataset,
+        llm: "LLMBaseClass",
         asset_memory_depth: int = 20,
         budget: float = 100,
+        budget_mode: BudgetMode = BudgetMode.SYNTH,
     ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
+        :param llm:                 Initialized LLM model
         :param asset_memory_depth:  How many Bayesian updates to remember for each asset
         :param budget:              Budget for ALLA to spend on inference
+        :param budget_mode:         Budget mode
         """
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
-
-        # LLM -- Llama for now
-        llm_model = AVAILABLE_MODELS["llama3.1:8b"]
-        self.llm = llm_model(temperature=0.)
+        self.budget_mode = budget_mode
+        assert budget_mode in BudgetMode, f"Invalid budget mode {budget_mode}"
+        self.llm = llm
 
         self.n_assets = len(self.stocks.asset)
         self.classes = {
@@ -101,6 +116,25 @@ class ALLA:
         self.indicator_utility_avg = None
         self.ranked_indicators = np.arange(self.n_indicator)
         self.reset()
+
+    def to_json(self):
+        """
+        Return certain model attributes as JSON.
+        Naturally, we don't want to serialize the datasets etc.
+        """
+        return {
+            "version": self._version,
+            # "stocks": self.stocks.to,
+            # "ind_likelihoods": self.ind_likelihoods.to_dict(),
+            # "indicator_costs": self.indicator_costs,
+            # "indicator_utility_avg": self.indicator_utility_avg.tolist(),
+            # "ranked_indicators": self.ranked_indicators.tolist(),
+            "llm": self.llm.to_json(),
+            "asset_memory_depth": self.asset_memory_depth,
+            "mu_g": self.mu_g.tolist(),
+            "sigma_g": self.sigma_g.tolist(),
+            "quantiles": self.quantiles,
+        }
 
     def reset(self):
         """
@@ -272,14 +306,15 @@ class ALLA:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> bool:
+    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> tuple[bool, Optional[str]]:
         """
         Process an asset to infer its class and growth forecast
 
         :param asset:       xr.Dataset for the selected asset
         :param max_budget:  Max budget to use for this asset
-        :return:            Boolean indicating whether there was enough budget to perform at least one iteration
+        :return:            Boolean indicating success, and an optional string reason on failure
         """
+        start = iter_start = time.time()
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
 
         if isinstance(asset, str):
@@ -318,7 +353,7 @@ class ALLA:
             else:
                 # Generate the reports for use later,
                 # but we will color-extract individually in the main loop
-                reports_text = self.llm.read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
+                # reports_text = self.llm.read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
                 extracted_complete = False
 
         # Get most recent alphas
@@ -341,11 +376,13 @@ class ALLA:
         with logging_redirect_tqdm():
             for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
                 logger.info(f"Remaining asset budget: {budget}")
-                # Iterate through remaining candidates and filter by remaining budget
-                for j in candidates.copy():
-                    if ind_cost[j] > budget:
-                        logger.debug(f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}")
-                        candidates.remove(j)
+
+                if self.budget_mode == BudgetMode.SYNTH.value:
+                    # Iterate through remaining candidates and filter by remaining budget
+                    for j in candidates.copy():
+                        if ind_cost[j] > budget:
+                            logger.debug(f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}")
+                            candidates.remove(j)
 
                 if not candidates:
                     break
@@ -374,7 +411,7 @@ class ALLA:
                 # Call SE if we have a soft indicator
                 if selected_name in self.soft_indicators:
                     if not use_SE:
-                        extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                        extracted_color_pred, se_cost = self._synthetic_soft_extractor(
                             asset, selected_name, synthetic_colors[selected_idx]
                         )
                     else:
@@ -382,12 +419,17 @@ class ALLA:
                         if extracted_complete:
                             # Convert from point estimate to distribution, like the synthetics
                             # TODO -- Have soft-extractor return distributions?
-                            extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                            extracted_color_pred, se_cost = self._synthetic_soft_extractor(
                                 asset, selected_name, extracted_colors[selected_name]
                             )
                         else:
-                            # Perform extraction now, using the reports text
-                            extr_color, realized_cost = self._call_soft_extractor(
+                            # Perform extraction now, first generate report text prompt
+                            # Just get report for this indicator
+                            reports_text = self.llm.read_reports(
+                                report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
+                                include=[f"{selected_name}_report.txt"]
+                            )
+                            extr_color, se_cost = self._call_soft_extractor(
                                 asset, selected_name, reports_text
                             )
                             # Now get distribution -- ignore its cost, same function as above
@@ -399,10 +441,7 @@ class ALLA:
                     # Just use synthetic value for hard indicators
                     # One-hot
                     extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
-                    realized_cost = 0.5
-
-                self.budget -= realized_cost
-                budget -= realized_cost
+                    se_cost = 0.5
 
                 # Inference
                 # Likelihood of asset-classes given color predictions
@@ -423,7 +462,19 @@ class ALLA:
 
                 self._update_alphas(asset, alphas)
                 self._update_prior(asset, posterior)
+                # TODO -- Maybe move this out for performance
                 self.compute_growth_quantiles(asset=asset)
+
+                if self.budget_mode == BudgetMode.WALL.value:
+                    cost = time.time() - iter_start
+                    iter_start = time.time()
+                    self.budget -= cost
+                    budget -= cost
+                elif self.budget_mode == BudgetMode.SYNTH.value:
+                    self.budget -= se_cost
+                    budget -= se_cost
+                else:
+                    raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
 
                 if budget <= 0:
                     logger.info(f"Budget exhausted after {i_ind} loops")
@@ -431,13 +482,12 @@ class ALLA:
 
         # If no indicators were within budget, return False
         if len(selected_indicators) == 0:
-            logger.warning("No indicators were within budget.")
-            return False
+            return False, "No indicators were within budget."
 
         # Refresh indicator rank at the end
         self.refresh_indicator_rank()
 
-        return True
+        return True, ""
 
     def _call_soft_extractor(
         self, asset: xr.Dataset, indicator_name: str, reports_text: str | None = None
@@ -448,12 +498,18 @@ class ALLA:
         :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
         """
+        se_start = time.time()
         result = self.llm.extract_indicator(
             indicator_name, str(asset.asset), reports_text=reports_text
         )["value"]
 
-        # TODO -- implement real at some point
-        cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+        if self.budget_mode == BudgetMode.SYNTH.value:
+            cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+        elif self.budget_mode == BudgetMode.WALL.value:
+            cost = time.time() - se_start
+        else:
+            raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
+
         return result, cost
 
     def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, synthetic_color: str) -> tuple:
@@ -609,7 +665,11 @@ class ALLA:
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
 
-    def save_model(self, model_name: str | None = None) -> bool:
+    def save_model(
+        self,
+        model_name: str | None = None,
+        save_dir: str | None = None,
+    ) -> bool:
         """
         Save the model in the form of its various attribute states:
             stocks:             The main stocks xr.Dataset.
@@ -622,16 +682,23 @@ class ALLA:
             mu_g, sigma_g:      The truth mu and sigma generators
             quantiles:          Quantiles
 
-        :param model_name:  String name, relative to `models/` directory
+        :param model_name:  String name, relative to save_dir
+        :param save_dir:    Optional save directory override
         """
         if not model_name:
             # The date as dd-mm-yyyy
             date_str = datetime.datetime.now().strftime("%d-%m-%Y_%H%M")
             model_name = os.path.join(date_str, f"alla_{self.llm.code}")
 
-        save_dir = os.path.join(PROJECT_ROOT, "models", model_name)
+        if not save_dir:
+            save_dir = os.path.join(PROJECT_ROOT, "models", model_name)
+
         os.makedirs(save_dir, exist_ok=True)
         logger.info(f"Saving model to {save_dir}")
+        # First save the json data
+        json_path = os.path.join(save_dir, "config.json")
+        with open(json_path, 'w') as f:
+            json.dump(self.to_json(), f, indent=4)
 
         try:
             # Save xr dataset individually

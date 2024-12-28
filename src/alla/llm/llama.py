@@ -71,15 +71,13 @@ class LlamaSmall(LLMBaseClass):
             mode=instructor.Mode.JSON,
         )
 
-        resp_model = self._create_indicator_class(indicator_name)
-
         response = client.chat.completions.create(
             model=self.code,
             temperature=self.temperature,
             messages=[
                 {"role": "user", "content": prompt},
             ],
-            response_model=resp_model,
+            response_model=self._create_indicator_class(),
             max_retries=3,
         )
         py_response = response.model_dump()

@@ -6,10 +6,14 @@ This uses the LLM-generated synthetic reports found in data/reports,
 and the LLM-produced Soft-Indicator Extractor indicator color results that were based off these reports.
 
 In this first experiment we provide an LLM (we'll use llama) with the synthetic reports, the soft-indicator
-extraction results, (and growth range?) and ask it to estimate next year's growth and asset category.
+extraction results, likelihood matrices, etc., and ask it to estimate next year's growth and asset category.
 
 With ALLA, we will used our hardcoded version that performs inference on the soft-indicator extracted
 indicators, and the logic around optimized selection given resources, etc. See ALLA.process_asset.
+
+In this experiment, for each asset the agents are allowed a fixed budget of wall-time to process an asset.
+ALLA will perform bayesian inference on the indicators, and the LLM will converse back with itself during
+its allotted time.
 
 TODO -- Questions
     1. Is "Actual" in our setup the underlying mixture distribution parameters (mu_g) or the sampled 2025_growth?
@@ -19,39 +23,93 @@ TODO -- Questions
     4. Need to construct actual budget mechanics.
 """
 
-if __name__ == '__main__':
-    import logging
+import argparse
+import json
+import logging
+import os
 
-    import os
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
+import numpy as np
+from tqdm import tqdm
 
-    import numpy as np
-    from tqdm import tqdm
+# Set this up before importing local classes
+logger = logging.getLogger("alla")
+logger.setLevel(logging.INFO)
 
-    # Set seed
-    SEED = 10
-    np.random.seed(SEED)
+from alla import synthetic as synth, utils
+from alla.alla import ALLA, BudgetMode
+from alla.llm import get_llm
 
-    from alla import synthetic as synth, utils
-    from alla.alla import ALLA
+# Set seed
+# 101010 happens to be 42 in binary. How charming.
+SEED = 101010
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category."
+    )
+    parser.add_argument(
+        "--test", action="store_true", help="Run in test mode"
+    )
+    parser.add_argument(
+        "--llm_code", type=str, default="llama-tiny", help="LLM identifier (code or alias). Default 'llama-tiny'."
+    )
+    parser.add_argument(
+        "--name", type=str, default="latest", help="Experiment name. Default 'latest'."
+    )
+    parser.add_argument(
+        "--seed", type=int, default=SEED, help=f"Random seed. Default {SEED}."
+    )
+    parser.add_argument(
+        "--temp", type=float, default=0.0, help="Temperature for LLM. Default 0.0."
+    )
+    parser.add_argument(
+        "--raise-exception", action="store_false", help="Raise exceptions on certain iteration failures."
+    )
+
+    args = parser.parse_args()
+
+    llm_code = args.llm_code
+    run_name = args.name
+    testing = args.test
+    temp = args.temp
+    raise_exception = args.raise_exception
+    # Seed rng
+    seed = args.seed
+    np.random.seed(seed)
+
+    results_dir = os.path.join(utils.PROJECT_ROOT, f"results/exp-1/{run_name}")
+    os.makedirs(results_dir, exist_ok=True)
 
     stocks = synth.load_stocks(as_dataset=True)
+    categories = ["high_growth", "stable", "time_bomb"]
+    assets = {cat: [] for cat in categories}
+
+    if testing:
+        # If testing, we will have 12 assets, and 4 per category
+        n_asset = 9
+        n_asset_per = n_asset / 3
+        budget_mode = BudgetMode.WALL.value
+        total_budget = 1e5
+        budget_per_task = 20
+        asset_memory_depth = 20
+    else:
+        # Otherwise, just run all assets
+        n_asset = 200
+        n_asset_per = None
+        budget_mode = BudgetMode.WALL.value
+        total_budget = 1e8  # arbitrarily large
+        budget_per_task = 20
+        asset_memory_depth = 100
+
+    # Initialize our LLM
+    llm = get_llm(llm_code)(temperature=temp)
+
     # Create ALLA model
-    custom_name = "alla-exp1"
-    budget_per_task = 20
-    total_budget = 1e8  # arbitrarily large
-    m = ALLA(stocks, asset_memory_depth=20, budget=total_budget)
-    # 10 assets per category
-    categories = m.classes.keys()
-    n_asset = 9
-    n_asset_per = n_asset / 3
-    assets = {
-        "high_growth": [],
-        "stable": [],
-        "time_bomb": [],
-    }
+    m = ALLA(
+        stocks, llm, asset_memory_depth=asset_memory_depth,
+        budget_mode=budget_mode, budget=total_budget,
+    )
 
     # We can just compile asset names here
     # Only for assets that we have reports for
@@ -61,27 +119,70 @@ if __name__ == '__main__':
         try:
             asset = m.stocks.sel(asset=asset_id)
         except KeyError as e:
+            if raise_exception:
+                raise e
+            # Else log and continue
             print(f"Asset {asset_id} not found in stocks. Continuing.")
             continue
 
         category = asset.category.values.item()
-        if len(assets[category]) < n_asset_per:
-            assets[category].append(asset_id)
-        else:
+        if testing and len(assets[category]) >= n_asset_per:
+            # We have enough assets for this category
             continue
+
+        # Add asset to category
+        assets[category].append(asset_id)
+
+    # Save run data to config.yaml
+    run_data = {
+        "seed": seed,
+        "test": testing,
+        "llm": llm.to_json(),
+        "alla": m.to_json(),
+        "budget_mode": budget_mode,
+        "budget_per_task": budget_per_task,
+        "total_budget": total_budget,
+        "n_asset": n_asset,
+        "n_asset_per": n_asset_per,
+        "assets": {cat: len(reports) for cat, reports in assets.items()}
+    }
+    config_path = os.path.join(results_dir, "config.json")
+    with open(config_path, 'w') as f:
+        logger.info(f"Saving run data to {config_path}")
+        json.dump(run_data, f, indent=4)
 
     for cat, reports in assets.items():
         print(f"{len(reports)} reports found for '{cat}':\n{reports}")
 
+    #####################
+    # ALLA portion
+
     for cat, reports in assets.items():
-        print(f"Processing '{cat}' assets")
+        print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(reports)})\n")
         for asset_id in tqdm(reports, desc="Assets"):
             try:
-                success = m.process_asset(asset_id, max_budget=budget_per_task)
+                success, reason = m.process_asset(asset_id, max_budget=budget_per_task)
             except Exception as e:
-                print(f"Error processing asset {asset_id}: {e}")
+                if raise_exception:
+                    raise e
+                # Else log and continue
+                logger.warning(f"Exception processing asset {asset_id}: {e}")
+            else:
+                if not success:
+                    if raise_exception:
+                        raise ValueError(f"Failed to process asset {asset_id}: {reason}")
+                    # Else log and continue
+                    logger.warning(f"Failed to process asset {asset_id}: {reason}")
 
     # Save the alla model
-    m.save_model(custom_name)
+    m.save_model(
+        model_name=f"alla-{run_name}",
+        save_dir=os.path.join(results_dir, "models")
+    )
 
-    # LLM's attempt
+    #####################
+    # LLM Portion
+
+
+if __name__ == '__main__':
+    main()

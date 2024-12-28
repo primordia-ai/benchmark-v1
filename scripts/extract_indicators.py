@@ -1,11 +1,11 @@
-# call a local llm and create reports for each soft indicator in the data
-# Usage: python generate_reports.py
-# Output: reports for each soft indicator in the data
+# Usage: python generate_reports.py <llm_code>
+# Output: LLM indicator color estimates for each soft indicator in the data
 
 if __name__ == '__main__':
     import logging
     import json
     import os
+    import sys
     import numpy as np
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
@@ -18,6 +18,13 @@ if __name__ == '__main__':
     SEED = 10
     np.random.seed(SEED)
 
+    # Check for command-line argument
+    if len(sys.argv) != 2:
+        print("Usage: python generate_reports.py <llm_code>")
+        sys.exit(1)
+
+    llm_code = sys.argv[1]
+
     # =========
 
     from alla.llm import get_llm
@@ -28,7 +35,7 @@ if __name__ == '__main__':
     asset_ids = ['asset_1', ]  # , 'asset_25', 'asset_35', 'asset_45']
     test_list = {}
 
-    llm_cls = get_llm("llama-tiny")
+    llm_cls = get_llm(llm_code)
     llm = llm_cls(temperature=0)
 
     # Create the extraction directory if needed

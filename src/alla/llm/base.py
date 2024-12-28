@@ -45,12 +45,17 @@ class LLMBaseClass(ABC):
         """Return name and class dot notation"""
         return self.__str__()
 
+    def to_json(self):
+        return {
+            "name": self.name,
+            "code": self.code,
+            "temperature": self.temperature
+        }
+
     @staticmethod
-    def _create_indicator_class(indicator_name: str):
+    def _create_indicator_class():
         """
         Creates a Pydantic model for sending over OpenAI API.
-
-        :param indicator_name:  The name of the indicator to create the model for.
         :return:                A Pydantic model for the indicator.
         """
         return create_model(
