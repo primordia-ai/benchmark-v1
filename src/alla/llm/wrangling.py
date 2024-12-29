@@ -38,25 +38,26 @@ forbidden_terms = [
 forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
     term in forbidden_terms]
 
+SUMMARY_TARGET_LEN = 200
+
 
 class SummaryInit(BaseModel):
     """
-    This is an initial summary which should be long (4-5 sentences, ~80 words) yet
-    highly non-specific, containing little information beyond the entities marked as missing.
-    Use overly verbose languages and fillers (Eg. This document discusses) to reach ~80 words.
+    This is an initial summary about a source document which should be long (several sentences, ~200 words)
+    and try to cover a breadth of the content within.
     """
 
     summary: str = Field(
         ...,
-        description="This is a summary of the document provided which is overly verbose and uses fillers. "
-                    "It should be roughly 80 words in length",
+        description="This is an initial summary about a source document which should be long "
+                    "(several sentences, ~200 words) and try to cover a breadth of the content within.",
     )
 
     @field_validator("summary")
     def min_length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < 60:
+        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
                 "that is around 80 words long."
@@ -92,7 +93,7 @@ class RewrittenSummary(BaseModel):
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    "summary plus the new Missing Entities. It should have the same length (~80 words) as the "
+                    "summary plus the new Missing Entities. It should have the same length (~200 words) as the "
                     "previous summary and should be easily understood without the Document",
     )
     absent: list[str] = Field(
@@ -113,7 +114,7 @@ class RewrittenSummary(BaseModel):
     def length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < 60:
+        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). "
                 "Please make sure that you generate a new summary that is around 80 words long."
@@ -181,8 +182,8 @@ def summarize_document(
         messages=[
             {
                 "role": "system",
-                "content": "Write a summary about the document that is long (4-5 sentences) yet highly non-specific. "
-                           "Use overly, verbose language and fillers(eg.,'this document discusses') to reach ~80 words",
+                "content": "Write an initial summary about the document provided. It should be ~200 words and should"
+                           "try to capture the breadth of the content within.",
             },
             # Jesus
             {
