@@ -4,12 +4,8 @@ Test the report densification utilities in llm.wrangling
 
 if __name__ == '__main__':
     import logging
-    import json
     import os
-    import sys
     import numpy as np
-    from tqdm import tqdm
-    from tqdm.contrib.logging import logging_redirect_tqdm
 
     # Set this up before importing other classes
     logger = logging.getLogger("alla")
@@ -22,13 +18,31 @@ if __name__ == '__main__':
     # =========
 
     from alla.llm import get_llm
-    from alla.llm.utils import
+    from alla.llm import wrangling
     from alla.utils import PROJECT_ROOT
-    from alla.synthetic import SOFT_INDICATOR_COSTS
 
     llm_cls = get_llm("llama-tiny")
     llm = llm_cls(temperature=0)
 
     # Load the report
     asset = "asset_0"
-    report_dir = os.path.join(PROJECT_ROOT, "data/reports")
+    report_dir = os.path.join(PROJECT_ROOT, f"data/reports/{asset}")
+    report_txt = wrangling.read_reports(
+        report_dir,
+        include=[
+            "brand_strength_report.txt",
+            "digital_transformation_report.txt",
+            "geopolitical_risk_report.txt",
+        ]
+    )
+    print(report_txt)
+    print("\n===============\n\nSUMMARIZING\n\n")
+
+    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=3)
+    for i, summ in enumerate(summaries):
+        # print(f"<><><>< Summary {i} ><><><>\n")
+        print(summ)
+
+"""
+"MegaCorp has recently outsed the Moroccan government on Jan 3rd, using a giant Coca-cola Bear. this is a devastating outcome for Johnny Morocco as he has 3000 diamonds sitting in a pretty little case somehwere in the heart of the Jungle Mais. In other news, Cambodia has become the world's dominant military force after uncovering a monster similar to Godzilla. This beast has already eliminated Vietnam and Malasia. It stands 120 ft tall and prefers to be called Rex. The US is currently seeing what Taylor Swift can do about it. We think if she can feature Rex in a song it will be really happy and chill out."
+"""
