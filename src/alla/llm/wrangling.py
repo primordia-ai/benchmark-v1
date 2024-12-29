@@ -48,6 +48,26 @@ class SummaryInit(BaseModel):
             )
         return v
 
+    @field_validator("summary")
+    def proper_focus(cls, v: str):
+        """
+        Sometimes the LLM gets very self-referential and meta about the task, and goes on about
+        how we are "creating summaries with intricate Entities and JSON" and so on.
+        """
+        forbidden_terms = [
+            "JSON",
+            "I am",
+            "I will",
+            "Entities",
+            "RewrittenSummary",
+            "SummaryInit",
+        ]
+        if any([term in v for term in forbidden_terms]):
+            raise ValueError(
+                f"Summary is too self-referential and likely veering off focus: {v[:80]}..."
+            )
+        return v
+
 
 class RewrittenSummary(BaseModel):
     """
