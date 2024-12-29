@@ -154,7 +154,9 @@ class RewrittenSummary(BaseModel):
         return v
 
 
-def summarize_document(llm: "LLMBaseClass", document: str, summary_steps: int = 3) -> list[str]:
+def summarize_document(
+    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3
+) -> list[str]:
 
     client = instructor.from_openai(
         OpenAI(
@@ -175,12 +177,17 @@ def summarize_document(llm: "LLMBaseClass", document: str, summary_steps: int = 
     summary_init: SummaryInit = client.chat.completions.create(
         model=llm.code,
         response_model=SummaryInit,
-        max_retries=5,
+        max_retries=max_retries,
         messages=[
             {
                 "role": "system",
                 "content": "Write a summary about the document that is long (4-5 sentences) yet highly non-specific. "
                            "Use overly, verbose language and fillers(eg.,'this document discusses') to reach ~80 words",
+            },
+            # Jesus
+            {
+                "role": "system", "content": "Remember, your summary is about the document content, "
+                                             "avoid self-referential language about yourself and this task, etc."
             },
             {
                 "role": "user", "content": f"Here is the Document: {document}"
@@ -201,7 +208,7 @@ def summarize_document(llm: "LLMBaseClass", document: str, summary_steps: int = 
     for _i in range(summary_steps):
         new_summary: RewrittenSummary = client.chat.completions.create(
             model=llm.code,
-            max_retries=5,
+            max_retries=max_retries,
             response_model=RewrittenSummary,
             messages=[
                 {
@@ -221,7 +228,13 @@ def summarize_document(llm: "LLMBaseClass", document: str, summary_steps: int = 
                         - Missing entities can appear anywhere in the new summary. 
                         - Never drop entities from the previous summary. If space cannot be made, add fewer new entities. 
                     """,
-                }, {
+                },
+                # Jesus
+                {
+                    "role": "system", "content": "Remember, your summary is about the document content, "
+                                                 "avoid self-referential language about yourself and this task, etc."
+                },
+                {
                     "role": "user", "content": f"Here is the Document: {document}"
                 },
                 {
