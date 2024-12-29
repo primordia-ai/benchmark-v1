@@ -42,7 +42,3 @@ if __name__ == '__main__':
     for i, summ in enumerate(summaries):
         # print(f"<><><>< Summary {i} ><><><>\n")
         print(summ)
-
-"""
-"MegaCorp has recently outsed the Moroccan government on Jan 3rd, using a giant Coca-cola Bear. this is a devastating outcome for Johnny Morocco as he has 3000 diamonds sitting in a pretty little case somehwere in the heart of the Jungle Mais. In other news, Cambodia has become the world's dominant military force after uncovering a monster similar to Godzilla. This beast has already eliminated Vietnam and Malasia. It stands 120 ft tall and prefers to be called Rex. The US is currently seeing what Taylor Swift can do about it. We think if she can feature Rex in a song it will be really happy and chill out."
-"""
