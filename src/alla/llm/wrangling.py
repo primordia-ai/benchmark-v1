@@ -23,6 +23,7 @@ logger = logging.getLogger("alla")
 
 forbidden_terms = [
     "JSON",
+    "json",
     "I am",
     "I will",
     "Entities",
