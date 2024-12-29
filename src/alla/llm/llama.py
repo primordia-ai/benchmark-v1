@@ -8,6 +8,7 @@ from tqdm import tqdm
 from alla.asset import Asset
 from alla.llm import utils as llm_utils
 from alla.llm.base import AssetEvaluation, LLMBaseClass
+from alla.llm.wrangling import read_reports
 from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
@@ -48,7 +49,7 @@ class LlamaSmall(LLMBaseClass):
             logger.warning("Received report_dir and reports_text. Opting for reports_text.")
 
         if not reports_text:
-            reports_text = self.read_reports(report_dir, include, exclude)
+            reports_text = read_reports(report_dir, include, exclude)
 
         if verbose is True:
             tqdm.write(f"Inferring value from report for '{asset_id}' for {indicator_name}")
@@ -71,7 +72,7 @@ class LlamaSmall(LLMBaseClass):
             mode=instructor.Mode.JSON,
         )
 
-        response = client.chat.completions.create(
+        response, completion = client.chat.completions.create_with_completion(
             model=self.code,
             temperature=self.temperature,
             messages=[
@@ -79,6 +80,8 @@ class LlamaSmall(LLMBaseClass):
             ],
             response_model=self._create_indicator_class(),
             max_retries=3,
+            max_completion_tokens=500,
+            seed=self.seed,
         )
         py_response = response.model_dump()
         # Add the indicator value

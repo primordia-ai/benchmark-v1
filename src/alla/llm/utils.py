@@ -180,6 +180,34 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
+def prompt_exp1_task(asset_id: str, report_text: str):
+    """
+    Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
+    Args:
+        asset_id (str):     The ID of the asset being evaluated.
+        report_text (str):  Reports providing information on a company.
+    Returns:
+        str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
+    """
+
+    prompt_template = f'''
+        You are a financial analyst reading a report on a company's financial performance. 
+        You have been given the following information:
+        There are so called soft indicators that are used to evaluate the company's performance.
+        The values of the indicator are represented by the colors red, yellow, and green,
+        where red indicates a negative performance, yellow indicates a neutral performance, and green indicates a positive performance.
+        The indicator you are evaluating is: '{indicator}'
+        Your task is to read the business reports and infer the value of the indicator. 
+        Your output should be one of the following: red, yellow, or green.
+        Also give an explanation of why you chose that value.
+        The description of the indicator and the company reports are given below:
+        '''
+
+    indicator_desc = SOFT_INDICATOR_DESC[indicator]
+
+    return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
+
+
 def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:
     """
     Load the extracted indicators from the JSON file.

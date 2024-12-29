@@ -20,6 +20,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS, utils as llm_utils
+from alla.llm.wrangling import read_reports
 from alla.utils import PROJECT_ROOT
 
 if TYPE_CHECKING:
@@ -353,7 +354,7 @@ class ALLA:
             else:
                 # Generate the reports for use later,
                 # but we will color-extract individually in the main loop
-                # reports_text = self.llm.read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
+                # reports_text = read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
                 extracted_complete = False
 
         # Get most recent alphas
@@ -427,7 +428,7 @@ class ALLA:
                         else:
                             # Perform extraction now, first generate report text prompt
                             # Just get report for this indicator
-                            reports_text = self.llm.read_reports(
+                            reports_text = read_reports(
                                 report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
                                 include=[f"{selected_name}_report.txt"]
                             )

@@ -37,22 +37,32 @@ class LLMBaseClass(ABC):
     name = None
     code = None
 
-    def __init__(self, temperature: float = 0.0):
+    def __init__(
+        self,
+        temperature: float = 0.0,
+        prompt_header: str = "",
+        prompt_footer: str = "",
+        history_summary: str = "",
+        history_tokens: int = 1024,
+        seed: int = 101010,
+    ):
         self.temperature = temperature
-
-    def __str__(self):
-        """Return name and class dot notation"""
-        return f"{self.name} ({self.__class__.__module__}.{self.__class__.__name__})"
-
-    def __repr__(self):
-        """Return name and class dot notation"""
-        return self.__str__()
+        self.prompt_header = prompt_header
+        self.prompt_footer = prompt_footer
+        self.history_summary = history_summary
+        self.history_tokens = history_tokens
+        self.seed = seed
 
     def to_json(self):
         return {
             "name": self.name,
             "code": self.code,
-            "temperature": self.temperature
+            "seed": self.seed,
+            "temperature": self.temperature,
+            "prompt_header": self.prompt_header,
+            "prompt_footer": self.prompt_footer,
+            "history_summary": self.history_summary,
+            "history_tokens": self.history_tokens,
         }
 
     @staticmethod
@@ -74,31 +84,6 @@ class LLMBaseClass(ABC):
                 description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
             ))
         )
-
-    def read_reports(
-        self,
-        report_dir: str = os.path.join(PROJECT_ROOT, "reports"),
-        include: list = None,
-        exclude: list = None,
-    ):
-        if not os.path.exists(report_dir):
-            raise FileNotFoundError(f"Report directory {report_dir} not found")
-
-        # Read the documents for the asset, with recursion if no reports list included
-        reports = ""
-
-        for filename in os.listdir(report_dir):
-            if exclude is not None and filename in exclude:
-                continue
-            if include is not None and filename not in include:
-                continue
-
-            file_path = os.path.join(report_dir, filename)
-            logger.debug(f"Reading file {file_path}")
-            with open(file_path, 'r') as file:
-                reports += "\n<START DOCUMENT>" + file.read() + "\n<END DOCUMENT>"
-
-        return reports
 
     @abstractmethod
     def extract_indicator(
@@ -137,3 +122,12 @@ class LLMBaseClass(ABC):
         :return:                AssetEvaluation
         """
         raise NotImplementedError()
+
+    def __str__(self):
+        """Return name and class dot notation"""
+        return f"{self.name} ({self.__class__.__module__}.{self.__class__.__name__})"
+
+    def __repr__(self):
+        """Return name and class dot notation"""
+        return self.__str__()
+

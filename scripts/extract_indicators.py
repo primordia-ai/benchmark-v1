@@ -28,6 +28,7 @@ if __name__ == '__main__':
     # =========
 
     from alla.llm import get_llm
+    from alla.llm.wrangling import read_reports
     from alla.utils import PROJECT_ROOT
     from alla.synthetic import SOFT_INDICATOR_COSTS
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         PROJECT_ROOT, "data/extracted_indicators/", llm.code
     )
     # Create the directory if it doesn't exist
-    os.makedirs(extract_dir, exist_ok=True)
+    # os.makedirs(extract_dir, exist_ok=True)
 
     with logging_redirect_tqdm():
         for asset in tqdm(asset_ids, desc="Asset"):
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             for ind in tqdm(soft_indicators, leave=False, desc="Indicator"):
                 # TODO -- Consider if we toss in the entire set of reports of just the singles
                 # On local machine, tiny llama truncated the max report, and even then it still chugged...
-                reports_text = llm.read_reports(reports_dir, include=[f"{ind}_report.txt"])
+                reports_text = read_reports(reports_dir, include=[f"{ind}_report.txt"])
 
                 extracted = llm.extract_indicator(
                     indicator_name=ind, asset_id=asset, reports_text=reports_text, verbose=True

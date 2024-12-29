@@ -36,6 +36,7 @@ ollama = "^0.4.4"
 openai = "^1.58.1"
 instructor = "^1.7.0"
 pydantic = "^2.10.4"
+nltk = "^3.9.1"
 
 [tool.poetry.dev-dependencies]
 notebook = "*"
