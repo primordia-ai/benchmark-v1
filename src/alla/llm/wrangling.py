@@ -7,21 +7,36 @@ to inform langauge models.
 See: https://python.useinstructor.com/tutorials/6-chain-of-density/#data-classes
 for more info on the Chain-of-Density used here.
 """
+import logging
 import os
 from typing import TYPE_CHECKING
 
-import logging
 import instructor
 import nltk
 from openai import OpenAI
 from pydantic import BaseModel, Field, field_validator
 
-from alla.utils import PROJECT_ROOT
-
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
 logger = logging.getLogger("alla")
+
+forbidden_terms = [
+    "JSON",
+    "I am",
+    "I will",
+    "Entities",
+    "RewrittenSummary",
+    "SummaryInit",
+    "My",
+    " my",
+    "The task",
+    "the task",
+    "~80 words"
+]
+# Replace each entry with two entries that either have a space, period, or bracket appended to them
+forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
+    term in forbidden_terms]
 
 
 class SummaryInit(BaseModel):
@@ -54,14 +69,6 @@ class SummaryInit(BaseModel):
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
         how we are "creating summaries with intricate Entities and JSON" and so on.
         """
-        forbidden_terms = [
-            "JSON",
-            "I am",
-            "I will",
-            "Entities",
-            "RewrittenSummary",
-            "SummaryInit",
-        ]
         if any([term in v for term in forbidden_terms]):
             raise ValueError(
                 f"Summary is too self-referential and likely veering off focus: {v[:80]}..."
@@ -112,6 +119,7 @@ class RewrittenSummary(BaseModel):
                 "Please make sure that you generate a new summary that is around 80 words long."
             )
         return v
+
     #
     # @field_validator("missing")
     # def has_missing_entities(cls, missing_entities: list[str]):
@@ -139,14 +147,6 @@ class RewrittenSummary(BaseModel):
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
         how we are "creating summaries with intricate Entities and JSON" and so on.
         """
-        forbidden_terms = [
-            "JSON",
-            "I am",
-            "I will",
-            "Entities",
-            "RewrittenSummary",
-            "SummaryInit",
-        ]
         if any([term in v for term in forbidden_terms]):
             raise ValueError(
                 f"Summary is too self-referential and likely veering off focus: {v[:80]}..."
