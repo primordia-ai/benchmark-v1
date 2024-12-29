@@ -106,7 +106,7 @@ class RewrittenSummary(BaseModel):
     def length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < 20:
+        if num_tokens < 60:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). "
                 "Please make sure that you generate a new summary that is around 80 words long."
@@ -132,6 +132,27 @@ class RewrittenSummary(BaseModel):
     #         )
     #     return absent_entities
     #
+
+    @field_validator("summary")
+    def proper_focus(cls, v: str):
+        """
+        Sometimes the LLM gets very self-referential and meta about the task, and goes on about
+        how we are "creating summaries with intricate Entities and JSON" and so on.
+        """
+        forbidden_terms = [
+            "JSON",
+            "I am",
+            "I will",
+            "Entities",
+            "RewrittenSummary",
+            "SummaryInit",
+        ]
+        if any([term in v for term in forbidden_terms]):
+            raise ValueError(
+                f"Summary is too self-referential and likely veering off focus: {v[:80]}..."
+            )
+        return v
+
 
 def summarize_document(llm: "LLMBaseClass", document: str, summary_steps: int = 3) -> list[str]:
 
