@@ -32,7 +32,7 @@ forbidden_terms = [
     " my",
     "The task",
     "the task",
-    "~80 words"
+    "~200 words"
 ]
 # Replace each entry with two entries that either have a space, period, or bracket appended to them
 forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
@@ -60,7 +60,7 @@ class SummaryInit(BaseModel):
         if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
-                "that is around 80 words long."
+                "that is around 200 words long."
             )
         return v
 
@@ -117,7 +117,7 @@ class RewrittenSummary(BaseModel):
         if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). "
-                "Please make sure that you generate a new summary that is around 80 words long."
+                "Please make sure that you generate a new summary that is around 200 words long."
             )
         return v
 
@@ -194,7 +194,7 @@ def summarize_document(
                 "role": "user", "content": f"Here is the Document: {document}"
             },
             {
-                "role": "user", "content": "The generated summary should be about 80 words. "
+                "role": "user", "content": "The generated summary should be about 200 words. "
                                            "Return in JSON format with key 'summary'"
             },
         ]
