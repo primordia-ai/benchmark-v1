@@ -1,13 +1,14 @@
 from typing import Type
 
 from .base import LLMBaseClass
-from .llama import LlamaSmall, LlamaSmallAlt, LlamaTiny
+from .llama import LlamaSmall, LlamaSmallAlt, LlamaTiny, LlamaMamma
 
 AVAILABLE_MODELS = {
     # Model codes to classes
     LlamaSmall.code: LlamaSmall,
     LlamaSmallAlt.code: LlamaSmallAlt,
     LlamaTiny.code: LlamaTiny,
+    LlamaMamma.code: LlamaMamma,
 }
 
 
