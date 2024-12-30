@@ -56,7 +56,7 @@ def main():
         "--test", action="store_true", help="Run in test mode"
     )
     parser.add_argument(
-        "--llm_code", type=str, default="llama-tiny", help="LLM identifier (code or alias). Default 'llama-tiny'."
+        "--llm-code", type=str, default="llama-tiny", help="LLM identifier (code or alias). Default 'llama-tiny'."
     )
     parser.add_argument(
         "--name", type=str, default="latest", help="Experiment name. Default 'latest'."
