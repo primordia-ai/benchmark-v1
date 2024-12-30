@@ -93,7 +93,7 @@ def main():
         # If testing, we will have 12 assets, and 4 per category
         n_asset = 9
         n_asset_per = n_asset / 3
-        budget_mode = BudgetMode.WALL.value
+        budget_mode = BudgetMode.WALL
         total_budget = 1e5
         budget_per_task = 20
         asset_memory_depth = 20
@@ -101,7 +101,7 @@ def main():
         # Otherwise, just run all assets
         n_asset = 200
         n_asset_per = None
-        budget_mode = BudgetMode.WALL.value
+        budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
         budget_per_task = 20
         asset_memory_depth = 100

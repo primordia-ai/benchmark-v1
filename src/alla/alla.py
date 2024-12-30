@@ -378,7 +378,7 @@ class ALLA:
             for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
                 logger.info(f"Remaining asset budget: {budget}")
 
-                if self.budget_mode == BudgetMode.SYNTH.value:
+                if self.budget_mode == BudgetMode.SYNTH:
                     # Iterate through remaining candidates and filter by remaining budget
                     for j in candidates.copy():
                         if ind_cost[j] > budget:
@@ -468,12 +468,12 @@ class ALLA:
                 # TODO -- Maybe move this out for performance
                 self.compute_growth_quantiles(asset=asset)
 
-                if self.budget_mode == BudgetMode.WALL.value:
+                if self.budget_mode == BudgetMode.WALL:
                     cost = time.time() - iter_start
                     iter_start = time.time()
                     self.budget -= cost
                     budget -= cost
-                elif self.budget_mode == BudgetMode.SYNTH.value:
+                elif self.budget_mode == BudgetMode.SYNTH:
                     self.budget -= se_cost
                     budget -= se_cost
                 else:
@@ -506,9 +506,9 @@ class ALLA:
             indicator_name, str(asset.asset), reports_text=reports_text
         )["value"]
 
-        if self.budget_mode == BudgetMode.SYNTH.value:
+        if self.budget_mode == BudgetMode.SYNTH:
             cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
-        elif self.budget_mode == BudgetMode.WALL.value:
+        elif self.budget_mode == BudgetMode.WALL:
             cost = time.time() - se_start
         else:
             raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
