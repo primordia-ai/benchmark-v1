@@ -15,15 +15,9 @@ In this experiment, for each asset the agents are allowed a fixed budget of wall
 ALLA will perform bayesian inference on the indicators, and the LLM will converse back with itself during
 its allotted time.
 
-TODO -- Questions
-    1. Is "Actual" in our setup the underlying mixture distribution parameters (mu_g) or the sampled 2025_growth?
-    2. How to get unbiased growth estimates from llama if we are giving it the three mixture means?
-        a. Conversely, without the three mixture means, we will have to describe the range of growth values somehow.
-    3. Need the rest of the reports for other assets.
-    4. Need to construct actual budget mechanics.
-
 TODO -- Ablations
     1. Chain-of-thought: https://python.useinstructor.com/concepts/prompting/#chain-of-thought
+    2. LLM budgeting and conversing with itself
 """
 
 
@@ -173,6 +167,8 @@ def main():
     #     model_name=f"alla-{run_name}",
     #     save_dir=os.path.join(results_dir, "models")
     # )
+    #
+    # TODO -- Format and save the alla results mainly
 
     #####################
     # LLM Portion
