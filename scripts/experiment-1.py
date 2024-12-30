@@ -143,7 +143,7 @@ def main():
         "test": testing,
         "llm": llm.to_json(),
         "alla": m.to_json(),
-        "budget_mode": budget_mode,
+        "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
         "n_asset": n_asset,
