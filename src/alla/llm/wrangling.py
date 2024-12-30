@@ -122,7 +122,6 @@ class RewrittenSummary(BaseModel):
             )
         return v
 
-    #
     # @field_validator("missing")
     # def has_missing_entities(cls, missing_entities: list[str]):
     #     if len(missing_entities) == 0:
@@ -141,7 +140,6 @@ class RewrittenSummary(BaseModel):
     #             f"Do not omit the following Entities {absent_entity_string} from the new summary"
     #         )
     #     return absent_entities
-    #
 
     @field_validator("summary")
     def proper_focus(cls, v: str):
@@ -247,9 +245,6 @@ def summarize_document(
         )
         summary_chain.append(new_summary.summary)
         # For next iter
-        print(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
-        print(f"\nMissing: {new_summary.missing}\nAbsent: {new_summary.absent}\n")
-
         missing_entity_messages = ([
             {
                 "role": "user",
