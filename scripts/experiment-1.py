@@ -28,6 +28,7 @@ TODO -- Ablations
 
 import argparse
 import json
+import instructor
 import logging
 import os
 
@@ -68,7 +69,7 @@ def main():
         "--temp", type=float, default=0.0, help="Temperature for LLM. Default 0.0."
     )
     parser.add_argument(
-        "--raise-exception", action="store_false", help="Raise exceptions on certain iteration failures."
+        "--raise-exception", action="store_true", help="Raise exceptions on certain iteration failures."
     )
 
     args = parser.parse_args()
@@ -208,8 +209,16 @@ def main():
             reports_text = read_reports(report_file)
 
             prompt = llm_utils.prompt_exp1_task(asset_id, reports_text, indicators)
-            result = llm.evaluate_asset(prompt, max_retries=5)
-            llm_results[asset_id] = result.model_dump()
+            try:
+                result = llm.evaluate_asset(prompt, max_retries=5)
+            except Exception as e:
+                if raise_exception:
+                    raise e
+                # Else log and continue
+                logger.warning(f"Exception processing asset {asset_id}: {e}")
+                llm_results[asset_id] = {"error": str(e)}
+            else:
+                llm_results[asset_id] = result.model_dump()
 
     # Save the llm results
     llm_results_path = os.path.join(results_dir, "llm_results.json")

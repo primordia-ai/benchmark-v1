@@ -41,6 +41,10 @@ forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for ter
 
 SUMMARY_TARGET_LEN = 200
 
+"""
+TODO -- Use the llm_validator to ensure the model isn't doing the annoying meta self-referential stuff
+https://python.useinstructor.com/concepts/reask_validation/#llm-based-validation-example
+"""
 
 class SummaryInit(BaseModel):
     """
