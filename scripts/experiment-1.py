@@ -216,49 +216,6 @@ def main():
         logger.info(f"Saving LLM results to {llm_results_path}")
         json.dump(llm_results, f, indent=4)
 
-    #####################
-    # Plotting
-    #
-    # Plot the distribution of LLM-predicted categories vs the truth data categories, and growth data
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(2, 1, figsize=(12, 10))
-
-    # Plot the category distribution
-    pred_cats = np.array([r["category"] for r in llm_results.values()])
-    true_cats = np.array([r["truth"]["category"] for r in llm_results.values()])
-    categories = ["high_growth", "stable", "time_bomb"]
-    cat_counts = np.array([np.sum(pred_cats == cat) for cat in categories])
-
-    ax = axes[0]
-    ax.bar(categories, cat_counts, color="skyblue")
-    # ax.bar(categories, [np.sum(true_cats == cat) for cat in categories], color="orange", alpha=0.5)
-    ax.set_title("LLM Predicted Category Distribution")
-    ax.set_ylabel("Count")
-    ax.set_xlabel("Category")
-
-    # Plot the growth distribution
-    pred_growths = np.array([r["growth"] for r in llm_results.values()])
-    true_growths = np.array([r["truth"]["growth"] for r in llm_results.values()])
-    growth_bins = np.linspace(-1, 1, 21)
-    growth_counts, _ = np.histogram(pred_growths, bins=growth_bins)
-    growth_centers = (growth_bins[:-1] + growth_bins[1:]) / 2
-
-    ax = axes[1]
-    ax.bar(growth_centers, growth_counts, width=0.1, color="orange")
-    ax.set_title("LLM Predicted Growth Distribution")
-    ax.set_ylabel("Count")
-    ax.set_xlabel("Growth")
-
-    # Save the figure
-    fig_path = os.path.join(results_dir, "llm_results.png")
-    fig.savefig(fig_path)
-    logger.info(f"Saved LLM results figure to {fig_path}")
-
-    # Show the figure
-    plt.show()
-
-
 if __name__ == '__main__':
 
     import argparse
