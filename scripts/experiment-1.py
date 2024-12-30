@@ -157,32 +157,32 @@ def main():
 
     for cat, ids in assets.items():
         print(f"{len(ids)} reports found for '{cat}':\n{ids}")
-
-    #####################
-    # ALLA portion
-
-    for cat, a_ids in assets.items():
-        print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-        for asset_id in tqdm(a_ids, desc="Assets"):
-            try:
-                success, reason = m.process_asset(asset_id, max_budget=budget_per_task)
-            except Exception as e:
-                if raise_exception:
-                    raise e
-                # Else log and continue
-                logger.warning(f"Exception processing asset {asset_id}: {e}")
-            else:
-                if not success:
-                    if raise_exception:
-                        raise ValueError(f"Failed to process asset {asset_id}: {reason}")
-                    # Else log and continue
-                    logger.warning(f"Failed to process asset {asset_id}: {reason}")
-
-    # Save the alla model
-    m.save_model(
-        model_name=f"alla-{run_name}",
-        save_dir=os.path.join(results_dir, "models")
-    )
+    #
+    # #####################
+    # # ALLA portion
+    #
+    # for cat, a_ids in assets.items():
+    #     print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+    #     for asset_id in tqdm(a_ids, desc="Assets"):
+    #         try:
+    #             success, reason = m.process_asset(asset_id, max_budget=budget_per_task)
+    #         except Exception as e:
+    #             if raise_exception:
+    #                 raise e
+    #             # Else log and continue
+    #             logger.warning(f"Exception processing asset {asset_id}: {e}")
+    #         else:
+    #             if not success:
+    #                 if raise_exception:
+    #                     raise ValueError(f"Failed to process asset {asset_id}: {reason}")
+    #                 # Else log and continue
+    #                 logger.warning(f"Failed to process asset {asset_id}: {reason}")
+    #
+    # # Save the alla model
+    # m.save_model(
+    #     model_name=f"alla-{run_name}",
+    #     save_dir=os.path.join(results_dir, "models")
+    # )
 
     #####################
     # LLM Portion
@@ -192,6 +192,7 @@ def main():
     # The llm that generated the indicators doesn't necessarily have to be the subject model
     # (At least for this experiment)
     indicator_llm_code = "llama3:8b"
+    llm_results = {}
 
     for cat, a_ids in assets.items():
         print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
@@ -207,7 +208,14 @@ def main():
             reports_text = read_reports(report_file)
 
             prompt = llm_utils.prompt_exp1_task(asset_id, reports_text, indicators)
-            llm.evaluate_asset(prompt)
+            result = llm.evaluate_asset(prompt, max_retries=5)
+            llm_results[asset_id] = result.model_dump()
+
+    # Save the llm results
+    llm_results_path = os.path.join(results_dir, "llm_results.json")
+    with open(llm_results_path, 'w') as f:
+        logger.info(f"Saving LLM results to {llm_results_path}")
+        json.dump(llm_results, f, indent=4)
 
 
 if __name__ == '__main__':
