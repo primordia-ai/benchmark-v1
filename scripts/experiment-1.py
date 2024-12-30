@@ -21,6 +21,9 @@ TODO -- Questions
         a. Conversely, without the three mixture means, we will have to describe the range of growth values somehow.
     3. Need the rest of the reports for other assets.
     4. Need to construct actual budget mechanics.
+
+TODO -- Ablations
+    1. Chain-of-thought: https://python.useinstructor.com/concepts/prompting/#chain-of-thought
 """
 
 import argparse
@@ -37,7 +40,8 @@ logger.setLevel(logging.INFO)
 
 from alla import synthetic as synth, utils
 from alla.alla import ALLA, BudgetMode
-from alla.llm import get_llm
+from alla.llm import get_llm, utils as llm_utils
+from alla.llm.wrangling import read_reports
 
 # Set seed
 # 101010 happens to be 42 in binary. How charming.
@@ -151,15 +155,15 @@ def main():
         logger.info(f"Saving run data to {config_path}")
         json.dump(run_data, f, indent=4)
 
-    for cat, reports in assets.items():
-        print(f"{len(reports)} reports found for '{cat}':\n{reports}")
+    for cat, ids in assets.items():
+        print(f"{len(ids)} reports found for '{cat}':\n{ids}")
 
     #####################
     # ALLA portion
 
-    for cat, reports in assets.items():
-        print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(reports)})\n")
-        for asset_id in tqdm(reports, desc="Assets"):
+    for cat, a_ids in assets.items():
+        print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+        for asset_id in tqdm(a_ids, desc="Assets"):
             try:
                 success, reason = m.process_asset(asset_id, max_budget=budget_per_task)
             except Exception as e:
@@ -182,6 +186,28 @@ def main():
 
     #####################
     # LLM Portion
+    #
+    # For each asset combine its report text and the pre-extract indicators into one prompt
+
+    # The llm that generated the indicators doesn't necessarily have to be the subject model
+    # (At least for this experiment)
+    indicator_llm_code = "llama3:8b"
+
+    for cat, a_ids in assets.items():
+        print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+        for asset_id in tqdm(a_ids, desc="Assets"):
+            # Load indicators
+            indicator_file = os.path.join(
+                utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset_id}.json"
+            )
+            with open(indicator_file, 'r') as f:
+                indicators = json.load(f)
+            # Get report text
+            report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
+            reports_text = read_reports(report_file)
+
+            prompt = llm_utils.prompt_exp1_task(asset_id, reports_text, indicators)
+            llm.evaluate_asset(prompt)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,6 @@ from typing import Literal
 
 from pydantic import BaseModel, create_model, Field
 
-from alla.asset import Asset
 from alla.utils import PROJECT_ROOT
 
 logger = logging.getLogger("alla")
@@ -19,15 +18,18 @@ class GrowthEstimate(BaseModel):
     std: float
 
 
-class CategoryDistribution(BaseModel):
-    high_growth: float
-    stable: float
-    time_bomb: float
-
+# class CategoryDistribution(BaseModel):
+#     high_growth: float
+#     stable: float
+#     time_bomb: float
 
 class AssetEvaluation(BaseModel):
-    growth: GrowthEstimate
-    category: CategoryDistribution
+    category: Literal['high_growth', 'stable', 'time_bomb'] = Field(
+        ..., title="Category", description="The category of the asset/company indicating its growth potential."
+    )
+    growth: float = Field(
+        ..., title="Growth", description="The estimated growth of the asset/company."
+    )
 
 
 class LLMBaseClass(ABC):
@@ -36,21 +38,14 @@ class LLMBaseClass(ABC):
     """
     name = None
     code = None
+    context_window = None
 
     def __init__(
         self,
         temperature: float = 0.0,
-        prompt_header: str = "",
-        prompt_footer: str = "",
-        history_summary: str = "",
-        history_tokens: int = 1024,
         seed: int = 101010,
     ):
         self.temperature = temperature
-        self.prompt_header = prompt_header
-        self.prompt_footer = prompt_footer
-        self.history_summary = history_summary
-        self.history_tokens = history_tokens
         self.seed = seed
 
     def to_json(self):
@@ -58,11 +53,8 @@ class LLMBaseClass(ABC):
             "name": self.name,
             "code": self.code,
             "seed": self.seed,
+            "context_window": self.context_window,
             "temperature": self.temperature,
-            "prompt_header": self.prompt_header,
-            "prompt_footer": self.prompt_footer,
-            "history_summary": self.history_summary,
-            "history_tokens": self.history_tokens,
         }
 
     @staticmethod
@@ -111,15 +103,16 @@ class LLMBaseClass(ABC):
         """
         raise NotImplementedError()
 
-    def evaluate_asset(self, asset: Asset, reports_txt: str, prompt: str) -> AssetEvaluation:
+    def evaluate_asset(
+        self, prompt: str, max_retries: int = 3
+    ) -> AssetEvaluation:
         """
         Evaluates an asset given its reports and indicators.
         Produces this model's estimate of the asset's growth forecast and category distribution.
 
-        :param asset:           The asset to evaluate.
-        :param reports_txt:     The reports data in a block of text.
-        :param prompt:          The prompt to use for the evaluation.
-        :return:                AssetEvaluation
+        :param prompt:                  The prompt to use for the evaluation.
+        :param max_retries:             The maximum number of retries to attempt.
+        :return:                        AssetEvaluation
         """
         raise NotImplementedError()
 
@@ -130,4 +123,3 @@ class LLMBaseClass(ABC):
     def __repr__(self):
         """Return name and class dot notation"""
         return self.__str__()
-

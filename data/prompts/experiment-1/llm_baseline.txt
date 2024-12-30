@@ -1,2 +1,0 @@
-You are a financial analyst.
-Your job is to assess a series of companies (also known as assets) to determine their

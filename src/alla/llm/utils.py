@@ -4,6 +4,7 @@ LLM Utils. In particular, those for retrieving and constructing prompts
 import json
 import os
 
+from alla import synthetic as synth
 from alla.utils import PROJECT_ROOT
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
@@ -180,32 +181,56 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
-def prompt_exp1_task(asset_id: str, report_text: str):
+def prompt_exp1_task(asset_id: str, report_text: str, indicators_json: str):
     """
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
     Args:
-        asset_id (str):     The ID of the asset being evaluated.
-        report_text (str):  Reports providing information on a company.
+        asset_id (str):         The ID of the asset being evaluated.
+        report_text (str):      Reports providing information on a company.
+        indicators_json (str):  Indicator data.
     Returns:
-        str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
+        str: A formatted prompt containing the description of the indicator, the company reports
     """
+    mu_g = {cls: mu for cls, mu in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_MU)}
+    scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
 
-    prompt_template = f'''
-        You are a financial analyst reading a report on a company's financial performance. 
+    prompt = f'''
+        You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
+        You goal is to evaluate this company across two dimensions:
+            1. It's investment class, which can be one of "high_growth", "stable", or "time_bomb".
+            2. Its predicted upcoming growth for the next year.
+            
+        The classes are rather self-evident: high_growth companies are promising investments; time_bomb companies
+        have problematic outlooks; and stable companies are the moderate.
+        ---
         You have been given the following information:
-        There are so called soft indicators that are used to evaluate the company's performance.
-        The values of the indicator are represented by the colors red, yellow, and green,
-        where red indicates a negative performance, yellow indicates a neutral performance, and green indicates a positive performance.
-        The indicator you are evaluating is: '{indicator}'
-        Your task is to read the business reports and infer the value of the indicator. 
-        Your output should be one of the following: red, yellow, or green.
-        Also give an explanation of why you chose that value.
-        The description of the indicator and the company reports are given below:
+            - A compilation of various performance reports in text
+            - A list of financial indicators
+            
+        The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
+        yellow indicates a neutral performance, and green indicates a positive performance.
+        
+        You are also given some statistical parameters that underlie company growth rates by class, 
+        which parametrize a Gaussian form:
+            mu_growth: {mu_g},
+            sigma_growth: {scale_g}
+        Keep in mind, that just because an asset may belong to a certain investment class, does not mean its
+        growth is the mean from mu_growth -- You'll have to consider the reports and indicators to further
+        inform the exact growth value
+        ---
+        Below are the report data and indicators.
+        
+        REPORTS:
+        {report_text}
+        *************
+        INDICATORS:
+        {indicators_json} 
+        ---
+        You have received all the information you need.
+        Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
         '''
 
-    indicator_desc = SOFT_INDICATOR_DESC[indicator]
-
-    return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
+    return prompt
 
 
 def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:
