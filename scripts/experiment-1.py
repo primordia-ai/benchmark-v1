@@ -119,6 +119,7 @@ def main():
     # We can just compile asset names here
     # Only for assets that we have reports for
     report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports")
+    truth_data = {}
     for asset_id in os.listdir(report_dir):
         # Check category
         try:
@@ -135,8 +136,12 @@ def main():
             # We have enough assets for this category
             continue
 
-        # Add asset to category
+        # Add asset to category and record truth data
         assets[category].append(asset_id)
+        truth_data[asset_id] = {
+            "category": category,
+            "growth": asset.growth_2025.values.item()
+        }
 
     # Save run data to config.yaml
     run_data = {
@@ -155,6 +160,12 @@ def main():
     with open(config_path, 'w') as f:
         logger.info(f"Saving run data to {config_path}")
         json.dump(run_data, f, indent=4)
+
+    # Also save the truth data
+    truth_data_path = os.path.join(results_dir, "truth_data.json")
+    with open(truth_data_path, 'w') as f:
+        logger.info(f"Saving truth data to {truth_data_path}")
+        json.dump(truth_data, f, indent=4)
 
     for cat, ids in assets.items():
         print(f"{len(ids)} reports found for '{cat}':\n{ids}")
@@ -210,15 +221,20 @@ def main():
 
             prompt = llm_utils.prompt_exp1_task(asset_id, reports_text, indicators)
             try:
-                result = llm.evaluate_asset(prompt, max_retries=5)
+                evaluation = llm.evaluate_asset(prompt, max_retries=5)
             except Exception as e:
                 if raise_exception:
                     raise e
                 # Else log and continue
                 logger.warning(f"Exception processing asset {asset_id}: {e}")
-                llm_results[asset_id] = {"error": str(e)}
+                llm_results[asset_id] = {
+                    "error": str(e),
+                    "truth": truth_data[asset_id]
+                }
             else:
-                llm_results[asset_id] = result.model_dump()
+                result = evaluation.model_dump()
+                result["truth"] = truth_data[asset_id]
+                llm_results[asset_id] = result
 
     # Save the llm results
     llm_results_path = os.path.join(results_dir, "llm_results.json")
