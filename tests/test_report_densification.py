@@ -3,13 +3,8 @@ Test the report densification utilities in llm.wrangling
 """
 
 if __name__ == '__main__':
-    import logging
     import os
     import numpy as np
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     # Set seed
     SEED = 10

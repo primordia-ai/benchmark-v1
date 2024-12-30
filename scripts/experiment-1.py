@@ -26,28 +26,6 @@ TODO -- Ablations
     1. Chain-of-thought: https://python.useinstructor.com/concepts/prompting/#chain-of-thought
 """
 
-import argparse
-import json
-import instructor
-import logging
-import os
-
-import numpy as np
-from tqdm import tqdm
-
-# Set this up before importing local classes
-logger = logging.getLogger("alla")
-logger.setLevel(logging.INFO)
-
-from alla import synthetic as synth, utils
-from alla.alla import ALLA, BudgetMode
-from alla.llm import get_llm, utils as llm_utils
-from alla.llm.wrangling import read_reports
-
-# Set seed
-# 101010 happens to be 42 in binary. How charming.
-SEED = 101010
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -168,7 +146,7 @@ def main():
         json.dump(truth_data, f, indent=4)
 
     for cat, ids in assets.items():
-        print(f"{len(ids)} reports found for '{cat}':\n{ids}")
+        print(f"{len(ids)} reports found for '{cat}'")
     #
     # #####################
     # # ALLA portion
@@ -219,7 +197,7 @@ def main():
             report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
             reports_text = read_reports(report_file)
 
-            prompt = llm_utils.prompt_exp1_task(asset_id, reports_text, indicators)
+            prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
             try:
                 evaluation = llm.evaluate_asset(prompt, max_retries=5)
             except Exception as e:
@@ -244,4 +222,23 @@ def main():
 
 
 if __name__ == '__main__':
+
+    import argparse
+    import json
+    import os
+
+    import numpy as np
+    from tqdm import tqdm
+
+    from alla.logger import logger
+
+    from alla import synthetic as synth, utils
+    from alla.alla import ALLA, BudgetMode
+    from alla.llm import get_llm, utils as llm_utils
+    from alla.llm.wrangling import read_reports
+
+    # Set seed
+    # 101010 happens to be 42 in binary. How charming.
+    SEED = 101010
+
     main()

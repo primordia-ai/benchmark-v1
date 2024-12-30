@@ -1,4 +1,3 @@
-import logging
 import os
 
 import instructor
@@ -8,9 +7,8 @@ from tqdm import tqdm
 from alla.llm import utils as llm_utils
 from alla.llm.base import AssetEvaluation, LLMBaseClass
 from alla.llm.wrangling import read_reports
+from alla.logger import logger
 from alla.utils import PROJECT_ROOT
-
-logger = logging.getLogger("alla")
 
 
 class LlamaSmall(LLMBaseClass):

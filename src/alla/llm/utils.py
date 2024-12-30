@@ -181,11 +181,10 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
-def prompt_exp1_task(asset_id: str, report_text: str, indicators_json: str):
+def prompt_exp1_task(report_text: str, indicators_json: str):
     """
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
     Args:
-        asset_id (str):         The ID of the asset being evaluated.
         report_text (str):      Reports providing information on a company.
         indicators_json (str):  Indicator data.
     Returns:

@@ -7,7 +7,6 @@ to inform langauge models.
 See: https://python.useinstructor.com/tutorials/6-chain-of-density/#data-classes
 for more info on the Chain-of-Density used here.
 """
-import logging
 import os
 from typing import TYPE_CHECKING
 
@@ -16,10 +15,10 @@ import nltk
 from openai import OpenAI
 from pydantic import BaseModel, Field, field_validator
 
+from alla.logger import logger
+
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
-
-logger = logging.getLogger("alla")
 
 forbidden_terms = [
     "JSON",
@@ -45,6 +44,7 @@ SUMMARY_TARGET_LEN = 200
 TODO -- Use the llm_validator to ensure the model isn't doing the annoying meta self-referential stuff
 https://python.useinstructor.com/concepts/reask_validation/#llm-based-validation-example
 """
+
 
 class SummaryInit(BaseModel):
     """

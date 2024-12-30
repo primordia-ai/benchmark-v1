@@ -3,14 +3,9 @@ Test the report densification utilities in llm.wrangling
 """
 
 if __name__ == '__main__':
-    import logging
     import json
     import os
     import numpy as np
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     # Set seed
     SEED = 10
@@ -18,6 +13,7 @@ if __name__ == '__main__':
 
     # =========
 
+    from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm import wrangling
     from alla.utils import PROJECT_ROOT
@@ -43,6 +39,6 @@ if __name__ == '__main__':
     with open(indicator_file, 'r') as f:
         indicators = json.load(f)
 
-    prompt = llm_utils.prompt_exp1_task(asset, report_txt, indicators)
+    prompt = llm_utils.prompt_exp1_task(report_txt, indicators)
     result = llm.evaluate_asset(prompt, max_retries=5)
     print(f"MW RESULT -- {result}")

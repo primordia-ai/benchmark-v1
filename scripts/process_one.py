@@ -3,11 +3,6 @@ Process the first asset with ALLA
 """
 
 if __name__ == '__main__':
-    import logging
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     import numpy as np
 
@@ -17,6 +12,7 @@ if __name__ == '__main__':
 
     from alla import synthetic as synth
     from alla.alla import ALLA
+    from alla.logger import logger
 
     # Generate synthetic stocks
     # n_stock = 111
@@ -33,7 +29,6 @@ if __name__ == '__main__':
     #
     # if asset_name is None:
     #     raise RuntimeError(f"No {category_select} asset generated")
-
 
     stocks = synth.load_stocks(as_dataset=True)
 

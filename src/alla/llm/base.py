@@ -1,7 +1,6 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
-import logging
 import os
 from abc import ABC, abstractmethod
 from typing import Literal
@@ -9,8 +8,6 @@ from typing import Literal
 from pydantic import BaseModel, create_model, Field
 
 from alla.utils import PROJECT_ROOT
-
-logger = logging.getLogger("alla")
 
 
 class GrowthEstimate(BaseModel):

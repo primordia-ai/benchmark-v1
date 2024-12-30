@@ -3,7 +3,6 @@ ALLA Models
 """
 import datetime
 import json
-import logging
 import os
 import random
 import time
@@ -21,12 +20,11 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS, utils as llm_utils
 from alla.llm.wrangling import read_reports
+from alla.logger import logger
 from alla.utils import PROJECT_ROOT
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
-
-logger = logging.getLogger("alla")
 
 
 class BudgetMode(Enum):
@@ -337,7 +335,7 @@ class ALLA:
             # Get extracted color values
             # First look for save results
             extract_path = os.path.join(
-                PROJECT_ROOT, "data/extracted_indicators", self.llm.code, f"{asset_id}.json"
+                PROJECT_ROOT, f"data/extracted_indicators/{self.llm.code}/{asset_id}.json"
             )
             if os.path.exists(extract_path):
                 logger.info(f"Loading extracted indicator results from '{extract_path}'")
@@ -762,9 +760,16 @@ class ALLA:
         # We infer the memory depth from stocks dataset
         asset_memory_depth = stocks.time.size
 
+        if llm_code not in AVAILABLE_MODELS:
+            logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
+            llm = None
+        else:
+            llm = AVAILABLE_MODELS[llm_code](
+                temperature=llm_temp
+            )
         # Create the model
         m = cls(
-            stocks_dataset=stocks, asset_memory_depth=asset_memory_depth
+            stocks, llm, asset_memory_depth=asset_memory_depth,
         )
         # Set the loaded data
         m.ind_likelihoods = ind_likelihoods
@@ -774,13 +779,6 @@ class ALLA:
         m.mu_g = mu_g
         m.sigma_g = sigma_g
         m.quantiles = quantiles
-        if llm_code not in AVAILABLE_MODELS:
-            logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
-            m.llm = None
-        else:
-            m.llm = AVAILABLE_MODELS[llm_code](
-                temperature=llm_temp
-            )
 
         # Some extras
         # List of soft indicator names

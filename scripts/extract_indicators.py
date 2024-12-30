@@ -2,17 +2,12 @@
 # Output: LLM indicator color estimates for each soft indicator in the data
 
 if __name__ == '__main__':
-    import logging
     import json
     import os
     import sys
     import numpy as np
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     # Set seed
     SEED = 10
@@ -41,7 +36,7 @@ if __name__ == '__main__':
 
     # Create the extraction directory if needed
     extract_dir = os.path.join(
-        PROJECT_ROOT, "data/extracted_indicators/", llm.code
+        PROJECT_ROOT, f"data/extracted_indicators/{llm.code}"
     )
     # Create the directory if it doesn't exist
     # os.makedirs(extract_dir, exist_ok=True)
