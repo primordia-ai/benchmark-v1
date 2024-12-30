@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company's focus on investing in research and development (R&D) has yielded significant benefits, allowing it to stay ahead of the curve in its industry. The data suggests that the company's product launches have remained strong, with a consistent flow of new offerings that are well-received by customers.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company appears to be struggling with adapting to emerging market trends, technological shifts, and evolving consumer preferences. This lack of adaptability poses significant risks to the company's long-term competitiveness and sustainability.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan, high dependence on single leader without backup plan in place",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our evaluation reveals a negative trend in this area, which could potentially impact the company's performance and reputation if left unaddressed.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company is particularly vulnerable to disruptions caused by international tensions, trade disputes, and instability in key operational regions. This has led to concerns about currency fluctuations and potential impacts on supply chain operations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "One key metric indicates a significant negative impact on the company's operations and bottom line. This exposure has resulted in substantial costs due to regulatory changes and resource shortages, hindering the company's growth prospects.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company appears to be struggling to maintain its unique market position, but it still has some established intellectual property and partnerships. These assets do not seem to be providing a sufficient deterrent to competition, leaving room for competitors to gain traction in the market.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's supply chain lacks supplier diversification, leaving it overly reliant on a limited number of suppliers. This vulnerability is compounded by inadequate inventory management strategies and underdeveloped technology integration within the supply chain.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company is facing significant regulatory hurdles in the coming quarters. This challenge has been flagged by our team of experts, highlighting potential risks to the company's operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's revenue is overly dependent on a small number of customers (>20%), which can affect bargaining power and revenue stability. This indicates a negative performance, represented by the color red.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Customer satisfaction levels have declined slightly, which is expected to negatively impact future revenue growth. Marketing efforts also seem to be falling short of expectations, with some critics arguing that they lack focus and direction.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's ability to harness digital technologies reveals a concerning trend. While efforts have been made to upgrade operations, customer experience, and competitiveness through various initiatives such as cloud adoption and automation, the overall impact falls short of expectations.",
+        "indicator": "digital_transformation"
+    }
+]

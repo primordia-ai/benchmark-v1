@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "Despite being recognized as a disruptor in its industry, the company has shown no signs of plateauing or stagnation. The company's market share has not declined, investment in research and development (R&D) remains high, and product launches have continued at a steady pace.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's inability to adapt to market changes, technological advancements, or evolving consumer preferences suggests that it is failing to keep pace with the competition. This lack of agility has resulted in a loss of market share and decline in revenue growth, indicating a negative performance.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While progress has been made, certain areas require further attention. Some critical roles remain unfilled, and the company relies on a single individual without a clear backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights concerns about inconsistent decision-making, inadequate financial oversight, and ignoring stakeholder concerns, which are all indicative of poor management practices. These issues can lead to negative impacts on the company's performance and reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company is currently managing its exposure to international political tensions effectively, but has not yet optimized its position for maximum advantage. This suggests a moderate level of risk, which corresponds to the yellow value.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively managed risks related to environmental issues, such as climate change and regulatory changes. The measures taken by the company have minimized its exposure to costs associated with non-compliance with emissions regulations and resource shortages.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully established a strong foundation for defending its market position. The presence of key assets and relationships that deter potential competitors from entering the market, along with patent portfolio, exclusive partnerships, and economies of scale, have created significant barriers to entry, making it challenging for new entrants to gain traction.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a high degree of resilience in the face of external shocks such as natural disasters, geopolitical events, or supplier failures. This is due in part to their robust strategy for managing inventory and integrating technology across their operations.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The absence of any major compliance issues or regulatory hurdles suggests a high degree of operational efficiency and financial stability, indicating a positive regulatory pressure.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's strong focus on innovation and adaptation to emerging trends, consistent investments in R&D, cross-functional collaboration, and successful product rollouts indicate a well-funded pipeline, which corresponds to the 'Green' value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully diversified its customer base, reducing its reliance on a small number of large customers. This development is a positive step forward for the company, and we will continue to monitor its progress in this area.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's ability to command a premium price for its products and services, and maintain a strong competitive position in the market, has been negatively impacted. The key drivers of this trend include customer dissatisfaction with product quality and service, as well as ineffective marketing strategies.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company has been slow to adopt innovative solutions that could enhance operations and customer experience. The current state of affairs suggests that digital transformation efforts are not yielding the expected benefits.",
+        "indicator": "digital_transformation"
+    }
+]

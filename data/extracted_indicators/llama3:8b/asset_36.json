@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company's ongoing commitment to research and development (R&D) and its continued investment in innovative product launches are yielding results. This is reflected in a stable market share, which indicates that the company remains competitive and relevant within its industry.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's failure to adopt digital tools effectively has been a major issue, leaving it lagging behind its competitors. Furthermore, the inability to pivot in response to competitor advancements has hindered its ability to stay ahead of the curve.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's efforts to overcome its recent challenges are showing promising signs of progress. A key area of focus has been the implementation of a strategic plan aimed at revitalizing the business.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan, which may impact stability and strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "A critical aspect of management practices that could have far-reaching consequences for the company's performance and reputation appears to be in disarray. This issue stems from inconsistent decision-making, inadequate financial oversight, and disregard for stakeholder concerns.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company remains relatively well-positioned to navigate any changes in international trade policies or regional stability, indicating a limited exposure to external risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates a stable situation regarding environmental risks, with no significant negative impacts on operations. The lack of severe consequences related to environmental issues is reflected in the company's recent financial statements.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis reveals that there are significant concerns regarding the company's ability to maintain a competitive advantage in the market, and key areas such as patents, exclusive partnerships, and economies of scale appear to be underdeveloped.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to adapt to disruptions in its supply chain has been neutral, indicating some diversification but not enough to be considered well-diversified and resilient. The report highlights the need for further investment and attention to improve supply chain resilience.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our review indicates that the firm is currently facing significant regulatory scrutiny, which has resulted in increased operational costs and potential financial implications for the business.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's innovative pipeline remains robust, with a steady flow of funding supporting cross-functional collaboration and successful product launches. This is a testament to the company's commitment to innovation and its ability to execute on its strategic priorities.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights concerns regarding the company's reliance on a limited number of customers, which may compromise its bargaining power and revenue stability. This suggests that the company is vulnerable to potential disruptions in revenue due to an over-reliance on a small group of clients.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reputation and customer loyalty are being eroded by a number of issues, including declining customer satisfaction and ineffective marketing efforts. These problems have resulted in the company losing ground to its competitors, who are better positioned to capitalize on changing market conditions.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Lagging digital adoption",
+        "indicator": "digital_transformation"
+    }
+]

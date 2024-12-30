@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's declining market share, reduced investment in R&D, and stagnation in product launches suggest a lack of innovation, which aligns with the 'Not innovative, following others' description for the red value.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's inability to adapt to market changes, technological advancements, and evolving consumer preferences, as well as its reluctance to adopt new digital tools and technologies, suggests that it is failing to keep pace with the rapidly changing market landscape. This stagnation has led to a significant underperformance compared to industry peers.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The leadership has successfully implemented a comprehensive restructuring program, which has led to improved operational efficiency and cost savings. Additionally, the introduction of new revenue streams has begun to yield positive results, contributing to the overall momentum of the recovery efforts.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's leadership may be lacking in effective financial oversight, which could lead to poor investment decisions and decreased shareholder value. Furthermore, it appears that stakeholder concerns are being ignored, which could damage the company's relationships with its customers, employees, and other key stakeholders.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The assessment of potential disruptions from international events has shown a positive trend. Despite global uncertainties, the company has demonstrated resilience in navigating complex geopolitical landscapes.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company is facing significant exposure to potential pitfalls related to environmental issues, which can lead to substantial costs and penalties for non-compliance with emissions regulations or shortages in resources. This suggests a high environmental impact/risk, indicating a value of 'red'.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors is weakening. The absence of key patents and exclusive partnerships has reduced the company's competitive moat, making it more vulnerable to new entrants in the market.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on a limited number of suppliers increases its vulnerability to disruptions. This could be exacerbated by inadequate inventory management strategies and lack of technology integration.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "Based on the company update, it appears that the company is operating in a relatively stable regulatory environment with no major red flags arising from recent developments. The company's proactive approach to addressing potential compliance issues and commitment to transparency and risk management also suggest a healthy regulatory posture.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company still lags behind in terms of spreading risk across multiple customers, indicating a higher-than-ideal dependence on a small subset of customers. This is consistent with the definition of 'red' for this indicator, which represents a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights concerns about the company's ability to establish and maintain a strong market position, specifically mentioning struggles with customer satisfaction and marketing efforts. This suggests that the company's brand strength is weak or damaged, which aligns with the definition of 'red' for this indicator.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's ability to effectively leverage digital technologies has yielded concerning results, with the company falling behind industry peers. This indicates a negative performance, which corresponds to the value 'red'.",
+        "indicator": "digital_transformation"
+    }
+]

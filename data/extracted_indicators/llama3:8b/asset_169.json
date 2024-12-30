@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's loss of momentum, decline in market share, reduced investment in R&D, and stagnation in product launches suggest that it has plateaued or ceased innovating, risking its competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has been slow to adapt to changes in the market, resulting in a significant lag behind its competitors. It has failed to adopt emerging technologies and trends, leading to a loss of momentum and market share.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The implementation of leadership restructuring efforts has begun to bear fruit, with senior management taking decisive action to address long-standing issues. Cost-cutting initiatives have also been successfully rolled out, with significant reductions in expenses achieved without compromising core operations. Perhaps most encouragingly, new revenue streams are starting to emerge, providing a much-needed boost to the company's top line.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our review of the company's operations has revealed a concerning trend in its management practices. Specifically, we have observed an instance of poor management that could negatively impact the company's performance and reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's vulnerability to disruptions caused by international tensions and trade disputes poses a significant threat to its long-term growth and profitability, indicating high exposure to unstable regions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights significant concerns related to the company's exposure to environmental risks, including potential financial penalties and operational disruptions. This suggests a high environmental impact/risk, which aligns with the definition of 'red' for this indicator.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has maintained a strong market position through intellectual property assets, exclusive partnerships, and economies of scale, indicating a strong, sustainable moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's supply chain has demonstrated resilience to disruptions, with a balanced approach to supplier relationships and inventory management practices, as well as investments in technology contributing to its overall robustness.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company is facing significant regulatory scrutiny and compliance challenges. This has resulted in increased costs, operational disruptions, and potential reputational damage.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are areas where improvement is needed, we do note a few key trends. The company's investment in research and development (R&D) has been inconsistent, with some projects showing promising early returns but others struggling to gain traction.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company continues to rely heavily on a limited number of major customers, leaving it vulnerable to changes in their purchasing habits or economic shifts in their industries. This suggests that the revenue concentration is high (>20%), indicating a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to maintain a strong market position, driven by its favorable standing in terms of brand value, reputation, and customer loyalty, suggests that the brand strength is strong and valuable.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company has not been adequately leveraging digital technologies to enhance its operations and customer experience. The assessment of the company's progress in this area has resulted in a concerning trend, indicating lagging digital adoption.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has continued to invest heavily in research and development (R&D), with a focus on product launches that are resonating well with customers. This strategic approach is expected to maintain its competitive advantage in the market.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has struggled to adapt to shifting market conditions, technological developments, and changing consumer demands. It has been slow to adopt new digital tools and failed to pivot in response to competitor advancements, resulting in a failure to capitalize on opportunities for growth.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "Plan in development",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there appears to be an over-reliance on key individuals without adequate backup plans in place, it does not necessarily indicate a negative trend. Rather, it highlights the need for proactive planning and succession management to mitigate potential risks and ensure continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the management team has taken steps to address past issues, improved upon inconsistent or lacking oversight, and engaged with stakeholders. This indicates a strong execution history, which aligns with the green value.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's leadership has demonstrated a proactive approach to mitigating risks associated with global instability, ensuring that contingency plans are in place to address potential shocks. This prudent approach will undoubtedly serve the company well as it continues to expand its operations into key international markets.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a notable improvement in its ability to manage environmental risks, having implemented effective strategies to mitigate their impact. This development bodes well for the company's long-term sustainability and financial stability.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully established a protective barrier that shields its unique products and intellectual property from potential competitors. This strategic moat, bolstered by patents, exclusive partnerships, and economies of scale, provides the company with a significant market lead.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's operations has revealed a positive trend in its ability to withstand disruptions and adapt to changing circumstances. The assessment of the company's supply chain has shown that it is robust and adaptable, with several key factors contributing to this strength.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company is facing a heightened level of scrutiny from regulatory bodies, which could lead to potential disruptions or fines. This has resulted in significant challenges for the business, with implications for its future growth prospects.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a decline in the company's capacity for ongoing innovation, specifically with investments in R&D, new product development, and collaboration between departments. The weak pipeline and lack of successful product rollouts indicate that the company is falling behind, which corresponds to the 'red' value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's revenue base is heavily skewed towards a small group of large clients, which can have a detrimental impact on its bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's recent performance suggests that its [brand reputation] has taken a hit. Despite efforts to maintain customer satisfaction, we've seen a noticeable decrease in loyalty metrics, suggesting that some customers are growing disenchanted with the brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made efforts to adopt cloud-based systems and automate certain workflows, its overall performance in this area falls into a neutral category. This suggests that while there is room for improvement, the company has not yet fully leveraged the potential benefits of these initiatives.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's innovative edge appears to be waning, with reduced investment in research and development (R&D) and a slowdown in product launches. This stagnation could lead to a loss of market share and competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to changing market conditions, showing willingness to evolve and incorporate new technologies into its operations. It has also maintained its position as a leader in its industry by pivoting in response to competitor advancements.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are potential risks associated with the company's leadership structure, a clear succession plan is not yet in place. However, the current situation is not necessarily critical, and the company has shown adaptability and resilience in the past.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights instances of poor decision-making without adequate consideration for long-term implications, potential reputational damage, and ignored stakeholder concerns. These issues suggest a lack of effective management practices, which aligns with the definition of 'mismanagement'.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully mitigated risks stemming from external factors, with measures in place to minimize the impact on supply chain operations. Their currency management strategy is also effective, allowing them to navigate any fluctuations in exchange rates with minimal disruption to their business.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance has revealed a positive trend in its ability to manage environmental risks, indicating that the company has made significant strides in mitigating potential risks associated with climate change, regulatory changes, and resource scarcity.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has invested heavily in developing unique products and intellectual property, which serves as a significant barrier to entry for potential competitors. Exclusive partnerships have also been formed, further solidifying its position.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated an impressive level of resilience in its supply chain, with a well-diversified supplier base, effective inventory management strategies, and seamless technology integration. These measures have enabled the company to maintain business continuity even in times of uncertainty.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our review indicates that the company currently faces neutral challenges with regards to compliance and regulatory oversight. This suggests that while there may be some hurdles ahead, they are not necessarily impeding the company's operations or financial progress at this time.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong capacity for ongoing innovation, with a notable emphasis on investing in research and development (R&D) and new product development. This strategic focus has enabled the company to successfully adapt to technological advancements and drive growth through innovative solutions.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in mitigating risks associated with revenue concentration by diversifying its customer base, reducing reliance on a small number of customers. This increased diversity will help to reduce the bargaining power of individual customers, allowing the company to negotiate more favorable terms.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's key performance metric related to its market presence and customer relationships has shown a positive trend. The ability to maintain strong brand value, reputation, and customer loyalty continues to drive competitive positioning and pricing power.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company's efforts to enhance operations, customer experience, and competitiveness are on a stable trajectory. The assessment suggests that the company is well-positioned to adapt to changing market conditions.",
+        "indicator": "digital_transformation"
+    }
+]

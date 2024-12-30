@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company has plateaued in terms of innovation, with stagnant market share and reduced investment in R&D. While it still maintains a stable market presence, there are signs that its innovative edge may be starting to wane.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has been struggling to keep pace with market developments, falling behind in terms of adapting to changing circumstances. Its slow adoption of digital tools and failure to pivot in response to competitor advancements have resulted in a loss of market share and revenue.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has taken proactive steps to address concerns surrounding succession planning for critical leadership roles, significantly reducing the likelihood of disruption or instability caused by an unexpected departure or incapacitation of key personnel.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's internal controls have revealed areas for improvement in management practices, including inconsistent decision-making, lack of financial oversight, and ignoring stakeholder concerns. While these issues are not currently causing significant harm, they do represent opportunities for the company to enhance its overall performance and reputation through targeted improvements.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of [Company Name]'s recent performance reveals a positive trend in its ability to navigate and adapt to international market complexities. The company has effectively managed risks associated with global political tensions, trade disputes, sanctions, and operational instability, demonstrating a strong understanding of the potential impacts on its supply chain operations and currency fluctuations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company may be vulnerable to unexpected disruptions or costs arising from environmental concerns, regulatory changes, or resource scarcity. This risk factor appears to be a significant challenge for the company at present.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully maintained a robust competitive advantage, positioning itself for continued success in its industry. The unique products and intellectual property provide a significant barrier to entry for competitors, and economies of scale have been achieved through strategic investments.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has taken proactive steps to diversify its supplier base, implement effective inventory management strategies, and integrate cutting-edge technologies into its operations. This strategic approach has enabled the company to better withstand external shocks, such as natural disasters or geopolitical events, as well as internal challenges like supplier failures.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment indicates that [Company Name] remains in a neutral position with regard to its exposure to regulatory scrutiny or compliance challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our latest analysis reveals a concerning trend in the company's capacity for ongoing innovation. While past investments in research and development have been promising, our assessment indicates that this area of focus requires significant attention.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made efforts to diversify its customer base, there is still room for improvement in this area. The revenue is not overly dependent on a small number of customers, but further work may be needed to ensure long-term stability and sustainability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's overall performance is under pressure, with negative trends in key areas such as customer satisfaction, marketing effectiveness, and presence in strategic markets. This suggests that the company may struggle to retain its market share, indicating a weak or damaged brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Despite efforts to modernize operations, customer experience remains stagnant.",
+        "indicator": "digital_transformation"
+    }
+]

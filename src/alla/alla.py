@@ -1,10 +1,13 @@
 """
 ALLA Models
 """
-import logging
+import datetime
+import json
 import os
 import random
-from typing import Union
+import time
+from enum import Enum
+from typing import Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,10 +18,19 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.llm import Llama, utils as llm_utils
+from alla.llm import AVAILABLE_MODELS, utils as llm_utils
+from alla.llm.wrangling import read_reports
+from alla.logger import logger
 from alla.utils import PROJECT_ROOT
 
-logger = logging.getLogger("alla")
+if TYPE_CHECKING:
+    from alla.llm.base import LLMBaseClass
+
+
+class BudgetMode(Enum):
+    SYNTH = "synthetic"  # Uses the synthetic, unitless costs
+    WALL = "wall"
+    CPU_HR = "cpu_hr"
 
 
 class ALLA:
@@ -29,25 +41,32 @@ class ALLA:
     Stores a belief model of stock classes and their indicator likelihoods, etc.
     Stocks are one of High Growth, Stable, or Time Bomb.
     """
+    _version: str = "0.1"
 
     def __init__(
         self,
         stocks_dataset: xr.Dataset,
+        llm: "LLMBaseClass",
         asset_memory_depth: int = 20,
         budget: float = 100,
+        budget_mode: BudgetMode = BudgetMode.SYNTH,
     ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
+        :param llm:                 Initialized LLM model
         :param asset_memory_depth:  How many Bayesian updates to remember for each asset
         :param budget:              Budget for ALLA to spend on inference
+        :param budget_mode:         Budget mode
         """
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
-        self.llm = Llama(temperature=0.)
+        self.budget_mode = budget_mode
+        assert budget_mode in BudgetMode, f"Invalid budget mode {budget_mode}"
+        self.llm = llm
 
         self.n_assets = len(self.stocks.asset)
         self.classes = {
@@ -96,6 +115,25 @@ class ALLA:
         self.indicator_utility_avg = None
         self.ranked_indicators = np.arange(self.n_indicator)
         self.reset()
+
+    def to_json(self):
+        """
+        Return certain model attributes as JSON.
+        Naturally, we don't want to serialize the datasets etc.
+        """
+        return {
+            "version": self._version,
+            # "stocks": self.stocks.to,
+            # "ind_likelihoods": self.ind_likelihoods.to_dict(),
+            # "indicator_costs": self.indicator_costs,
+            # "indicator_utility_avg": self.indicator_utility_avg.tolist(),
+            # "ranked_indicators": self.ranked_indicators.tolist(),
+            "llm": self.llm.to_json(),
+            "asset_memory_depth": self.asset_memory_depth,
+            "mu_g": self.mu_g.tolist(),
+            "sigma_g": self.sigma_g.tolist(),
+            "quantiles": self.quantiles,
+        }
 
     def reset(self):
         """
@@ -267,14 +305,15 @@ class ALLA:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> bool:
+    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> tuple[bool, Optional[str]]:
         """
         Process an asset to infer its class and growth forecast
 
         :param asset:       xr.Dataset for the selected asset
         :param max_budget:  Max budget to use for this asset
-        :return:            Boolean indicating whether there was enough budget to perform at least one iteration
+        :return:            Boolean indicating success, and an optional string reason on failure
         """
+        start = iter_start = time.time()
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
 
         if isinstance(asset, str):
@@ -296,7 +335,7 @@ class ALLA:
             # Get extracted color values
             # First look for save results
             extract_path = os.path.join(
-                PROJECT_ROOT, "data/extracted_indicators", self.llm.code, f"{asset_id}.json"
+                PROJECT_ROOT, f"data/extracted_indicators/{self.llm.code}/{asset_id}.json"
             )
             if os.path.exists(extract_path):
                 logger.info(f"Loading extracted indicator results from '{extract_path}'")
@@ -313,7 +352,7 @@ class ALLA:
             else:
                 # Generate the reports for use later,
                 # but we will color-extract individually in the main loop
-                reports_text = self.llm.read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
+                # reports_text = read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
                 extracted_complete = False
 
         # Get most recent alphas
@@ -336,11 +375,15 @@ class ALLA:
         with logging_redirect_tqdm():
             for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
                 logger.info(f"Remaining asset budget: {budget}")
-                # Iterate through remaining candidates and filter by remaining budget
-                for j in candidates.copy():
-                    if ind_cost[j] > budget:
-                        logger.debug(f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}")
-                        candidates.remove(j)
+
+                if self.budget_mode == BudgetMode.SYNTH:
+                    # Iterate through remaining candidates and filter by remaining budget
+                    for j in candidates.copy():
+                        if ind_cost[j] > budget:
+                            logger.debug(
+                                f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}"
+                            )
+                            candidates.remove(j)
 
                 if not candidates:
                     break
@@ -369,7 +412,7 @@ class ALLA:
                 # Call SE if we have a soft indicator
                 if selected_name in self.soft_indicators:
                     if not use_SE:
-                        extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                        extracted_color_pred, se_cost = self._synthetic_soft_extractor(
                             asset, selected_name, synthetic_colors[selected_idx]
                         )
                     else:
@@ -377,12 +420,17 @@ class ALLA:
                         if extracted_complete:
                             # Convert from point estimate to distribution, like the synthetics
                             # TODO -- Have soft-extractor return distributions?
-                            extracted_color_pred, realized_cost = self._synthetic_soft_extractor(
+                            extracted_color_pred, se_cost = self._synthetic_soft_extractor(
                                 asset, selected_name, extracted_colors[selected_name]
                             )
                         else:
-                            # Perform extraction now, using the reports text
-                            extr_color, realized_cost = self._call_soft_extractor(
+                            # Perform extraction now, first generate report text prompt
+                            # Just get report for this indicator
+                            reports_text = read_reports(
+                                report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
+                                include=[f"{selected_name}_report.txt"]
+                            )
+                            extr_color, se_cost = self._call_soft_extractor(
                                 asset, selected_name, reports_text
                             )
                             # Now get distribution -- ignore its cost, same function as above
@@ -394,10 +442,7 @@ class ALLA:
                     # Just use synthetic value for hard indicators
                     # One-hot
                     extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
-                    realized_cost = 0.5
-
-                self.budget -= realized_cost
-                budget -= realized_cost
+                    se_cost = 0.5
 
                 # Inference
                 # Likelihood of asset-classes given color predictions
@@ -418,7 +463,19 @@ class ALLA:
 
                 self._update_alphas(asset, alphas)
                 self._update_prior(asset, posterior)
+                # TODO -- Maybe move this out for performance
                 self.compute_growth_quantiles(asset=asset)
+
+                if self.budget_mode == BudgetMode.WALL:
+                    cost = time.time() - iter_start
+                    iter_start = time.time()
+                    self.budget -= cost
+                    budget -= cost
+                elif self.budget_mode == BudgetMode.SYNTH:
+                    self.budget -= se_cost
+                    budget -= se_cost
+                else:
+                    raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
 
                 if budget <= 0:
                     logger.info(f"Budget exhausted after {i_ind} loops")
@@ -426,13 +483,12 @@ class ALLA:
 
         # If no indicators were within budget, return False
         if len(selected_indicators) == 0:
-            logger.warning("No indicators were within budget.")
-            return False
+            return False, "No indicators were within budget."
 
         # Refresh indicator rank at the end
         self.refresh_indicator_rank()
 
-        return True
+        return True, ""
 
     def _call_soft_extractor(
         self, asset: xr.Dataset, indicator_name: str, reports_text: str | None = None
@@ -443,12 +499,18 @@ class ALLA:
         :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
         """
+        se_start = time.time()
         result = self.llm.extract_indicator(
             indicator_name, str(asset.asset), reports_text=reports_text
         )["value"]
 
-        # TODO -- implement real at some point
-        cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+        if self.budget_mode == BudgetMode.SYNTH:
+            cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+        elif self.budget_mode == BudgetMode.WALL:
+            cost = time.time() - se_start
+        else:
+            raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
+
         return result, cost
 
     def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, synthetic_color: str) -> tuple:
@@ -603,6 +665,136 @@ class ALLA:
                         best_indicator = ind
         print(f"Best indicator: {best_indicator} with utility: {max_utility}")
         return best_indicator, max_utility
+
+    def save_model(
+        self,
+        model_name: str | None = None,
+        save_dir: str | None = None,
+    ) -> bool:
+        """
+        Save the model in the form of its various attribute states:
+            stocks:             The main stocks xr.Dataset.
+                                This also contains the 'quantile_pred', 'alphas', and 'prior' histories
+            ind_likelihoods:    The indicator likelihood matrix
+            indicator_costs:    The expected indicator costs object
+            indicator_utility_avg:  The running indicator utility average
+            ranked_indicators:  Current indicator rankings
+            llm:                The code of the LLM used
+            mu_g, sigma_g:      The truth mu and sigma generators
+            quantiles:          Quantiles
+
+        :param model_name:  String name, relative to save_dir
+        :param save_dir:    Optional save directory override
+        """
+        if not model_name:
+            # The date as dd-mm-yyyy
+            date_str = datetime.datetime.now().strftime("%d-%m-%Y_%H%M")
+            model_name = os.path.join(date_str, f"alla_{self.llm.code}")
+
+        if not save_dir:
+            save_dir = os.path.join(PROJECT_ROOT, "models", model_name)
+
+        os.makedirs(save_dir, exist_ok=True)
+        logger.info(f"Saving model to {save_dir}")
+        # First save the json data
+        json_path = os.path.join(save_dir, "config.json")
+        with open(json_path, 'w') as f:
+            json.dump(self.to_json(), f, indent=4)
+
+        try:
+            # Save xr dataset individually
+            self.stocks.to_netcdf(
+                os.path.join(save_dir, "stocks.nc")
+            )
+            self.ind_likelihoods.to_netcdf(
+                os.path.join(save_dir, "ind_likelihoods.nc")
+            )
+
+            # Save as npz
+            npz_path = os.path.join(save_dir, "alla.npz")
+            np.savez(
+                npz_path,
+                indicator_costs=self.indicator_costs,
+                indicator_utility_avg=self.indicator_utility_avg,
+                ranked_indicators=self.ranked_indicators,
+                llm_code=self.llm.code,
+                llm_temp=self.llm.temperature,
+                mu_g=self.mu_g,
+                sigma_g=self.sigma_g,
+                quantiles=self.quantiles,
+            )
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to save model: {e}")
+            return False
+
+    @classmethod
+    def load_model(cls, model_dir: str) -> "ALLA":
+        """
+        Load model from its directory
+        """
+        logger.info(f"Loading model from {model_dir}...")
+        # Check this is valid dir
+        if not os.path.exists(model_dir):
+            raise FileNotFoundError(f"Model directory '{model_dir}' not found")
+
+        stocks_path = os.path.join(model_dir, "stocks.nc")
+        ind_path = os.path.join(model_dir, "ind_likelihoods.nc")
+        model_path = os.path.join(model_dir, "alla.npz")
+
+        stocks = xr.open_dataset(stocks_path)
+        ind_likelihoods = xr.open_dataset(ind_path)
+        model_data = np.load(model_path, allow_pickle=True)
+
+        indicator_costs = model_data['indicator_costs'].item()
+        indicator_utility_avg = model_data['indicator_utility_avg']
+        ranked_indicators = model_data['ranked_indicators']
+        llm_code = model_data['llm_code'].item()
+        llm_temp = model_data['llm_temp'].item()
+        mu_g = model_data['mu_g']
+        sigma_g = model_data['sigma_g']
+        quantiles = model_data['quantiles']
+
+        # We infer the memory depth from stocks dataset
+        asset_memory_depth = stocks.time.size
+
+        if llm_code not in AVAILABLE_MODELS:
+            logger.warning(f"LLM code '{llm_code}' not found in available models. No LLM initialized.")
+            llm = None
+        else:
+            llm = AVAILABLE_MODELS[llm_code](
+                temperature=llm_temp
+            )
+        # Create the model
+        m = cls(
+            stocks, llm, asset_memory_depth=asset_memory_depth,
+        )
+        # Set the loaded data
+        m.ind_likelihoods = ind_likelihoods
+        m.indicator_costs = indicator_costs
+        m.indicator_utility_avg = indicator_utility_avg
+        m.ranked_indicators = ranked_indicators
+        m.mu_g = mu_g
+        m.sigma_g = sigma_g
+        m.quantiles = quantiles
+
+        # Some extras
+        # List of soft indicator names
+        m.soft_indicators = list(
+            stocks.coords['indicator'].values[
+                stocks.coords['indicator_type'].values == 'soft'
+            ]
+        )
+        m.indicators = m.ordered_indicators = stocks.coords['indicator'].values.tolist()
+        m.name_to_idx = {name: i for i, name in enumerate(m.ordered_indicators)}
+        m.idx_to_name = {i: name for i, name in enumerate(m.ordered_indicators)}
+
+        m.n_indicator = len(m.ordered_indicators)
+
+        logger.info("Model loaded successfully")
+        return m
 
     def plot_history(self, asset: str, save_path: str | None = None):
         """

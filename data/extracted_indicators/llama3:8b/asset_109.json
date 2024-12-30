@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's investment in research and development has been dwindling, and there has been a noticeable stagnation in product launches. These trends suggest that the company is struggling to maintain its edge in the market.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to adapt to market changes, technological advancements, and evolving consumer preferences suggests that it is a dominant incumbent. The willingness to embrace innovation and pivot in response to changing circumstances has allowed it to stay ahead of the curve.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Inconsistent decision-making has been observed, leading to unclear priorities and inefficient use of resources. There is evidence of inadequate financial oversight, which may lead to costly mistakes or missed opportunities. Stakeholder concerns are not being addressed, potentially damaging relationships with key partners and customers.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The business report highlights concerns regarding the company's ability to navigate and adapt to the complex global landscape, indicating high exposure to unstable regions. The negative performance of this key metric suggests that the company may be vulnerable to disruptions in supply chain operations, currency fluctuations, or even sanctions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The assessment reveals a neutral impact on the company's operations. While there are some challenges and uncertainties related to environmental issues, they do not currently pose a significant threat to the business.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Despite efforts to establish unique products and intellectual property, the company appears to be vulnerable to competition. The lack of significant economies of scale also suggests that the company may struggle to maintain its market share in the face of increased competition.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's performance in managing its supply chain has been a concern. While the company has made efforts to strengthen its supply chain, it appears that these measures have not been sufficient to mitigate disruptions caused by external events.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that the company's operations and financial performance are less susceptible to disruptions caused by compliance challenges. The company's ability to effectively manage regulatory scrutiny has been a key factor in their success, allowing them to minimize potential disruptions and maintain a focus on strategic initiatives.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our assessment indicates a lackluster performance in the company's ability to innovate and adapt to emerging trends, which may hinder its competitiveness in the market.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Few large customers (>20%) and insufficient efforts to diversify the customer base, leaving it vulnerable to potential disruptions or changes in market conditions.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "Customer satisfaction levels are stable, but marketing effectiveness and strategic market presence could be improved. Despite this, the company's ability to maintain a strong brand image and customer loyalty remains intact.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's efforts to adopt cloud-based systems and automate workflows have been hindered by technical issues and inadequate training for employees, leading to inefficiencies in key business processes and a negative impact on customer satisfaction and overall competitiveness.",
+        "indicator": "digital_transformation"
+    }
+]

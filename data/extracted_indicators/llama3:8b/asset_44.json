@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "Our research suggests that [Company Name]'s innovative spirit is still present, but may be losing momentum. Despite this, the company's overall performance remains neutral, with no significant red flags indicating a loss of market share or reduced competitiveness.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "Our latest analysis indicates that [Company Name] has demonstrated a notable ability to adapt to market changes, technological advancements, and evolving consumer preferences. This is reflected in their swift adoption of digital tools and willingness to pivot in response to competitor developments.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively addressed potential risks associated with leadership gaps by enhancing the stability of critical roles, reducing the likelihood of disruption caused by a single leader's departure without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a positive assessment of the company's leadership and management practices, suggesting that they are prioritizing good governance and responsible decision-making. This indicates a strong execution history, which aligns with the green value.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The assessment indicates a strong resilience in navigating complex global markets, minimal disruptions to supply chain operations, and the ability to mitigate currency fluctuations, demonstrating limited exposure to external risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The recent evaluation of the company's performance has yielded encouraging results in one key area. The assessment suggests that the company's ability to mitigate risks associated with environmental issues, such as climate change and regulatory changes, has improved significantly.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has established a significant lead over its competitors due to its intellectual property portfolio, exclusive partnerships, and economies of scale, indicating a strong, sustainable moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to withstand disruptions caused by external events such as natural disasters or geopolitical changes has been compromised. This is evident in its failure to diversify suppliers, leading to a lack of redundancy and increased reliance on single-source providers.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully navigated various regulatory hurdles, avoiding any significant adverse impacts on its operations or financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has been able to maintain a steady pace in investing in research and development, new product development, and adapting to technological advancements, there are some areas that require attention. One notable aspect is the consistent funding allocated to research and development initiatives. However, we have observed some limitations in terms of cross-functional collaboration and successful product rollouts.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates that the company has successfully diversified its customer base, reducing reliance on any single major client. This development is expected to positively impact the company's bargaining power with customers and contribute to increased revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's position in its respective market continues to gain momentum, and the strong reputation and loyal customer base it has established contribute to its competitive advantage. This suggests that the company's brand strength is strong and valuable.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in enhancing its operations and customer experience through strategic initiatives. The adoption of cloud-based systems, automation of workflows, and implementation of AI-driven analytics have all had a positive impact on the business, resulting in improved competitiveness in the market.",
+        "indicator": "digital_transformation"
+    }
+]

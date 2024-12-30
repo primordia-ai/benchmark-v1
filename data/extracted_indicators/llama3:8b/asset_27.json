@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company's focus on research and development has not decreased, but neither has it increased at a significant pace. This suggests that the company may be losing its competitive edge, but it still maintains a strong market position.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's failure to keep pace with technological advancements and evolving consumer preferences, despite efforts to modernize, suggests that it is struggling to adapt to changing market conditions. This indicates a negative performance, represented by the color red.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "The lack of a clear plan for critical leadership positions increases the risk of disruption to business operations, and the company is heavily reliant on a single leader without a contingency plan in place.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The inconsistent decision-making processes and lack of financial oversight observed in our evaluation indicate a need for improvement in this area.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's proactive approach to risk management, including effective mitigation strategies for currency fluctuations and supply chain impacts, suggests that it is well-positioned to navigate potential disruptions in key operational regions. This favorable outcome indicates a limited exposure to external risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's management has made concerted efforts to mitigate potential risks related to environmental issues, and it appears to be yielding dividends. The regulatory landscape continues to evolve, but our assessment suggests that the company is well-positioned to adapt to any changes.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully maintained its competitive advantage through its unique products and intellectual property. This is reflected in the evaluation process, which highlights the company's robust moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our efforts to diversify suppliers and implement efficient inventory management strategies have clearly paid off. The seamless integration of technology into our supply chain operations has also contributed significantly to this achievement.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company is facing heightened scrutiny from relevant authorities, which could impact its operations and financial performance. The firm's engagement with regulatory bodies has increased significantly in the past quarter, leading to concerns about potential compliance challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's capacity for ongoing innovation is currently operating in a state of neutral stability, not falling behind but also not making significant strides forward. While there are some promising signs, such as consistent investments in research and development, there are also areas that require attention, like improving cross-functional collaboration and consistently delivering new and innovative solutions.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "Management's efforts to reduce dependence on a small number of customers have paid off, with notable improvements in the stability of revenue streams. The increased diversification of revenue sources is expected to further reduce this risk over time.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated strong performance across key areas of its business, with high levels of customer satisfaction and effective marketing strategies contributing to an optimal level of brand strength.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in embracing digital technologies to drive growth and enhance its market position. The implementation of cloud-based systems, automation of workflows, and introduction of AI-driven analytics have resulted in a notable enhancement of the company's competitiveness and customer experience.",
+        "indicator": "digital_transformation"
+    }
+]

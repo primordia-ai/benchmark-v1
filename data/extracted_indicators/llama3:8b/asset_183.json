@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's decline in innovation, plateaued market share, and reduced investment in R&D suggest that it may be experiencing a decline in its ability to innovate and disrupt its industry.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has been slow to adopt new technologies and adjust its business model, but it still maintains a strong market presence and has a loyal customer base. This indicates that the company is not yet dominant, but it's not failing either.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "Plan in development",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company has made significant strides in addressing potential risks to its future success. The management team has taken proactive steps to mitigate potential risks and ensure a smooth transition of responsibilities, providing confidence in its ability to navigate future challenges.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights inconsistent decision-making, lack of financial oversight, and ignoring stakeholder concerns, which are all indicative of poor management practices. These issues could negatively impact the company's performance or reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company appears to be adopting a prudent stance in relation to external factors that could impact its operations and financial performance. This is reflected in the indicator's stable value, which suggests that management is actively monitoring and managing these risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's exposure to environmental risks, including regulatory changes and resource scarcity, is negatively impacting its bottom line. The data suggests that the company is facing increased costs due to non-compliance with emissions regulations and resource shortages.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has maintained its competitive edge through a robust defense mechanism, which includes innovative products, intellectual property rights, and exclusive partnerships that limit competition. This strength is expected to remain a key driver of the company's future growth and profitability, providing a solid foundation for long-term success.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to withstand disruptions to its supply chain has been assessed as positive. This is a testament to the robustness and adaptability of the company's logistics management system.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates a significant improvement in the company's regulatory environment, reflecting well on the company's operational and financial resilience. This positive trend will continue to benefit the company in the near term, contributing to improved financial performance and increased competitiveness in its market.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's pipeline of new products is not as robust as expected, with delays and cost overruns on several high-profile projects. Additionally, there are signs that the company may be struggling to adapt to changing technological trends. This suggests a weak innovation pipeline, which aligns with the red indicator value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong effort to reduce its dependence on a small number of customers, which could have negatively impacted its bargaining power and revenue stability. This is reflected in a recent assessment that indicates a favorable outcome in this area.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's reputation and customer loyalty have been steadily increasing over the past quarter, contributing significantly to its competitive positioning. This is evident in the high level of satisfaction among customers, as well as the effectiveness of the company's marketing efforts.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis suggests that while the company has made significant strides in adopting cloud-based systems and automating key workflows, there are still opportunities for growth and improvement. The overall assessment of the company's efforts in this area is neutral, indicating a need for continued investment and refinement to unlock full potential benefits.",
+        "indicator": "digital_transformation"
+    }
+]

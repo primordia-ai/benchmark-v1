@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's reputation as a pioneer and innovator in its field appears to be waning, with a decline in investment in research and development (R&D) and stagnant product launches, indicating potential stagnation in its ability to disrupt its industry.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's willingness to pivot in response to competitor advancements, its adoption of digital tools, and its overall ability to adapt to changing market conditions suggest that it is a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "Our leadership succession planning has been deemed satisfactory, indicating a reduced risk to the company's stability and strategic continuity. We have made significant progress in filling critical roles and developing backup plans for key positions.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's exposure to global economic and geopolitical risks has been highlighted as a concerning trend, with significant risks related to currency fluctuations and disruptions in key supply chain operations. This warrants close monitoring and potential adjustments to mitigate any potential damage.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to navigate environmental risks has been stable over the past quarter, with no major disruptions or setbacks reported. The company's management will need to remain proactive in monitoring regulatory updates and adapting to any changes that may impact operations.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's unique products and intellectual property continue to provide a robust barrier to entry for competitors. Exclusive partnerships have been established, further solidifying the company's position in the market. Economies of scale have been achieved, allowing the company to reduce costs and increase efficiency.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to withstand disruptions, such as natural disasters or supplier failures, is robust. This is due in part to its diversified supplier base, which reduces reliance on any single vendor. Additionally, the company's inventory management strategies are well-executed, allowing for timely replenishment of stock and minimizing the impact of supply chain interruptions. The integration of technology into the supply chain has also been a key factor in enhancing resilience.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report indicates that while there are compliance challenges, they do not pose an immediate threat. The company has historically demonstrated a good understanding of regulatory requirements and has taken steps to mitigate potential risks. However, it is essential for management to remain vigilant and proactive in addressing any emerging issues that may arise from regulatory scrutiny.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully diversified its customer base, reducing its reliance on a small number of key customers. This shift is expected to have a positive impact on bargaining power and revenue stability going forward.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's brand strength has improved significantly over the past quarter, with increased customer loyalty, effective marketing strategies, and a rise in brand recognition and awareness. The green indicator suggests that the company's efforts to strengthen its brand are bearing fruit.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Upon assessment, it appears that [Company Name]'s efforts in this area have not met expectations. The company's initiatives aimed at enhancing operational efficiency, customer engagement, and market positioning through the adoption of cloud-based systems, automation, and AI-driven analytics have been insufficient.",
+        "indicator": "digital_transformation"
+    }
+]

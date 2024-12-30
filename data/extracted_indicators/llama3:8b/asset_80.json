@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's decline in market share, reduced investment in R&D, and stagnation in new product launches suggest that it has plateaued or ceased innovating, risking its competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's inability to adapt to market changes and evolving consumer preferences suggests that it may be lagging behind competitors, which aligns with the definition of 'incumbent_stagnant' as a red indicator. The report highlights the company's struggle to adopt new technologies and respond to changing market conditions, indicating a lack of agility and vulnerability to disruption from more innovative rivals.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has taken some steps towards recovery, but the progress is limited and more significant milestones remain elusive.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights positive progress in key areas and a positive impact on the company's performance, with stakeholders expressing increased satisfaction. This suggests that the management practices are improving, indicating a green value.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's vulnerability to disruptions in key markets, currency fluctuations, and potential instability in regions critical to its operations suggests a high exposure to unstable regions, warranting an indicator value of 'red'.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's exposure to environmental issues, such as climate change and regulatory changes, has resulted in a negative impact on its operations.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to maintain a competitive advantage through unique products and intellectual property is stable, but it has not been able to establish an insurmountable barrier to entry. Its exclusive partnerships and strategic investments in research and development have helped to limit competition, but there is room for improvement.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated exceptional resilience in the face of disruptions, with effective strategies for managing inventory levels and leveraging technology to mitigate the impact of potential disruptions. Additionally, their approach to supplier relationships has been praised for its diversity, allowing them to minimize reliance on any single partner and thereby reducing risk.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has been experiencing increased regulatory attention, which suggests moderate regulatory pressure. This may impact the organization's operational and financial performance, but it is not yet clear if this will have a significant negative effect.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to sustain innovation and stay ahead of the curve in terms of technology has been a notable highlight. Despite challenges, our analysis suggests that the company has been successful in fostering an environment conducive to ongoing R&D investments.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's revenue stream is experiencing significant challenges due to its concentration of revenue among a limited number of customers, which can have far-reaching implications for bargaining power and overall revenue stability. This suggests that the company has few large customers (>20%), indicating a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a significant improvement in the company's overall market standing, indicating a strong competitive positioning and pricing power. The data suggests that the company's brand value, reputation, and customer loyalty have all strengthened, resulting in a more favorable market position.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made substantial progress in enhancing its operations, customer experience, and competitiveness through the adoption of cloud-based systems and implementation of AI-driven analytics. This achievement positions the company well for continued growth and success in a rapidly evolving industry.",
+        "indicator": "digital_transformation"
+    }
+]

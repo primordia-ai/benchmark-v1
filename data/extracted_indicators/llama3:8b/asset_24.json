@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's lack of investment in research and development (R&D) and stagnation in product launches suggest that it may be losing its innovative edge, which aligns with the description of 'red' as not being innovative and following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's willingness to pivot in response to competitor advancements and technological shifts has paid off. The company's commitment to innovation and adaptability has enabled it to maintain a strong competitive edge, even in a rapidly changing market landscape.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report indicates some progress in addressing challenges, but further efforts are required to fully recover. The strategic plan appears to be on track, with notable achievements in leadership restructuring and cost-cutting initiatives, but more needs to be done to drive significant growth or restore investor confidence without a clear roadmap for new revenue streams.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are some concerns about the potential lack of stability and strategic continuity, it's not currently posing a significant threat. A basic plan in place would be sufficient to mitigate any potential risks that could arise in the future.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has demonstrated an ability to navigate international challenges effectively, with a robust framework in place for managing operational risks. While there are no signs of significant disruptions to supply chain operations, currency fluctuations may continue to pose some level of risk.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made efforts to mitigate potential environmental liabilities, our assessment suggests that it remains vulnerable to regulatory changes and resource scarcity. This vulnerability may lead to increased costs or penalties in the future.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company may struggle to maintain its competitive advantage in the long term due to insufficient intellectual property, exclusive arrangements, and economies of scale. This indicates a lack of sustainable advantages, which aligns with the definition of 'red' for this indicator.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's effective strategies for supplier diversification, inventory management, and technological integration have enabled it to maintain a high level of operational continuity, even in the face of unforeseen challenges. This robustness has allowed the organization to adapt and recover from disruptions, making its supply chain well-diversified and resilient.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to navigate regulatory challenges, exceeding expectations and minimizing potential disruptions to its operations. This achievement is expected to have a positive impact on the company's operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's capacity for ongoing innovation has yielded a positive result. This aspect of their business appears to be thriving, with several key factors contributing to this success.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "Our assessment suggests that this aspect of the business is performing well, indicating a robust and diversified customer base.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's performance indicates a strong foundation for long-term success. Customer satisfaction is at an all-time high, with marketing efforts showing marked effectiveness in reaching strategic markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made notable efforts in embracing digital transformation, it falls short of achieving significant impact on its competitiveness. The adoption of cloud-based systems, automation of workflows, and implementation of AI-driven analytics has been initiated but not fully integrated into daily operations.",
+        "indicator": "digital_transformation"
+    }
+]

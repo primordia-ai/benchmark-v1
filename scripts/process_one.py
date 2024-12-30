@@ -3,11 +3,6 @@ Process the first asset with ALLA
 """
 
 if __name__ == '__main__':
-    import logging
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     import numpy as np
 
@@ -17,6 +12,7 @@ if __name__ == '__main__':
 
     from alla import synthetic as synth
     from alla.alla import ALLA
+    from alla.logger import logger
 
     # Generate synthetic stocks
     # n_stock = 111
@@ -34,19 +30,18 @@ if __name__ == '__main__':
     # if asset_name is None:
     #     raise RuntimeError(f"No {category_select} asset generated")
 
-
     stocks = synth.load_stocks(as_dataset=True)
 
     asset_name = "asset_0"
     # Create ALLA model
     print("Initializing ALLA")
-    alla = ALLA(stocks, asset_memory_depth=40, budget=100)
+    m = ALLA(stocks, asset_memory_depth=40, budget=100)
 
     # Process the first stock
     # print(f"Processing '{category_select}' stock '{asset_name}'")
-    while alla.budget > 0:
-        logger.info(f"Calling process_asset with remaining budget: {alla.budget}")
-        success = alla.process_asset(asset_name, max_budget=None)
+    while m.budget > 0:
+        logger.info(f"Calling process_asset with remaining budget: {m.budget}")
+        success = m.process_asset(asset_name, max_budget=None)
         if not success:
             # Insufficient budget to iterate
             break
@@ -54,4 +49,4 @@ if __name__ == '__main__':
 
     # Plot
     save_path = "../results/tmp/latest.png"
-    alla.plot_history(asset_name, save_path=save_path)
+    m.plot_history(asset_name, save_path=save_path)

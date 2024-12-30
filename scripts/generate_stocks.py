@@ -2,11 +2,6 @@
 Generate and display info of synthetic stocks
 """
 if __name__ == '__main__':
-    import logging
-
-    # Set this up before importing other classes
-    logger = logging.getLogger("alla")
-    logger.setLevel(logging.INFO)
 
     import numpy as np
 

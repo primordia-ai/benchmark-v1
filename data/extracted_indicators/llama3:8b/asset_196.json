@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The report suggests that the company has been experiencing a decline in market performance, stagnation in product launches, and reduced investment in research and development (R&D), which are all characteristic of a company that is no longer driving growth and innovation. This indicates that the company is not innovative and is following others, which corresponds to the 'red' value.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to market changes, technological advancements, and evolving consumer preferences. This suggests that the organization is effectively navigating the competitive landscape and responding to emerging trends.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there have been efforts to address certain challenges, our analysis suggests that progress towards recovery has been sluggish. The company's efforts are currently in a state of transition, with neither significant gains nor major setbacks being reported.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The review suggests that there are management practices in place that could have detrimental effects on the business. Inconsistent decision-making, inadequate financial oversight, and disregard for stakeholder concerns are among the issues identified.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates a positive trend in the company's ability to navigate and mitigate potential disruptions stemming from international political tensions, trade disputes, sanctions, or instability in key operational regions. This is reflected in a favorable assessment of the company's resilience to external shocks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a significant exposure to potential liabilities stemming from regulatory and operational pressures, indicating a high environmental impact/risk. The company's failure to adapt to changing regulations and resource availability has put it at risk of facing penalties and increased expenses.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to maintain a competitive edge through unique offerings and protective barriers has been a significant concern. The current evaluation suggests that the company may be struggling to establish and sustain a sustainable advantage over its competitors.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company exhibits resilience in the face of disruptions, with strategic supplier diversification, effective inventory management strategies, and seamless technology integration within its supply chain operations.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our review has revealed that the company is currently subject to elevated regulatory scrutiny, which may impact its operations or financial performance in the short term. This could potentially lead to additional compliance costs, reputational damage, or even legal penalties if not addressed promptly.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's pipeline for ongoing innovation is weak, with a lack of consistent funding, cross-functional collaboration, and successful product rollouts. This indicates a negative performance, which corresponds to the 'red' value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's financial performance has been impacted by its reliance on a small number of key clients, indicating potential vulnerabilities to changes in market conditions or relationships with these critical customers. This suggests that the company's risk profile in this area is high, which aligns with the 'red' indicator value.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's competitive positioning has been impacted by a decline in brand strength, which is reflected in our analysis. This trend may continue unless the company takes corrective action to address these underlying issues.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Despite efforts to modernize its systems and processes, the assessment suggests that the company still lags behind industry peers. The implementation of AI-driven analytics has been slow to materialize, leaving the organization at a disadvantage when it comes to data-driven decision-making.",
+        "indicator": "digital_transformation"
+    }
+]

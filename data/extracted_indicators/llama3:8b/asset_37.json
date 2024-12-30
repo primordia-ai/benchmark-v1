@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has continued to innovate and adapt to changing market conditions, with a strong focus on research and development (R&D) investments and a robust pipeline of new product launches. There are no signs of stagnation or decline in its market share, indicating that the company's competitive advantage remains intact.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reluctance to adopt new digital tools and methods has hindered its progress, resulting in falling behind competitors who have successfully pivoted to meet evolving market demands.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has adequate measures in place to ensure stability and continuity, despite the absence of clear succession planning for some key roles. The current situation is considered favorable, indicating a reduced risk of instability due to unforeseen events.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company's management may be doing an excellent job of addressing concerns and incorporating stakeholder feedback into their decision-making process, there are still areas where improvement can be made. The trend suggests a mixed track record, indicating that the indicator value is yellow.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a high level of risk associated with international political tensions and trade disputes, which may have far-reaching consequences for the company's financial health. This suggests that the company has a high exposure to unstable regions, indicating a red value.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company is not adequately prepared for potential changes in regulations or resource scarcity, which may lead to increased costs or penalties. This indicates a high environmental impact/risk, warranting a value of 'red'.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's presence of unique products and intellectual property, patents, exclusive partnerships, and economies of scale all contribute to a strong, sustainable moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights concerns regarding the company's ability to withstand disruptions in its supply chain, specifically mentioning its reliance on a few critical suppliers. This suggests that the company may be fragile and single-source dependent, which aligns with the 'red' value of the indicator.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's operations are subject to a notable level of regulatory scrutiny, which may impact its ability to execute its business strategy. While this is not necessarily a cause for concern, it does require careful management to mitigate potential risks.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company has excelled in its capacity for ongoing innovation, with strong pipelines developed through consistent funding, cross-functional collaboration, and successful product rollouts. This suggests a high degree of confidence in its ability to continue innovating and driving business forward.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's reliance on a small number of customers remains a concern, but there have been efforts to diversify and reduce dependence on any single customer. While progress has been made, more work is needed in this area.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's recent performance has yielded promising results across key areas. The evaluation of the company's standing in its target markets suggests a strong position. This favorable outlook can be attributed to several factors, including customer satisfaction and the effectiveness of marketing efforts. The company's presence in strategic markets is also contributing to this positive assessment.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company's efforts to harness digital technologies have yielded a positive outcome, with significant improvements in automating workflows, streamlining operations, and enhancing customer experience through data-driven insights. The successful implementation of cloud-based solutions has enabled greater flexibility and scalability, while AI-driven analytics has provided valuable insights to inform business decisions.",
+        "indicator": "digital_transformation"
+    }
+]

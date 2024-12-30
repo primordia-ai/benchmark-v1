@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company has plateaued in terms of innovation, which may impact its competitive advantage. This can be attributed to several factors such as declining market share, reduced investment in R&D, and stagnation in product launches.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong capacity for innovation and adaptability, successfully leveraging digital tools and processes to stay ahead of competitors. This suggests that the company is not stagnant and is adapting well to changing market conditions.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively addressed potential risks associated with the absence of clear succession planning, ensuring that key positions are filled and reducing dependency on any single individual.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The management practices in place have been effective in minimizing the risk of negative impacts on the company's reputation. The consistent decision-making process and proactive approach to financial oversight demonstrate a strong commitment to responsible stewardship.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "Our assessment reveals a positive trend in the company's preparedness to address these challenges. The results indicate a robust foundation for managing exposure to external factors that could impact business operations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company is effectively mitigating potential issues related to climate change and regulatory requirements, which suggests a low impact/strong practices.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has maintained its competitive advantage through unique offerings and significant barriers to entry. This is reflected in a robust product moat with a notable positive trend.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a pressing issue with the company's supply chain resilience, indicating vulnerability to disruptions. Although efforts have been made to diversify suppliers, these measures may not be sufficient to mitigate potential risks. Additionally, inventory management strategies are inadequate and technology integration is lagging behind industry standards.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company has made significant progress in managing regulatory scrutiny and compliance challenges. This is a positive development for the organization, as it can reduce the risk of operational disruptions and financial penalties.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance has been steadily improving across various key areas. One aspect that stands out is its capacity for ongoing innovation. The company has made significant strides in investing in research and development, new product development, and adapting to technological advancements. Consistent funding and a strong focus on cross-functional collaboration have enabled the company to successfully roll out new products. The company's ability to adapt quickly to changing market conditions has allowed it to stay ahead of the competition.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights an elevated risk associated with the company's reliance on a small group of customers, which poses a threat to its financial sustainability. This suggests that the company has few large customers (>20%), indicating a red value for the customer_concentration indicator.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "Customer satisfaction levels remain stable, but marketing efforts have not yet achieved desired results.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis indicates that the company's progress in embracing digital technologies to drive business growth has yielded a neutral outcome. This suggests that while efforts are being made to leverage technology, the overall impact on operations, customer experience, and competitiveness remains steady.",
+        "indicator": "digital_transformation"
+    }
+]

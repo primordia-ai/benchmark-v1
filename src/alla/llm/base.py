@@ -1,17 +1,32 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
-import logging
 import os
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from pydantic import create_model, Field
+from pydantic import BaseModel, create_model, Field
 
-from alla.asset import Asset
 from alla.utils import PROJECT_ROOT
 
-logger = logging.getLogger("alla")
+
+class GrowthEstimate(BaseModel):
+    mean: float
+    std: float
+
+
+# class CategoryDistribution(BaseModel):
+#     high_growth: float
+#     stable: float
+#     time_bomb: float
+
+class AssetEvaluation(BaseModel):
+    category: Literal['high_growth', 'stable', 'time_bomb'] = Field(
+        ..., title="Category", description="The category of the asset/company indicating its growth potential."
+    )
+    growth: float = Field(
+        ..., title="Growth", description="The estimated growth of the asset/company."
+    )
 
 
 class LLMBaseClass(ABC):
@@ -20,33 +35,33 @@ class LLMBaseClass(ABC):
     """
     name = None
     code = None
+    context_window = None
 
-    def __init__(self, temperature: float = 0.0):
+    def __init__(
+        self,
+        temperature: float = 0.0,
+        seed: int = 101010,
+    ):
         self.temperature = temperature
+        self.seed = seed
 
-    def __str__(self):
-        """Return name and class dot notation"""
-        return f"{self.name} ({self.__class__.__module__}.{self.__class__.__name__})"
-
-    def __repr__(self):
-        """Return name and class dot notation"""
-        return self.__str__()
+    def to_json(self):
+        return {
+            "name": self.name,
+            "code": self.code,
+            "seed": self.seed,
+            "context_window": self.context_window,
+            "temperature": self.temperature,
+        }
 
     @staticmethod
-    def _create_indicator_class(indicator_name: str):
+    def _create_indicator_class():
         """
         Creates a Pydantic model for sending over OpenAI API.
-
-        :param indicator_name:  The name of the indicator to create the model for.
         :return:                A Pydantic model for the indicator.
         """
         return create_model(
             'LLMIndicator',
-            indicator=(Literal[indicator_name], Field(
-                ...,
-                title="Indicator name",
-                description="The name of the indicator to evaluate the company's performance as given by the prompt."
-            )),
             value=(Literal['red', 'yellow', 'green'], Field(
                 ...,
                 title="Indicator value",
@@ -58,31 +73,6 @@ class LLMBaseClass(ABC):
                 description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
             ))
         )
-
-    def read_reports(
-        self,
-        report_dir: str = os.path.join(PROJECT_ROOT, "reports"),
-        include: list = None,
-        exclude: list = None,
-    ):
-        if not os.path.exists(report_dir):
-            raise FileNotFoundError(f"Report directory {report_dir} not found")
-
-        # Read the documents for the asset, with recursion if no reports list included
-        reports = ""
-
-        for filename in os.listdir(report_dir):
-            if exclude is not None and filename in exclude:
-                continue
-            if include is not None and filename not in include:
-                continue
-
-            file_path = os.path.join(report_dir, filename)
-            logger.debug(f"Reading file {file_path}")
-            with open(file_path, 'r') as file:
-                reports += "\n<START DOCUMENT>" + file.read() + "\n<END DOCUMENT>"
-
-        return reports
 
     @abstractmethod
     def extract_indicator(
@@ -109,3 +99,24 @@ class LLMBaseClass(ABC):
         :return:                A dictionary with keys "name", "value", "reason"
         """
         raise NotImplementedError()
+
+    def evaluate_asset(
+        self, prompt: str, max_retries: int = 3
+    ) -> AssetEvaluation:
+        """
+        Evaluates an asset given its reports and indicators.
+        Produces this model's estimate of the asset's growth forecast and category distribution.
+
+        :param prompt:                  The prompt to use for the evaluation.
+        :param max_retries:             The maximum number of retries to attempt.
+        :return:                        AssetEvaluation
+        """
+        raise NotImplementedError()
+
+    def __str__(self):
+        """Return name and class dot notation"""
+        return f"{self.name} ({self.__class__.__module__}.{self.__class__.__name__})"
+
+    def __repr__(self):
+        """Return name and class dot notation"""
+        return self.__str__()

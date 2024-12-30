@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's performance in terms of disruption and innovation shows a concerning trend. Our analysis indicates that the company's efforts to disrupt its industry have begun to lose momentum.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's struggles to adapt to shifting market dynamics, slow response to emerging trends and technological advancements, and failure to innovate and evolve its business model in line with changing consumer preferences and market conditions threaten to undermine its long-term competitiveness.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are some areas of concern regarding the company's leadership structure, a moderate risk has been identified. The lack of clear succession planning for key roles and high dependence on a single leader without a backup plan suggest that the company is not yet in a strong position to maintain stability and strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that there are underlying issues that could potentially harm the company's reputation and long-term success, specifically poor management habits that have been prevalent within the organization. This indicates a strong execution history.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a heightened risk profile due to international political tensions and their potential impact on the company's operations. The data suggests that these external pressures are weighing heavily on the company's bottom line, leading to a negative assessment in this key area.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company currently faces a neutral risk profile with regards to environmental issues, indicating no alarming signs of negative exposure, but also no significant opportunities for improvement. The management has taken steps to mitigate potential risks associated with regulatory changes and resource scarcity, but there may be room for further optimization.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors is robust. The presence of patents, exclusive partnerships, and economies of scale collectively contribute to a strong moat around the company's business model, making it increasingly difficult for competitors to erode its market share.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's supply chain resilience has shown significant improvement, positioning the organization to better navigate disruptions and uncertainties. The robustness of our supply chain has been reinforced through strategic diversification of suppliers, ensuring that no single entity poses a critical risk. Inventory management strategies have been optimized to mitigate the impact of unexpected events, such as natural disasters or supplier failures. Technology integration has played a crucial role in streamlining operations and enhancing visibility across the supply chain.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report indicates a positive trend, with the company demonstrating a high level of proficiency in addressing and mitigating potential risks associated with regulatory obligations. The company's proactive approach to compliance, including robust internal controls, regular audits, and effective risk management strategies, has allowed it to minimize disruptions to its operations and maintain financial stability.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The analysis reveals a robust and well-funded pipeline, with consistent investments in research and development, cross-functional collaboration, and successful product rollouts. These indicators suggest that the company is well-positioned to continue driving growth and innovation.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The report states that the company's revenue stability has shown significant improvement, indicating that the management's efforts to reduce its dependence on a limited number of key customers have been successful. This shift towards a more diversified revenue stream enhances bargaining power and contributes positively to overall financial health.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to command premium prices and maintain a competitive edge is strong, due to its well-established brand reputation and high levels of customer loyalty. The company's marketing efforts have been effective, resulting in increased customer satisfaction and engagement with the brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made significant strides in adopting cloud-based systems, but automation efforts are still at a nascent stage. While there is room for improvement, the company demonstrates a clear willingness to evolve and adapt to the demands of an increasingly digital landscape.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's decline in market share, reduced investment in research and development (R&D), and stagnation in product launches suggest that it has plateaued or ceased innovating, risking its competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "Our latest analysis suggests that the company has demonstrated a notable ability to adapt to changing market conditions, technological advancements, and evolving consumer preferences. This bodes well for its long-term success and competitiveness.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "Our latest analysis has revealed a strong indication of the company's preparedness for future challenges. Specifically, we note that the leadership transition planning process appears to be robust. As a result, we are pleased to report that the company's ability to maintain stability and strategic continuity appears to be well-supported.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights exemplary leadership and accountability, outstanding oversight of financial matters, and a strong commitment to addressing stakeholder concerns. This suggests a high degree of internal discipline and a willingness to adapt to changing circumstances, which aligns with the green indicator value representing a positive performance.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's exposure to international political tensions, trade disputes, sanctions, or instability in key operational regions is moderate. While there are no immediate concerns, it is essential for the company to remain vigilant and proactive in monitoring these potential risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has shown a neutral stance in terms of its exposure to environmental risks, indicating that it is taking a balanced approach to managing these types of risks. While there may be room for improvement in terms of environmental sustainability, the company's management appears to be keeping a close eye on potential threats related to climate change and regulatory changes.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's moat, which refers to its unique products and intellectual property that set it apart from competitors, is not as strong as previously thought. This is evident in the fact that the company's exclusive partnerships have begun to erode, and economies of scale are no longer providing the same level of protection. The company's reliance on patents has also become a liability, as several key patents have recently expired or been invalidated by courts. As a result, competitors are increasingly able to enter the market and compete with the company's products.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has taken steps to diversify its suppliers, it appears that these strategies may not be sufficient to mitigate risks associated with natural disasters or geopolitical events. Additionally, inventory management practices seem to be lagging behind industry standards, and technology integration is also not where it needs to be.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the company has been able to effectively navigate regulatory challenges, minimizing disruptions to its operations and financial results. This achievement demonstrates its commitment to responsible business practices and adaptability in the face of changing regulatory landscapes.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Despite some promising initiatives, our review suggests that the company's pipeline of new projects and products may not be meeting expectations. The lack of consistent funding and cross-functional collaboration is hindering the company's ability to bring new products to market effectively.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Few large customers (>20%) are a significant threat to the business, with potential implications for both bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's competitive positioning has been strengthened in recent periods, enabling it to command premium pricing in targeted markets. This is attributed to the high level of satisfaction among customers, which has led to increased retention rates and word-of-mouth referrals. Marketing initiatives have also paid off, as they have effectively resonated with the target audience and contributed to a higher brand awareness. The company's presence in strategic markets has further bolstered its competitive edge.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made some strides in adopting cloud-based systems, automating workflows, and implementing AI-driven analytics. However, these efforts have not yet resulted in any significant gains or improvements to the business.",
+        "indicator": "digital_transformation"
+    }
+]

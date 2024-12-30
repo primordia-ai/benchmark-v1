@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company has reached a neutral position in terms of innovation and disruption within its industry, with signs of stagnation in product launches and reduced investment in research and development. This suggests that the company is not innovating at the same pace as before, but it's not necessarily indicating a negative trend.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a notable ability to adapt to changing market conditions and technological advancements. This bodes well for its long-term success and competitiveness.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our review of the company's management practices has identified some concerning trends that may have a negative impact on its performance and reputation. The indicators of poor decision-making, inadequate financial oversight, and ignored stakeholder concerns all point to a red value for the mismanagement indicator.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's exposure to potential disruptions in global supply chains and trade relationships, as well as the potential impact on revenue and profitability due to unforeseen currency fluctuations, suggests a high level of risk. This indicates that the value of the 'geopolitical_risk' indicator is red.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company is not adequately prepared for potential disruptions in this area, which could have significant consequences for operations and profitability. The current situation indicates a high level of vulnerability to these risks, with potential penalties or increased costs already starting to materialize.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in establishing a sustainable competitive advantage through proprietary assets, exclusive partnerships, and economies of scale, indicating a strong and sustainable moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that the company's efforts to diversify its supplier base have paid off, enabling it to better withstand external shocks. The implementation of robust inventory management strategies has also helped to mitigate the impact of any potential disruptions. Furthermore, the integration of cutting-edge technology into their supply chain operations has enabled [Company Name] to respond more quickly and effectively to changing circumstances.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company continues to navigate a complex web of regulatory requirements and potential scrutiny, with certain compliance-related matters still pending. While it does not appear to be having an immediate material impact on the business, regulatory scrutiny remains a challenge for the company.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made some progress in this area, but there is still room for improvement. While the company has been able to maintain consistent funding for research and development, there are signs that cross-functional collaboration could be strengthened.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company's approach to managing its customer base has been successful in mitigating potential risks associated with over-reliance on a small number of key clients. The data indicates that efforts to diversify the client base have paid off, resulting in a more stable and secure financial foundation.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's brand strength is considered neutral, indicating a stable but not exceptional performance. Customer satisfaction and marketing effectiveness are satisfactory, but there is room for improvement in terms of presence in strategic markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The assessment suggests a neutral outlook, with moderate progress in adopting cloud-based systems and automation, but not yet yielding significant returns on investment. This indicates that the company's digital transformation efforts are underway, but not yet having a significant impact.",
+        "indicator": "digital_transformation"
+    }
+]

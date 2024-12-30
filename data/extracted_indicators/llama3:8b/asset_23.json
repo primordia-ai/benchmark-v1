@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's market share has been declining over the past quarter, and investment in Research and Development (R&D) has decreased significantly, indicating a lack of innovation.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's traditional approach may be hindering its ability to keep pace with technological advancements and evolving consumer preferences, but it has not yet fallen behind in a significant way. There are signs of stagnation, such as slow adoption of digital tools, potentially leaving it vulnerable to disruption from more agile competitors.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's vulnerability to disruptions in international trade and commerce, potential disruptions in supply chain operations, and currency fluctuations pose a significant risk to its financial performance.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's environmental vulnerability has reached an alarming level, with increased costs and potential penalties for non-compliance with emissions regulations. This poses a substantial threat to the company's long-term sustainability and profitability.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors may be lacking. The patent portfolio has not shown significant growth or renewal activity, exclusive partnerships have been few and far between, and economies of scale are not being leveraged effectively, resulting in inefficient production processes.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company's vendor pool has sufficient depth to mitigate potential risks, certain aspects of its inventory management strategies could be optimized. Furthermore, there are opportunities for technology integration to enhance resilience and agility in responding to disruptions.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company is facing increased regulatory pressures and potential compliance challenges. These issues may have a negative impact on its operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's capacity for ongoing innovation is weak, with a lack of consistency in funding for new projects, decline in cross-functional collaboration, and absence of a clear strategy for investing in R&D and adapting to changing technological landscapes.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's dependence on a limited number of key customers poses significant risks to its revenue stability. The data suggests that the company's reliance on a small group of clients is not only substantial but also lacks sufficient diversification efforts.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's performance reveals a stable position in terms of its overall reputation and brand value. While there are areas that require attention, the current state is considered neutral.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our latest analysis suggests that the company's efforts to incorporate emerging digital technologies have yielded a neutral result.",
+        "indicator": "digital_transformation"
+    }
+]

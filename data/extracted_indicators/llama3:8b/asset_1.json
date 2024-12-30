@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's stagnation in product launches and reduced investment in research and development (R&D) indicate a lack of innovation, which aligns with the description of 'red' as 'Not innovative, following others'.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to market changes, technological advancements, and evolving consumer preferences. This flexibility has likely contributed to its ability to maintain market share and drive growth.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without adequate backup plans, posing significant risks to the company's stability and strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights poor decisions, inconsistent decision-making, lack of financial oversight, and ignoring stakeholder concerns, which are all indicative of inefficient or unethical management practices. These issues have the potential to negatively impact the company's performance or reputation.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company remains vulnerable to disruptions caused by global events, including international tensions and trade disputes. This exposure poses a significant threat to operations, affecting not only the bottom line but also supply chain management and currency fluctuations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's performance in managing environmental risks has been below par, with significant challenges arising due to regulatory changes and resource scarcity. The company's efforts to mitigate these risks have been insufficient, leading to substantial exposure.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's reliance on intellectual property and exclusive agreements is dwindling, leaving it vulnerable to competition. The lack of patent protection and exclusive partnerships are signs of a waning competitive advantage, which may put the company at risk of losing market share.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's lack of diversification in its supply chain, leaving it exposed to a limited number of suppliers who may not be able to meet demand in times of crisis, suggests that the supply_chain_resilience indicator is red. This indicates a negative performance.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company is facing significant regulatory challenges and compliance issues, which may have a negative impact on its future prospects.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Despite efforts to improve, we have observed issues with securing stable funding for innovation initiatives. As a result, the company's pipeline of new products and services is not as robust as it could be.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's revenue base remains heavily reliant on a small group of key clients, indicating that the percentage of revenue from top customers is greater than 20%.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's brand strength has taken a hit, with our assessment indicating a decline. This negative development is likely to impact customer loyalty and retention, ultimately affecting pricing power and competitive positioning.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made efforts to adopt cloud-based systems and automate workflows, there are still areas that require improvement. The implementation of AI-driven analytics is also lagging behind expectations.",
+        "indicator": "digital_transformation"
+    }
+]

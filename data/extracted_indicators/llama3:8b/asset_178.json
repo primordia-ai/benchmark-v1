@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has maintained its market share, continued to invest in R&D, and has a steady stream of new product launches, indicating that it remains innovative and competitive.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has not been adequately adapting to changing market conditions, but it has maintained a relatively stable position. It's ability to adjust its operations in response to emerging trends and shifts in consumer behavior appears to be somewhat stagnant.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan, high dependence on a single leader without a backup plan",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While our review has not uncovered any outright red flags, we did identify a trend that warrants close monitoring. It appears that there have been inconsistent decision-making processes in place, which could potentially lead to poor financial oversight and neglect of stakeholder concerns.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's management has effectively mitigated potential risks stemming from international political tensions, trade disputes, and regional instability. The assessment indicates that the company's operations are well-protected against currency fluctuations and disruptions in supply chain operations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's approach to sustainability and regulatory compliance is cautious, indicating a neutral position regarding exposure to risks related to environmental issues. While this may not be cause for immediate concern, it suggests that the company is being prudent in its approach without making any significant commitments or investments.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant progress in building and maintaining its competitive advantage through unique products and intellectual property. The presence of patents, exclusive partnerships, and economies of scale have all contributed to a robust moat, making it increasingly difficult for new entrants to compete effectively.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are opportunities for improvement, the company has demonstrated a commitment to adapting its supply chain infrastructure to meet evolving demands.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company continues to face significant challenges related to regulatory scrutiny and compliance issues. The results of our assessment show that the company's operations are being impacted by increasing regulatory pressures.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company's capacity for ongoing innovation has remained strong, with consistent funding for innovative projects, cross-functional collaboration, and successful product rollouts.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Few large customers (>20%) are a concerning trend in the company's reliance on a limited number of customers, which can affect bargaining power and revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has maintained a stable footing, with consistent customer loyalty and satisfaction, but there are areas for improvement. The marketing efforts have shown some effectiveness, albeit not at optimal levels.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in its digital transformation efforts, leveraging technology to drive operational efficiency, enhance customer experience, and improve overall competitiveness. The recent adoption of cloud-based systems, automation of workflows, and implementation of AI-driven analytics have had a positive impact on the business, enabling it to stay ahead of the competition and capitalize on new opportunities.",
+        "indicator": "digital_transformation"
+    }
+]
