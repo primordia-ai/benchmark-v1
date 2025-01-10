@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's competitive advantage is at risk due to a lack of innovation and stagnant product launches, which suggests that it is not innovative and following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has successfully integrated new technologies, responded effectively to shifting consumer preferences, and demonstrated a willingness to pivot in response to changing market conditions. This indicates that the organization is adapting well to market changes and is not stagnant.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's strategic plan to overcome its current challenges has shown some stability and consistency in its progress, indicating a clear, credible plan with progress.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on single leader without backup plan",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated improved resilience in the face of potential risks, indicating a reduced likelihood of disruptions to its supply chain operations or currency fluctuations. This favorable outcome reflects positively on the company's risk management strategies and its ability to adapt to changing global circumstances.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's exposure to risks related to environmental concerns is neutral, indicating that they are being cautious but not taking significant steps to mitigate potential hazards. This suggests a working on improvements stance.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The evaluation suggests that the company's ability to maintain a competitive advantage through unique products, intellectual property, or high barriers to entry for competitors is not strong. The report highlights concerns regarding the company's ability to sustain its market position over time due to lack of robust patents and exclusive partnerships.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis has revealed a stable supply chain structure that allows the company to adapt to potential disruptions. While there are no glaring weaknesses in the system, there are areas for improvement.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "Regulatory scrutiny appears to be a neutral factor in the company's operations at present. The company is not currently facing any significant compliance challenges or regulatory investigations that would negatively impact its financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "According to the company's performance report, there are areas for improvement in its capacity for ongoing innovation. The report highlights concerns about the company's ability to invest in research and development (R&D) and bring new products to market, as well as struggling to adapt to technological advancements. This suggests that the innovation pipeline is weak, which aligns with the red indicator value.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's reliance on a small group of customers remains a significant risk factor, indicating a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis shows that the company's reputation and customer loyalty have taken a hit, likely due to disappointing customer satisfaction levels and less effective marketing efforts.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "It is evident that the company still relies heavily on traditional methods and has not fully leveraged the potential of cloud-based systems. Workflows remain largely manual, hindering efficiency and scalability.",
+        "indicator": "digital_transformation"
+    }
+]

@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's declining market share, reduced investment in research and development (R&D), and stagnation in product launches suggest a lack of innovation, which aligns with the 'Not innovative, following others' description for the value 'red'.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to changing market conditions and evolving consumer needs, embracing new technologies and digital tools. This agility has enabled the company to respond effectively to shifting market trends and competitor advancements.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The recent efforts towards revitalizing the organization have shown promising results. The leadership has taken decisive action to restructure key areas of the business, streamlining operations and eliminating non-essential costs. The company has successfully launched several new revenue streams, which are already contributing positively to the bottom line. The strategic plan implemented by management appears to be on track, with notable progress made towards achieving key milestones.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a positive trend in the company's preparedness for potential risks associated with key leadership roles. The evaluation of our assessment indicates that the company has effectively managed its succession strategy, ensuring a smoother transition in critical roles.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis has revealed a concerning trend in the company's management practices, which may have far-reaching implications for its future performance and reputation. The presence of inconsistent decision-making processes, lack of effective financial oversight mechanisms, and disregard for stakeholder concerns all suggest that the company's management practices are in need of significant improvement.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to navigate increasingly complex international trade dynamics and mitigate potential disruptions to its supply chain has been found wanting. This vulnerability stems from the current geopolitical climate, which is characterized by heightened tensions, trade disputes, and unstable regional environments.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Although the company is generally well-positioned to adapt to emerging regulatory changes and resource scarcity issues, there are some signs of potential vulnerability. Further efforts may be necessary to fully address these challenges.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "According to the company performance review, the company's ability to maintain a competitive advantage through unique products and intellectual property may be in question. This suggests that the company may not have established sufficient barriers to entry for its competitors.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on a limited number of suppliers increases its exposure to disruptions caused by external factors such as natural disasters or geopolitical events. Furthermore, its inventory management strategies appear to be inadequate, leading to stockouts and lost sales opportunities.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights ongoing issues related to regulatory scrutiny and compliance, indicating potential implications for operations and financial performance. The company's efforts to adapt to changing regulatory landscapes are not sufficient to mitigate these concerns.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company may be struggling to maintain a strong pipeline of innovative projects, which could hinder its ability to adapt to changing technological landscapes and bring new products to market effectively. This indicates a weak pipeline, falling behind, which corresponds to the value 'red'.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company's dependence on a limited number of customers has not yet had a significant impact on revenue, there are signs that the company may be vulnerable to fluctuations in these relationships. The management team is working to address this issue through increased diversification efforts, but more needs to be done.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's overall performance has shown a concerning trend, with key aspects of its business underperforming, leading to a negative outlook. The analysis indicates that the company's brand value and reputation are not meeting expectations, customer loyalty is waning, and several factors contributing to this underperformance have been identified.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company has made limited strides in adopting cloud-based systems, automating workflows, and implementing AI-driven analytics. While some efforts have been initiated, they have not yet yielded significant results, indicating a need for more focused and sustained investment in this area.",
+        "indicator": "digital_transformation"
+    }
+]

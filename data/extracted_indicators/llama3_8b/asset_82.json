@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's innovative edge has begun to wane, it is no longer investing heavily in research and development (R&D), market share has been declining over time, indicating that the company's products or services are not resonating with customers as they once did.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a high degree of agility in responding to changes in the market and evolving consumer preferences, indicating that it remains competitive in its industry.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in addressing potential risks related to succession planning for critical roles. The stability and resilience of the organization are now reflected in its overall strategy and operations, demonstrating the company's commitment to sound management practices.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a strong governance framework, consistent decision-making, and proactive stakeholder engagement, indicating that the company's management practices are sound and aligned with its overall strategy. This suggests a positive performance, represented by the color green.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated resilience in navigating complex international relationships and has implemented robust risk management strategies, allowing it to maintain a consistent level of performance despite increasing global uncertainty.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company is taking a balanced approach to mitigate risks associated with environmental concerns and regulatory scrutiny, which suggests that the environmental risk is low. The report highlights the company's efforts to implement sustainable practices and adapt to changing market conditions, indicating that the company is well-positioned to navigate potential challenges.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in maintaining a competitive advantage through its strong patent portfolio, exclusive partnerships with leading industry players, and economies of scale achieved through strategic investments in research and development. These assets have created a formidable barrier to entry for potential competitors, making it increasingly difficult for them to gain traction in the market.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our latest analysis indicates that our company's ability to withstand disruptions in its supply chain has shown significant improvement. The assessment of the company's robustness and adaptability in the face of external challenges has yielded a positive result.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company remains vigilant in addressing regulatory concerns, but faces no significant risks at this time. The current outlook suggests a neutral stance regarding potential regulatory challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The company's capacity for ongoing innovation appears to be lagging behind expectations, with a concerning trend in its ability to invest in research and development (R&D) initiatives. The pipeline may be lacking in consistency, with potential gaps in funding and cross-functional collaboration.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made notable strides in reducing its dependence on a small number of customers, thereby minimizing potential disruptions to revenue streams. This shift towards a more diversified revenue stream is expected to have a long-term positive effect on the company's financial health.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The measure of brand strength has turned green, indicating a positive shift in the company's ability to differentiate itself from competitors and command premium pricing. This improvement is attributed to increased customer satisfaction, enhanced marketing effectiveness, and strategic expansion into new markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in embracing digital technologies to drive growth and improvement. The implementation of innovative initiatives, such as adopting cloud-based systems and automating workflows, has enhanced operational efficiency and customer experience. Additionally, the integration of AI-driven analytics has further amplified the company's competitiveness in its market by providing data-backed insights that inform strategic business decisions.",
+        "indicator": "digital_transformation"
+    }
+]

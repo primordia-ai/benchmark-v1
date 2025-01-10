@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's innovative edge appears to be waning, with a decline in product launches and investment in research and development. This suggests that the company is not innovating and is instead following others, which aligns with the definition of 'disruptor_stagnant' as 'Not innovative, following others'.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company continues to struggle with adapting to changing market conditions and consumer preferences, resulting in a loss of competitive advantage. This lack of agility is hindering the organization's ability to respond effectively to emerging trends and disruptions.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan, high dependence on a single leader without a backup plan, and unfilled critical roles, which creates a risk to the company's overall strategy and direction.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a concerning trend in management practices that could negatively impact the company's performance and reputation. The presence of red flags, such as inconsistent decision-making, inadequate financial oversight, and lack of consideration for stakeholder concerns, suggests poor decisions and execution issues, warranting a value of 'red'.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "While not currently having a detrimental impact, this issue warrants ongoing monitoring due to its unpredictable nature. This suggests that the company has some level of exposure to international tensions and trade disputes, but it's not yet having a significant negative effect.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company appears to be adequately managing its risk profile, with no significant concerns arising from regulatory changes or resource scarcity. While this may not be indicative of exceptional risk management, it does suggest that the company is taking a prudent approach to navigating potential pitfalls.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to maintain a competitive advantage through unique products and intellectual property remains neutral. While there are some signs of progress, there are still areas that need improvement, such as the lack of significant patents or exclusive partnerships, and economies of scale not being fully leveraged.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "Despite efforts to diversify suppliers and implement effective inventory management strategies, the company's ability to respond to disruptions remains somewhat limited.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company continues to face significant regulatory scrutiny and compliance challenges, which has resulted in a negative impact on its operations and financial outlook. This suggests that the regulatory pressure is actively affecting the company's performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The company's capacity for ongoing innovation is lagging behind due to inconsistent funding, lack of cross-functional collaboration, and decline in ability to adapt to technological advancements.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "According to the report, the company's exposure to risks associated with revenue concentration has worsened, which may have significant implications for its long-term financial health and competitiveness. This suggests that the company is heavily dependent on a small number of customers, indicating a negative performance.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report suggests that the company's customer loyalty is neutral, and its brand value and reputation are holding steady but not making significant strides. This indicates a growing or regional brand, which corresponds to the yellow category.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's performance in leveraging digital technologies is lagging behind its peers, which has resulted in customer dissatisfaction and a loss of competitiveness.",
+        "indicator": "digital_transformation"
+    }
+]

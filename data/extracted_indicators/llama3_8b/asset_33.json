@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company, once recognized as a disruptor in its industry, has shown signs of stagnation. The data suggests that the company is no longer innovating at the same level as it had previously, reflected in a decline in market share and a reduction in investment in research and development (R&D). Furthermore, there have been few new product launches in recent quarters, indicating a lack of momentum in innovation.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company has struggled to keep pace with emerging trends and technologies, fallen behind in its adoption of digital tools, and been slow to respond to advancements made by its competitors, indicating a lack of flexibility and adaptability.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The evaluation of potential risks associated with a lack of clear succession planning has yielded positive results. The critical areas of concern, which were previously identified as potential vulnerabilities, have been effectively addressed.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights instances where decisions were made without adequate consideration for financial implications, which could potentially lead to inefficient use of resources and undermine stakeholder trust. This suggests poor management practices, indicating a red value.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report highlights that while the overall outlook remains stable, there are areas that require careful monitoring. The company has moderate exposure to external factors that could impact operations, which suggests a neutral position regarding certain risks. This assessment aligns with the yellow indicator value, indicating a moderate level of geopolitical risk.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment indicates a neutral performance in this area, suggesting that the company is neither overly exposed nor adequately prepared for potential disruptions.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in establishing and maintaining its competitive advantage through unique products, intellectual property, and economies of scale, which provides a robust foundation for continued innovation and growth.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a vulnerability to disruptions stemming from external events, indicating that the company's supply chain resilience is fragile and single-source dependent. This suggests that the value of the 'supply_chain_resilience' indicator should be red.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has experienced a significant improvement in its regulatory environment, indicating that the firm is less susceptible to compliance challenges and regulatory scrutiny. This positive trend suggests a reduced risk of compliance-related disruptions, improved operational efficiency, and enhanced potential for financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made efforts to reduce its reliance on a select few clients, there remains room for further action to strengthen bargaining power and increase revenue stability.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's brand strength has been a significant contributor to its competitive positioning and pricing power in the past. However, our latest assessment indicates a decline in this area. The brand's reputation and customer loyalty have been impacted, leading to a negative performance.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's efforts to implement cloud-based systems have yet to yield significant benefits, indicating a need for more efficient integration. Automation processes are still in their nascent stages, with considerable room for improvement to reduce manual workloads. Adoption of AI-driven analytics has been sluggish, failing to meet expectations and hindering strategic decision-making.",
+        "indicator": "digital_transformation"
+    }
+]

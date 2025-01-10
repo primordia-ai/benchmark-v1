@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's declining market share, reduced investment in R&D, and stagnation in product launches suggest that it may be experiencing difficulties in maintaining its innovative edge, which aligns with the description of 'disruptor_stagnant' as not being innovative and following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's willingness to adopt innovative solutions, respond effectively to competitor developments, and pivot in response to emerging trends and consumer preferences suggests that it is a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "Plan in development",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "A basic plan for succession and backup arrangements would be beneficial in maintaining stability and continuity of strategic direction, indicating a neutral performance.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The reports suggest that certain practices within the organization may have a negative impact on its performance and reputation, indicating poor management. The issues mentioned, such as inconsistent decision-making, inadequate financial oversight, or disregard for stakeholder concerns, align with the description of red under the indicator.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's operations are vulnerable to disruptions caused by international tensions, trade disputes, and regional instability. The data suggests that the company's exposure to these external factors is a concern that requires close monitoring and attention from senior management.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's vulnerability to environmental risks has reached an alarmingly high level, with significant costs and penalties impacting the company's bottom line.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made progress in safeguarding its competitive advantage, there are still some concerns that need to be addressed. The company does not currently possess a strong deterrent against potential competitors seeking to enter the market.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company remains vulnerable to disruptions caused by external factors, such as supplier failures. The assessment indicates that the company's reliance on a limited number of suppliers makes it susceptible to supply chain shocks.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company appears to be facing increased scrutiny from regulatory bodies, which could lead to operational disruptions and financial implications.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis of the company's capacity for ongoing innovation reveals some concerning trends. While the company has made investments in research and development, new product development, and technological advancements, our metrics suggest that it may be struggling to adapt to the rapidly changing market landscape.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a significant vulnerability in the company's customer base, with revenue streams heavily reliant on a small number of customers. This concentration of revenue exposure may make it difficult for the company to withstand potential disruptions or changes in market conditions.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of the company's performance suggests a strong showing in terms of its market standing. The key drivers of this success are rooted in the company's ability to foster a loyal customer base and establish a robust brand presence.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's reliance on outdated systems and manual processes hinders its ability to adapt to changing market conditions. Customer feedback suggests a lack of cohesion in the overall user experience, with many interactions feeling disjointed or inefficient.",
+        "indicator": "digital_transformation"
+    }
+]

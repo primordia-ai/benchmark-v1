@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "Declines in market share, reduced investment in research and development (R&D), and lack of new product launches suggest a company that is no longer pushing the boundaries of innovation, which aligns with the description of 'Not innovative, following others'.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to adapt to market changes, technological advancements, and evolving consumer preferences. This indicates a high level of resilience and flexibility, which are critical components for long-term success in today's rapidly changing business environment.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the situation poses some concern and requires attention, it does not necessarily pose an immediate risk to our operations. A long-term plan is needed to mitigate potential risks.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "We have noted instances of inconsistent decision-making, which can lead to a lack of clarity and direction within the organization. There appears to be an insufficient level of oversight regarding financial matters. Furthermore, it seems that stakeholder concerns are not being adequately addressed, which may negatively impact relationships with investors, customers, or employees.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's vulnerability to potential disruptions stemming from global conflicts and trade disputes has taken a turn for the worse.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made substantial progress in managing its exposure to environmental issues such as climate change and regulatory changes. The related costs have remained under control, with no major penalties incurred due to non-compliance with emissions regulations.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report suggests that the company has some level of protection against competition, but it may not have a significant or sustainable edge in its market. The company has secured patents and established exclusive partnerships, but these efforts alone do not appear to be sufficient to create a substantial barrier to entry for potential competitors.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to withstand disruptions in its supply chain has been assessed as highly effective. This is a positive development for the organization, indicating that it is well-equipped to handle unexpected events and maintain business continuity.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that the company has demonstrated a strong ability to navigate and comply with regulatory requirements, which indicates a positive regulatory posture. This is likely to have a positive impact on its operations and financial performance.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's innovation pipeline may be at risk due to a lack of consistency in funding, collaboration between departments, and struggles to adapt to technological advancements. This indicates a negative performance.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's reliance on a limited number of customers has had an adverse effect on its financial stability. This concentration of risk has compromised the company's bargaining power, making it vulnerable to potential disruptions in revenue.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance review indicates a strong foundation for long-term success, with significant growth in one key area. The company's reputation and customer loyalty have improved substantially, allowing it to command premium pricing and maintain a competitive edge.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's implementation of digital solutions has had a neutral impact on its overall performance.",
+        "indicator": "digital_transformation"
+    }
+]

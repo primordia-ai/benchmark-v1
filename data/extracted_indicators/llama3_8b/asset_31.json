@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's recent performance has been a cause for concern, with signs of stagnation, declining market share, reduced investment in R&D, and a slowdown in product launches. This suggests that the company may be struggling to innovate and maintain its competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a willingness to innovate and evolve, embracing new technologies and digital tools. It has also shown agility in responding to changing market dynamics, which suggests that it is well-positioned to continue competing effectively.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No succession plan, high dependence",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights poor management practices such as inconsistent decision-making and inadequate financial oversight, which have led to concerns about the company's long-term sustainability. This suggests that the company has been struggling with execution issues, which aligns with the red category.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The company's performance has been flagged as negative, and its exposure to risks stemming from international factors has raised concerns. The negative consequences are evident in various aspects of the company's activities, including supply chain disruptions and currency fluctuations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company has raised concerns about its environmental exposure, which may lead to significant costs and penalties in the future. The failure to comply with emissions regulations has resulted in substantial financial losses, indicating a high level of risk.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made significant investments in research and development, it appears to be facing stiff competition from other market players. Exclusive partnerships and patents are present but do not appear to be creating insurmountable barriers for new entrants.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to adapt to disruptions such as natural disasters or geopolitical events appears to be stable. While there are no significant concerns regarding supplier failures, there may be opportunities for improvement in this area.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company's operations and financial performance have been negatively impacted by increased regulatory scrutiny and compliance challenges, indicating active investigations/issues.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The analysis reveals a concerning trend, indicating that the company's ability to drive innovation and adapt to emerging technologies is lagging behind expectations. The metrics used to gauge the company's capacity for ongoing innovation have not met internal targets, and there are concerns about the consistency of R&D efforts and successful product rollouts.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights that the company's reliance on a small number of key customers continues to pose significant risks to revenue stability. The percentage of revenue from top customers is greater than 20%, indicating a high level of concentration, which aligns with the definition of 'red' for this indicator.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The company's brand value, reputation, and customer loyalty have not been adequately reflected in its market positioning and pricing power. This weakness is attributed to several factors, including low customer satisfaction levels, ineffective marketing strategies, and a limited presence in strategic markets.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there have been some positive developments, our assessment suggests that the company is in a neutral position. To fully capitalize on the benefits of digital technologies, the business will need to continue to invest in these areas and prioritize further innovation.",
+        "indicator": "digital_transformation"
+    }
+]

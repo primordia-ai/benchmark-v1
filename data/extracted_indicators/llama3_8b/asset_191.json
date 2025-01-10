@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The report suggests the company may be experiencing a decline in its competitive advantage, with stagnation in product launches and reduced investment in R&D. This has led to a decline in market share, indicating that the company is not innovative and is following others.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The company's inability to keep pace with changing market conditions, embracing digital innovations, and responding effectively to evolving consumer preferences and competitive advancements indicates a negative performance.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on single leaders without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The report highlights a concerning trend in decision-making processes, with concerns surrounding consistency and prudence exhibited by senior leadership. Additionally, stakeholder interests have been disregarded, which risks damaging the company's reputation and undermines its long-term sustainability.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's diversified business model and robust risk management practices have helped mitigate any potential impacts on its financial performance, indicating limited exposure to external risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's track record on managing environmental-related risks is stable, but not thriving. Efforts are needed to mitigate these risks, indicating a neutral performance.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment indicates that the company's position with respect to maintaining a competitive edge through proprietary elements or significant barriers to entry is neutral. While there are some indicators of potential strength, they do not appear sufficient to clearly establish a sustainable advantage over competitors at this time.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The assessment of the company's robustness and resilience in the face of external shocks has yielded an unfavorable result, suggesting that the company is vulnerable to disruptions. The report highlights concerns regarding supplier diversification, inventory management strategies, and technology integration within the supply chain, leaving the company exposed to potential risks.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "Our latest analysis indicates that the company continues to face significant regulatory headwinds. Our evaluation suggests that the firm's operational efficiency and financial performance are being impacted by increased scrutiny from governing bodies.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "The company's customer base is heavily skewed towards a small group, which could lead to increased vulnerability to market fluctuations and potential losses if one or more key customers were to depart.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our latest analysis suggests that the company's ability to command a premium price in its market has weakened. The indicators point to a decline in customer loyalty and brand recognition, which may be attributed to several factors.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company's ability to harness digital advancements has been hindered by a lack of effective implementation of new technologies, resulting in limited enhancements to operational efficiency, customer engagement, and overall market standing.",
+        "indicator": "digital_transformation"
+    }
+]

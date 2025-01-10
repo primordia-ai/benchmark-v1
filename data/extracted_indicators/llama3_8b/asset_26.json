@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company has failed to maintain its position as a leader in innovation, with a decline in market share and stagnant research and development efforts. This suggests that the company is no longer effectively innovating or adapting to changing consumer needs.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated flexibility in adapting to changing market conditions, adopting new technologies, and pivoting in response to competitor advancements. This suggests that the company is a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "Plan in development",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant progress in addressing potential vulnerabilities related to succession planning. This includes filling critical positions and implementing backup plans for key leaders, thereby reducing the likelihood of operational disruptions.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's commitment to responsible decision-making, accountability, and transparency has led to a strong execution history, indicating a positive performance.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our assessment of the company's exposure to global risks indicates a neutral performance. While there are no significant red flags, neither are there any standout green indicators.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's financial performance indicates that it is vulnerable to potential risks related to environmental issues, resulting in increased costs due to non-compliance with emissions regulations and resource shortages.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's ability to protect its market position through unique offerings and barriers to entry for competitors is waning. This could be attributed to a lack of innovative products, inadequate intellectual property protection, or an inability to leverage economies of scale effectively.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our review of the company's performance indicates a strong ability to withstand disruptions in its supply chain. This is evident from the robust measures it has put in place to mitigate risks associated with supplier failures, natural disasters, and geopolitical events.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "According to the company performance update, regulatory scrutiny and compliance challenges appear to be minimal, allowing the company to operate with increased efficiency. The company's proactive approach in addressing potential regulatory issues has paid off, indicating a clean regulatory history.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our evaluation reveals that the company's capacity for ongoing innovation has remained steady. Investments in research and development (R&D) and new product development continue to be prioritized. However, there are indications that the pace of technological advancements might not be fully leveraged.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "Despite efforts to diversify its customer base, the company still appears to be heavily reliant on a small group of major customers. This concentration of risk could potentially lead to fluctuations in revenue if these key clients were to suddenly cease or reduce their business with the company.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that this area of the business is performing exceptionally well. The company's efforts in customer satisfaction, marketing effectiveness, and strategic market presence have yielded a strong outcome, indicating a high level of brand strength.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "Despite efforts to modernize operations and enhance customer experience through technology adoption, we have identified significant room for improvement. The company has fallen short in its implementation of digital technologies aimed at boosting competitiveness.",
+        "indicator": "digital_transformation"
+    }
+]

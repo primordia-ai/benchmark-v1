@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company has experienced a significant decline in market share, reduced investment in research and development (R&D), and stagnation in product launches, indicating a lack of innovation and potential loss of competitive advantage.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a willingness to evolve and respond to shifting consumer preferences, which is reflected in its [indicator] status. The firm has shown a clear commitment to innovation and progress, adopting digital tools and leveraging new technologies to stay ahead of the competition.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that there is no clear plan or failing execution of the strategic plan aimed at recovering from financial, operational, or reputational difficulties. The company's ability to implement essential changes and achieve milestones seems hindered by ongoing difficulties.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company's leadership team is well-prepared to ensure stability and continuity in key roles. This is reflected in the strong foundation of internal talent and succession planning.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "While we have observed no concrete evidence of poor decision-making, there are indications that some stakeholders may not be adequately involved or considered in key strategic decisions. Furthermore, our review suggests that financial oversight could potentially be improved to better align with industry standards.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The report highlights a positive outcome in assessing the company's exposure to global risks, indicating limited exposure. The stability and security of supply chain operations have been maintained, allowing the company to mitigate potential risks associated with currency fluctuations and other external factors.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has maintained a stable position over the past quarter, but ongoing attention to regulatory compliance and sustainability practices will be necessary to mitigate potential future issues. The report highlights that while there are no immediate concerns, the company needs to continue investing in sustainability initiatives and monitoring market trends closely to ensure it remains compliant and competitive.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in establishing and maintaining a competitive advantage in its market. The presence of patents, exclusive partnerships, and economies of scale set the company apart from others in its industry, indicating a strong, sustainable moat.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The assessment suggests that the company's approach to mitigating risks related to natural disasters, geopolitical events, or supplier failures is robust and adaptable. Key factors contributing to this success include a well-diversified supplier base, effective inventory management strategies, and strategic integration of technology to enhance supply chain resilience.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of [Company Name]'s performance indicates a positive trend in one key area. Specifically, the company has demonstrated a significant reduction in regulatory scrutiny and compliance challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company is currently facing challenges in investing in research and development, developing new products, and adapting to technological advancements. The strong pipelines that were once a hallmark of this company's success are now struggling due to inconsistent funding, limited cross-functional collaboration, and disappointing product rollouts.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The report suggests that [Company Name] has made significant strides in mitigating potential risks associated with customer concentration, and has demonstrated a clear commitment to expanding its revenue streams and reducing reliance on any single customer. This proactive stance will likely yield long-term benefits for both shareholders and stakeholders alike.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company's brand value and reputation may be under pressure due to declining customer satisfaction levels, ineffective marketing strategy, and reduced presence in key markets. This indicates a weak or damaged brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made significant strides in integrating digital technologies, but there are still areas for improvement. The decision to adopt cloud-based systems and automate workflows has had a positive impact on efficiency and productivity, but some initiatives have yet to yield the desired results.",
+        "indicator": "digital_transformation"
+    }
+]

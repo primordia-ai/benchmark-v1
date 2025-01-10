@@ -1,0 +1,83 @@
+To estimate the classification of the company based on the provided indicators and priors, we need to follow a structured approach. Here's how we can proceed:
+
+    Analyze Hard Indicators:
+        Compare the values of the hard indicators against the intervals provided in the independent_indicator_intervals.
+        Determine the classification (red, yellow, green) for each hard indicator.
+
+    Analyze Soft Indicators:
+        Consider the cost and potential impact of acquiring each soft indicator.
+        Use the soft_likelihood_matrix to understand the likelihood of each classification based on the soft indicators.
+
+    Use Priors:
+        Contextualize the importance of each indicator based on the financial_likelihood_matrix.
+        Combine the information from hard indicators, soft indicators, and priors to make an overall classification.
+
+    Decide Next Action:
+        If the classification is confident, suggest no further action.
+        If more information is needed, select the next soft indicator to acquire based on cost and potential information gain.
+
+Let's go through the example input step by step:
+Example Input:
+
+{
+  "hard_indicators": [("revenue_growth", 2.5), ("debt_to_equity", 0.6)],
+  "soft_indicators": [('geopolitical_risk', None, 5), ('digital_transformation', None, 3)],
+  "priors": infer from the given data
+}
+
+Step 1: Analyze Hard Indicators
+
+    Revenue Growth: 2.5
+        Interval: 'revenue_growth': {'red': (-0.3, 0.0), 'yellow': (0.0, 0.20), 'green': (0.20, 0.50)}
+        Classification: Green (since 2.5 is within the green interval)
+
+    Debt to Equity: 0.6
+        Interval: 'leverage': {'red': (2.0, 5.0), 'yellow': (0.5, 2.0), 'green': (0.1, 0.5)}
+        Classification: Yellow (since 0.6 is within the yellow interval)
+
+Step 2: Analyze Soft Indicators
+
+    Geopolitical Risk: Not acquired yet, cost = 5
+    Digital Transformation: Not acquired yet, cost = 3
+
+Step 3: Use Priors
+
+    Revenue Growth: High growth is likely green.
+    Debt to Equity: Stable is likely green, but the current value is yellow.
+
+Step 4: Decide Next Action
+
+Given the current information:
+
+    Revenue Growth is green.
+    Debt to Equity is yellow.
+
+The classification is leaning towards yellow or green. To improve the classification accuracy, we need to consider the cost and impact of acquiring the soft indicators.
+
+    Geopolitical Risk: High cost (5), but it has a moderate impact on classification.
+    Digital Transformation: Lower cost (3), and it has a high impact on classification, especially for high-growth companies.
+
+Final Decision
+
+    Current Estimation:
+        Classification: Yellow
+        Reasoning: Moderate revenue growth and favorable priors, but the debt to equity ratio is in the yellow range.
+
+    Next Action:
+        Indicator to Acquire: Digital Transformation
+        Reasoning: It has a high impact on classification and a lower cost compared to geopolitical risk.
+
+Example Output:
+
+{
+  "current_estimation": {
+    "classification": "yellow",
+    "reasoning": "Moderate revenue growth and favorable priors, but the debt to equity ratio is in the yellow range."
+  },
+  "next_action": {
+    "indicator_to_acquire": "digital_transformation",
+    "reasoning": "It has a high impact on classification and a lower cost compared to geopolitical risk."
+  }
+}
+
+This structured approach ensures that we optimize for information gain vs cost when selecting the next indicator and use the priors to contextualize the importance of indicators.

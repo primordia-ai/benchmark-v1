@@ -1,0 +1,72 @@
+[
+    {
+        "value": "yellow",
+        "reason": "The company may be experiencing some stagnation in its innovation efforts, but it's not necessarily an immediate cause for concern. It suggests that the company should take steps to reinvigorate its innovation pipeline.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to adapt to market changes, technological advancements, and evolving consumer preferences suggests that it is a dominant incumbent. The willingness to adopt digital tools and pivot in response to competitor advancements demonstrates the company's agility and responsiveness to external factors.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "The assessment of the company's ability to recover from financial, operational, or reputational difficulties has shown a negative trend. Despite efforts to address these challenges, the company appears to be facing significant hurdles in implementing necessary changes.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated significant strength in its leadership planning and succession strategies. Key leadership roles have been adequately addressed, with no critical positions remaining unfilled. The company has successfully diversified its leadership structure, mitigating the risk of dependence on a single individual without a backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates a satisfactory level of governance within the organization. Management practices are consistent and aligned with company goals. Financial decisions are closely monitored, ensuring prudent use of resources. Stakeholder concerns are also being addressed in a timely manner.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The assessment of these risks suggests that the company's exposure to these factors has been effectively managed. This is a positive development for the organization, as it underscores its ability to adapt and respond to changing global circumstances.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance in managing its exposure to environmental risks has met expectations, demonstrating the organization's ability to mitigate potential negative impacts. The measures taken by management have effectively minimized the risk of non-compliance with emissions regulations, ensuring that we remain ahead of industry standards.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made progress in safeguarding its unique selling points, yielding a satisfactory level of protection against competitors. While not outstandingly strong, the indicators point to a neutral assessment, signifying neither exceptional nor underwhelming performance in this area.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's robustness and adaptability to unexpected events such as natural disasters, geopolitical uncertainties, or supplier failures have shown a marked improvement. This is attributed to the implementation of effective strategies across various key areas.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated effective management of regulatory hurdles, reducing the likelihood of costly compliance issues or reputational damage. This achievement is a testament to the organization's commitment to responsible business practices and its ability to navigate complex regulatory landscapes.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "While progress is evident, the company's pipeline is not yet delivering results that consistently meet expectations. This means that while innovation efforts are underway, they may not be translating into tangible benefits in terms of revenue growth or market share expansion.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "red",
+        "reason": "Few large customers (>20%)",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has made progress in establishing itself as a reputable player in its market, but there are opportunities for growth and development. The current trajectory is generally stable, indicating a growing or regional brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "red",
+        "reason": "The company has not fully leveraged digital advancements to improve its operational efficiency, customer satisfaction, and competitiveness. The lack of significant investment in cloud-based systems and AI-driven analytics has hindered the company's ability to stay ahead of the curve.",
+        "indicator": "digital_transformation"
+    }
+]

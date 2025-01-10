@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's innovative edge, which has long been a hallmark of its success, may be eroding. Market share has been declining over the past quarter, indicating a loss of ground to competitors. Investment in research and development (R&D) has decreased significantly, suggesting that the company is not prioritizing innovation. Product launches have stagnated, with no new breakthrough products or services on the horizon.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis suggests that the company has demonstrated a positive ability to adapt to changing market conditions and technological advancements. This has allowed them to stay competitive in their industry.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there is room for improvement, the company's current trajectory suggests that it remains on track to meet its objectives. Progress is being made, but more effort is needed to drive meaningful change and achieve lasting results.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "red",
+        "reason": "No clear succession plan in place, high dependence on a single leader without a backup plan, which creates serious risks to stability and strategic continuity.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis has revealed that the company is struggling with inconsistent decision-making processes. This issue has resulted in a lack of clear direction and accountability within various departments, leading to inefficiencies and potential misallocations of resources.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company's proactive risk management strategies and ability to adapt to changing market conditions have yielded a positive result, indicating limited exposure to external risks.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has shown a neutral stance, indicating vulnerability to changes in regulatory environments or disruptions in resource availability. This suggests that the company is working on improvements but not yet taking strong practices to mitigate these risks.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The company's limited patent portfolio, lack of exclusive partnerships, and inefficient economies of scale indicate that it is struggling to establish and maintain a strong competitive edge, which suggests a negative performance.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company's ability to withstand disruptions in its supply chain is characterized by cautionary stability. While the company has sound management strategies and effective use of technology, it still relies on a limited number of key suppliers, posing some risk. However, this vulnerability is somewhat mitigated by the company's efforts to optimize supply chain efficiency and agility.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company continues to face significant challenges related to regulatory scrutiny and compliance, resulting in increased costs, resource allocation, and potential disruptions to its operations.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "The company is struggling to invest in research and development, and may be lagging behind its competitors in terms of new product development. This could have long-term implications for the company's ability to stay relevant in a rapidly changing market.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in reducing its reliance on a small number of customers through targeted efforts to diversify revenue streams and strengthen relationships with a wider range of clients. This has led to increased stability and predictability in revenue growth, as well as improved bargaining power in negotiations with customers.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis suggests that the company's current brand standing has taken a negative turn. While it remains a well-established player in its market, recent developments have led to a decline in customer perception and loyalty.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has made some efforts to adopt digital solutions, it appears that these initiatives are not yet yielding significant benefits. The lack of tangible outcomes from these investments is evident, suggesting that further work is needed to fully capitalize on the potential of digital technologies.",
+        "indicator": "digital_transformation"
+    }
+]

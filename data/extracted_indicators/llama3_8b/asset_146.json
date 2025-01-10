@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company's recent performance reveals a concerning trend, including a decrease in market share, reduced investment in research and development (R&D), and stagnation in product launches. These signs suggest that the company has plateaued and may be losing its competitive edge.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated an ability to pivot quickly in response to new developments and has successfully adopted digital tools, indicating a dominant incumbent.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made substantial progress in addressing unfilled critical roles, ensuring that there is no single point of failure when it comes to leadership. This proactive approach will help mitigate potential risks and ensure a smooth transition of responsibilities.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "The reports highlight a concerning trend in management practices that could negatively impact the organization's performance and reputation. The lack of consistency in decision-making processes, inadequate financial oversight, and ignoring stakeholder concerns all suggest poor management practices.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "red",
+        "reason": "The report suggests that the company may be at risk due to potential destabilization in key regions and fluctuations in currency markets, indicating high exposure to unstable regions.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis suggests that the company is moderately exposed to potential risks related to environmental issues. While the current situation does not appear to be critical, proactivity in addressing these concerns is advisable.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to maintain its competitive edge in the market, with unique products and intellectual property providing a significant barrier to entry for competitors. The results are clear: the company has solidified its position as a market leader.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to withstand disruptions to its supply chain has shown significant resilience, with successful implementation of strategies such as supplier diversification, effective inventory management, and technology integration. This robustness is a testament to the company's ability to adapt and respond to changing circumstances.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "red",
+        "reason": "The company has experienced a significant increase in regulatory scrutiny, which may impact its operational efficiency and financial performance. This heightened focus from regulatory bodies could lead to additional costs and resource allocation, potentially affecting the company's bottom line.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "red",
+        "reason": "Weak pipeline, falling behind",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "yellow",
+        "reason": "The proportion of revenue generated from these top clients remains a subject for improvement, indicating moderate concentration. The management is taking necessary steps to diversify and reduce this risk, but more needs to be done in this regard.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "red",
+        "reason": "Our analysis indicates that the company's efforts to build a strong reputation and loyal customer base have not yielded the desired results. Despite initiatives aimed at enhancing customer satisfaction and marketing effectiveness, the company's standing in its industry appears to be waning.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "Our analysis indicates a neutral assessment regarding the adoption and integration of cutting-edge technologies. While there are initiatives underway to enhance operations and customer experience through the use of cloud-based systems and automation, these endeavors appear to be at an early stage or are not yet fully integrated into the company's workflows.",
+        "indicator": "digital_transformation"
+    }
+]

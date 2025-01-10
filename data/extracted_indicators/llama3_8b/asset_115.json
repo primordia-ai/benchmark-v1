@@ -1,0 +1,72 @@
+[
+    {
+        "value": "green",
+        "reason": "The company has shown no signs of plateauing or stagnating, with continued investment in research and development (R&D) and a consistent upward trend in market share.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "The company has maintained a strong reputation and loyal customer base, but it may be struggling to adapt to changing market conditions. It's lagging behind in its adoption of digital tools and technologies, which raises questions about its long-term viability.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "red",
+        "reason": "No clear plan or failing execution",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "yellow",
+        "reason": "While the company has established succession plans in place, there are still some critical roles that remain unfilled. Furthermore, in one instance, there is an over-reliance on a single leader without a clear backup plan.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "yellow",
+        "reason": "The report highlights some areas of concern regarding the company's management practices, such as inconsistent decision-making and ignoring stakeholder concerns. While these issues are not catastrophic, they do indicate a mixed track record that could be improved upon. Therefore, I infer that the value of the mismanagement indicator is yellow.",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has effectively put strategies in place to mitigate risks associated with operating in a rapidly changing international environment, indicating limited exposure.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's proactive approach to ensuring regulatory adherence has yielded significant benefits, including reduced costs associated with penalty payments. Similarly, the company's efforts to mitigate the impact of resource scarcity have paid off, as it has successfully diversified its supply chain and adapted to changing market conditions.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis indicates that the company has successfully established a formidable barrier to entry for its competitors. This unique position enables the company to maintain a competitive advantage through its exclusive offerings and economies of scale.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "red",
+        "reason": "The company's performance in adapting to disruptions in its supply chain remains subpar. The lack of supplier diversification, inadequate inventory management strategies, and limited technology integration suggest that the company is vulnerable to unexpected supplier failures or changes in market conditions.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The recent trend indicates that the company is now less exposed to potential disruptions from regulatory scrutiny and compliance challenges.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "green",
+        "reason": "The company has a robust system in place for funding new initiatives, ensuring consistent support for innovative projects. Cross-functional collaboration is evident throughout the organization, facilitating successful product rollouts and minimizing risk. A strong track record of successful product releases indicates a high level of innovation and adaptability.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in reducing its reliance on a limited number of customers, indicating a well-diversified customer base.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "The company's performance report reveals a stable position in the market, with strong reputation and customer loyalty contributing to competitive positioning and pricing power. The indicators of customer satisfaction, marketing effectiveness, and presence in strategic markets are all positive, indicating a strong brand.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in leveraging digital technologies to drive growth and improve competitiveness, with a strong and forward-thinking approach to adopting innovative solutions. The ability to adapt to changing market conditions and stay ahead of the curve has been a major contributing factor to the company's success.",
+        "indicator": "digital_transformation"
+    }
+]

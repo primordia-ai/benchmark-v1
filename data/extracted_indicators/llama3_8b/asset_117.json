@@ -1,0 +1,72 @@
+[
+    {
+        "value": "red",
+        "reason": "The company has been relatively inactive in terms of introducing new products or services, suggesting a slowdown in product launches. Furthermore, investment in research and development (R&D) has decreased, which may indicate a lack of commitment to staying ahead of the curve in its industry.",
+        "indicator": "disruptor_stagnant"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a notable ability to adapt to changing market conditions, embracing innovative solutions and making timely adjustments to its business strategy. This proactive approach has allowed it to stay ahead of competitors and maintain a strong position in the market.",
+        "indicator": "incumbent_stagnant"
+    },
+    {
+        "value": "yellow",
+        "reason": "While efforts are being made to address financial and operational difficulties, there has been no significant progress towards recovery. Leadership restructuring is underway, but its impact on the company's overall performance remains uncertain at this time.",
+        "indicator": "turnaround_plan"
+    },
+    {
+        "value": "green",
+        "reason": "A key concern regarding succession planning has been effectively addressed, indicating a strong bench and clear succession plan in place.",
+        "indicator": "succession_risk"
+    },
+    {
+        "value": "red",
+        "reason": "Poor decisions, execution issues",
+        "indicator": "mismanagement"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a strong ability to mitigate risks associated with global uncertainty and geopolitical tension. It has effectively managed these risks, implemented strategies that enable it to navigate currency fluctuations and supply chain disruptions with minimal disruption to its business operations.",
+        "indicator": "geopolitical_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company has demonstrated a proactive approach to compliance with emissions regulations, avoiding costly penalties, and has maintained a stable supply chain despite increased costs due to resource shortages. This suggests that the company is well-equipped to manage and mitigate risks associated with environmental issues, indicating a low impact/strong practices.",
+        "indicator": "environmental_risk"
+    },
+    {
+        "value": "green",
+        "reason": "The company's ability to sustain a competitive edge in its market has shown significant improvement over the past quarter. This is evident from the presence of certain key characteristics that make it challenging for competitors to enter and succeed.",
+        "indicator": "product_moat"
+    },
+    {
+        "value": "green",
+        "reason": "Our analysis of [Company Name]'s supply chain has revealed a strong foundation for resilience in the face of disruptions. The company's ability to withstand external shocks, such as natural disasters or geopolitical events, has been demonstrated by its effective management strategies and technology integration.",
+        "indicator": "supply_chain_resilience"
+    },
+    {
+        "value": "green",
+        "reason": "The report states that the company is performing well in terms of its ability to navigate regulatory requirements and has a strong track record of compliance, indicating a clean regulatory history.",
+        "indicator": "regulatory_pressure"
+    },
+    {
+        "value": "yellow",
+        "reason": "While there are some signs of consistency in funding and collaboration across different departments, the successful rollout of new products has not been as strong as we had hoped. This indicates that the company is making progress in certain areas, but may need to make adjustments to achieve more significant results.",
+        "indicator": "innovation_pipeline"
+    },
+    {
+        "value": "green",
+        "reason": "The company has made significant strides in reducing its dependence on a few large customers, demonstrating a strong commitment to revenue diversification. The company's focus on developing new relationships with multiple customers has helped to mitigate risks associated with over-reliance on a small number of clients.",
+        "indicator": "customer_concentration"
+    },
+    {
+        "value": "green",
+        "reason": "Our latest analysis suggests that the company's performance metric is currently demonstrating a strong showing, reflecting positively on the company's overall competitiveness. The drivers behind this performance are multifaceted, with significant contributions from customer satisfaction, marketing efforts, and market presence.",
+        "indicator": "brand_strength"
+    },
+    {
+        "value": "yellow",
+        "reason": "While efforts are being made to adopt cloud-based systems and automate workflows, there is room for further advancement. The company has taken initial steps towards leveraging AI-driven analytics, but more work is needed to fully realize its potential benefits.",
+        "indicator": "digital_transformation"
+    }
+]
