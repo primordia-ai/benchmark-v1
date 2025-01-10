@@ -20,8 +20,38 @@ def get_api_key():
 
 class Gemini15(LLMBaseClass):
     """
-    gemini model
+    Gemini15 is a class that extends LLMBaseClass and provides functionality for interacting with the Gemini 1.5 model.
+    Attributes:
+        name (str): The name of the model.
+        code (str): The code identifier for the model.
+        api_key (str): The API key used for authentication.
+        aliases (list): A list of aliases for the model.
+    Methods:
+        __init__(temperature: float = 0.0, seed: int = 101010):
+            Initializes the Gemini15 instance with the specified temperature and seed.
+        process_asset(asset):
+            Processes the given asset. This method is currently not implemented.
+        extract_indicator(
+            Extracts the specified indicator from the given asset. Either report_dir or reports_text must be provided.
+            Args:
+                indicator_name (str): The name of the indicator to extract.
+                asset_id (str): The ID of the asset.
+                report_dir (str, optional): The directory containing the reports. Defaults to os.path.join(PROJECT_ROOT, "data/reports").
+                include (list, optional): A list of report filenames to include. Defaults to None.
+                exclude (list, optional): A list of report filenames to exclude. Defaults to None.
+                reports_text (str | None, optional): The text of the reports. Defaults to None.
+                verbose (bool, optional): If True, prints additional information. Defaults to False.
+            Returns:
+                dict: A dictionary containing the extracted indicator value.
+        evaluate_asset(prompt: str, max_retries: int = 3) -> AssetEvaluation:
+            Evaluates the given asset using the specified prompt.
+            Args:
+                prompt (str): The prompt to use for evaluation.
+                max_retries (int, optional): The maximum number of retries. Defaults to 3.
+            Returns:
+                AssetEvaluation: The evaluation result of the asset.
     """
+    
     name = "gemini_1.5"
     code = "models/gemini-1.5-flash-latest"
     api_key = get_api_key()
