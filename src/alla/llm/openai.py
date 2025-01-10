@@ -140,6 +140,15 @@ class GPT(LLMBaseClass):
     
 
 class GPT4o(GPT):
+    """
+    GPT4o is a subclass of the GPT class representing a specific version of the GPT model.
+    Attributes:
+        name (str): The name of the model.
+        code (str): The code identifier for the model version.
+        api_key (str): The API key used for authentication.
+        aliases (list): A list of alternative names for the model.
+    """
+
     name = "gpt-4o"
     code = "gpt-4o-2024-08-06"
     api_key = get_api_key()
