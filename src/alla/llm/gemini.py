@@ -24,7 +24,6 @@ class Gemini15(LLMBaseClass):
     """
     name = "gemini_1.5"
     code = "models/gemini-1.5-flash-latest"
-    context_window = 128_000
     api_key = get_api_key()
     aliases = [
         "gemini1.5",

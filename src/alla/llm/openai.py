@@ -23,7 +23,6 @@ class GPT(LLMBaseClass):
     """
     name = "gpt-4o-mini"
     code = "gpt-4o-mini"
-    context_window = 128_000
     api_key = get_api_key()
     aliases = [
         "gpt-4o-mini",
