@@ -177,7 +177,7 @@ def main():
 
     # The llm that generated the indicators doesn't necessarily have to be the subject model
     # (At least for this experiment)
-    indicator_llm_code = "llama3:8b"
+    indicator_llm_code = "llama3_8b"
     llm_results = {}
 
     for cat, a_ids in assets.items():
