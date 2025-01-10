@@ -1,7 +1,0 @@
-# Ignore all
-*
-# Except gitignore
-!.gitignore
-
-# Override others as
-# !important_models/
