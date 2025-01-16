@@ -35,7 +35,10 @@ class LLMBaseClass(ABC):
     """
     name = None
     code = None
+    path_code = None  # Certain characters--looking at you colon (wait what?)--are bad for making file paths (
+    # defaults to code)
     context_window = None
+    aliases = []
 
     def __init__(
         self,
@@ -44,11 +47,13 @@ class LLMBaseClass(ABC):
     ):
         self.temperature = temperature
         self.seed = seed
+        self.path_code = self.path_code or self.code
 
     def to_json(self):
         return {
             "name": self.name,
             "code": self.code,
+            "path_code": self.path_code,
             "seed": self.seed,
             "context_window": self.context_window,
             "temperature": self.temperature,

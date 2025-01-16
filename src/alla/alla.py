@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import random
+import sys
 import time
 from enum import Enum
 from typing import Optional, TYPE_CHECKING, Union
@@ -18,7 +19,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.llm import AVAILABLE_MODELS, utils as llm_utils
+from alla.llm import AVAILABLE_MODELS
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import PROJECT_ROOT
@@ -114,6 +115,7 @@ class ALLA:
         # Init our results data, essentially
         self.indicator_utility_avg = None
         self.ranked_indicators = np.arange(self.n_indicator)
+        self._cached_reports = {}
         self.reset()
 
     def to_json(self):
@@ -126,8 +128,8 @@ class ALLA:
             # "stocks": self.stocks.to,
             # "ind_likelihoods": self.ind_likelihoods.to_dict(),
             # "indicator_costs": self.indicator_costs,
-            # "indicator_utility_avg": self.indicator_utility_avg.tolist(),
-            # "ranked_indicators": self.ranked_indicators.tolist(),
+            "indicator_utility_avg": self.indicator_utility_avg.tolist(),
+            "ranked_indicators": self.ranked_indicators.tolist(),
             "llm": self.llm.to_json(),
             "asset_memory_depth": self.asset_memory_depth,
             "mu_g": self.mu_g.tolist(),
@@ -186,6 +188,7 @@ class ALLA:
         self.indicator_utility_avg = np.zeros((self.n_indicator, 2))
         self.indicator_utility_avg[:, 1] = -np.inf
         self.ranked_indicators = np.arange(self.n_indicator)
+        self._cached_reports = {}
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
@@ -232,6 +235,26 @@ class ALLA:
         Add budget to the model
         """
         self.budget += budget
+
+    def get_report(self, asset_id: str) -> str:
+        """
+        Return the cached report for the selected asset
+
+        :return:
+        """
+        if asset_id in self._cached_reports:
+            return self._cached_reports[asset_id]
+
+        report_text = read_reports(
+            report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
+        )
+        size_limit = 1e7  # in bytes
+        self._cached_reports[asset_id] = report_text
+        if sys.getsizeof(self._cached_reports) > size_limit:
+            # Clear cache
+            self._cached_reports = {}
+
+        return report_text
 
     def rank_indicators(self, prior, candidates) -> list:
         """
@@ -305,13 +328,18 @@ class ALLA:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> tuple[bool, Optional[str]]:
+    def process_asset(
+        self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
+    ) -> tuple[bool, Optional[str]]:
         """
         Process an asset to infer its class and growth forecast
 
-        :param asset:       xr.Dataset for the selected asset
-        :param max_budget:  Max budget to use for this asset
-        :return:            Boolean indicating success, and an optional string reason on failure
+        :param asset:               xr.Dataset for the selected asset
+        :param max_budget:          Max budget to use for this asset
+        :param pre_extracted:       Optional dictionary of extracted indicators colors for this asset,
+                                    {<indicator>: <value>}
+
+        :return:    Boolean indicating success, and an optional string reason on failure
         """
         start = iter_start = time.time()
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
@@ -321,39 +349,9 @@ class ALLA:
             asset = self.stocks.sel(asset=asset)
 
         asset_id = str(asset.asset.values)
-        extracted_complete = False
-        reports_text = None
-        extracted_colors = None  # List of color words, not distributions
         # We load synthetic colors even if we plan to use the SE values,
         # because hard indicators will still use the synthetic values
         synthetic_colors = asset.ryg.values  # List of color words, not distributions
-        use_SE = True
-        if not use_SE:
-            # Get the indicators from direct synthetic data
-            extracted_complete = True
-        else:
-            # Get extracted color values
-            # First look for save results
-            extract_path = os.path.join(
-                PROJECT_ROOT, f"data/extracted_indicators/{self.llm.code}/{asset_id}.json"
-            )
-            if os.path.exists(extract_path):
-                logger.info(f"Loading extracted indicator results from '{extract_path}'")
-                # Result is list of {"value": .., "indicator": ..} items
-                extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
-                # Convert to dict of values
-                extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
-
-                # Convert to ordered values
-                # x = {item['indicator']: item['value'] for item in extracted_colors}
-                # # We only extract the soft indicators -- all hards will be treated synthetic
-                # extracted_colors = [x[name] for name in self.ordered_indicators if name in self.soft_indicators]
-                extracted_complete = True
-            else:
-                # Generate the reports for use later,
-                # but we will color-extract individually in the main loop
-                # reports_text = read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
-                extracted_complete = False
 
         # Get most recent alphas
         alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
@@ -409,40 +407,32 @@ class ALLA:
                     f"Expected cost {ind_cost[selected_idx]} | Remaining budget {budget})"
                 )
 
-                # Call SE if we have a soft indicator
-                if selected_name in self.soft_indicators:
-                    if not use_SE:
-                        extracted_color_pred, se_cost = self._synthetic_soft_extractor(
-                            asset, selected_name, synthetic_colors[selected_idx]
+                if pre_extracted:
+                    # Convert from point estimate to distribution, like the synthetics
+                    extracted_color_pred = np.eye(3)[color_to_ind[pre_extracted[selected_name]]]  # one-hot
+
+                    if selected_name in self.soft_indicators:
+                        se_cost = synth.synthetic_indicator_cost(self.indicator_costs[selected_name])
+                    else:
+                        se_cost = 0.5
+                else:
+                    # Call soft extractor if it is soft
+                    if selected_name in self.soft_indicators:
+                        # Get report for this indicator, returns cached if available
+                        reports_text = self.get_report(asset_id)
+                        extr_color, se_cost = self._call_soft_extractor(
+                            asset, selected_name, reports_text
+                        )
+                        # Now get distribution -- ignore its cost, same function as above
+                        extracted_color_pred, _ = self._synthetic_soft_extractor(
+                            selected_name, extr_color
                         )
                     else:
-                        # Check if we have already extracted the color
-                        if extracted_complete:
-                            # Convert from point estimate to distribution, like the synthetics
-                            # TODO -- Have soft-extractor return distributions?
-                            extracted_color_pred, se_cost = self._synthetic_soft_extractor(
-                                asset, selected_name, extracted_colors[selected_name]
-                            )
-                        else:
-                            # Perform extraction now, first generate report text prompt
-                            # Just get report for this indicator
-                            reports_text = read_reports(
-                                report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
-                                include=[f"{selected_name}_report.txt"]
-                            )
-                            extr_color, se_cost = self._call_soft_extractor(
-                                asset, selected_name, reports_text
-                            )
-                            # Now get distribution -- ignore its cost, same function as above
-                            extracted_color_pred, _ = self._synthetic_soft_extractor(
-                                asset, selected_name, extr_color
-                            )
-
-                else:
-                    # Just use synthetic value for hard indicators
-                    # One-hot
-                    extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
-                    se_cost = 0.5
+                        # Pull directly from saved financials
+                        # TODO -- Consider. These are directly saved color values on the asset and we aren't
+                        #  calculating these values inversely from the other, maybe more realistic, values
+                        extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
+                        se_cost = 0.5
 
                 # Inference
                 # Likelihood of asset-classes given color predictions
@@ -513,12 +503,10 @@ class ALLA:
 
         return result, cost
 
-    def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, synthetic_color: str) -> tuple:
+    def _synthetic_soft_extractor(self, indicator_name: str, synthetic_color: str) -> tuple:
         """
-        Call Soft-Indicator Extractor to get color prediction
-        Artificial at this point
+        Emulate SE call, return fake budget cost and noisy color transformation
 
-        :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
         :param synthetic_color: Synthetic observed color
         :return: Tuple of color prediction, and simulated cost
