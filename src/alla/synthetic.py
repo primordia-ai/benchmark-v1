@@ -226,6 +226,8 @@ INDICATOR_LIKELIHOODS = {
     'time_bomb': {**FINANCIAL_LIKELIHOOD_MATRIX['time_bomb'], **SOFT_LIKELIHOOD_MATRIX['time_bomb']}
 }
 
+INDICATOR_NAMES = list(INDICATOR_LIKELIHOODS['high_growth'].keys())
+
 # Underlying growth parameters
 GROWTH_MU = np.array([0.097, 0.01, -0.048])
 GROWTH_SCALE = np.array([0.1, 0.01, 0.05])

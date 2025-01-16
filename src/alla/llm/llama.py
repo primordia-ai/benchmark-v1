@@ -17,6 +17,7 @@ class LlamaSmall(LLMBaseClass):
     """
     name = "Llama 3.1 8B"
     code = "llama3.1:8b"
+    path_code = "llama3_1_8b"
     context_window = 128_000
     aliases = [
         "llama-small",
@@ -118,6 +119,7 @@ class LlamaSmallAlt(LlamaSmall):
     """Another 8B model, that works with older versions of Ollama : / """
     name = "Llama 3 8B"
     code = "llama3:8b"
+    path_code = "llama3_8b"
     context_window = 8192
     aliases = []
 
@@ -125,6 +127,7 @@ class LlamaSmallAlt(LlamaSmall):
 class LlamaTiny(LlamaSmall):
     name = "Llama 3.2 1B"
     code = "llama3.2:1b"
+    path_code = "llama3_2_1b"
     context_window = 128_000
     aliases = [
         "llama-tiny",
@@ -135,6 +138,7 @@ class LlamaTiny(LlamaSmall):
 class LlamaMamma(LlamaSmall):
     name = "Llama 3 70B"
     code = "llama3:70b"
+    path_code = "llama3_70b"
     context_window = 128_000
     aliases = [
         "llama-70b",
