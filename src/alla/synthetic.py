@@ -1,9 +1,62 @@
 from typing import Any, Dict, List
+from pydantic import BaseModel, Field
 
 import numpy as np
 import xarray as xr
 
 from alla import utils
+
+
+class QuantitativeIndicators(BaseModel):
+    """Hard indicators"""
+    gross_margin: float | str
+    operating_margin: float | str
+    asset_turnover: float | str
+    leverage: float | str
+    revenue_growth: float | str
+    ebitda_growth: float | str
+    working_capital_ratio: float | str
+    reinvestment_rate: float | str
+
+
+class QualitativeIndicators(BaseModel):
+    """Soft indicators"""
+    disruptor_stagnant: float | str
+    incumbent_stagnant: float | str
+    turnaround_plan: float | str
+    succession_risk: float | str
+    mismanagement: float | str
+    geopolitical_risk: float | str
+    environmental_risk: float | str
+    product_moat: float | str
+    supply_chain_resilience: float | str
+    regulatory_pressure: float | str
+    innovation_pipeline: float | str
+    customer_concentration: float | str
+    brand_strength: float | str
+    digital_transformation: float | str
+
+
+class Indicators(QuantitativeIndicators, QualitativeIndicators):
+    """Combines QuantitativeIndicators and QualitativeIndicators."""
+    pass
+
+
+class Financials(BaseModel):
+    balance_sheet: Dict[str, float]
+    income_statement: Dict[str, float]
+    cash_flow: Dict[str, float]
+    market_data: Dict[str, float]
+    verification: Dict[str, Any]
+    prev_period: Dict[str, float]
+
+
+class AssetJSON(BaseModel):
+    category: str
+    financials: Financials
+    indicators: QuantitativeIndicators
+    sampled_colors: Indicators
+
 
 # Core independent indicators with more realistic bounds
 INDEPENDENT_INDICATOR_INTERVALS = {
@@ -602,6 +655,85 @@ def generate_financials(independent_indicators):
     return financials
 
 
+def indicator_to_color(indicator: str, value: float) -> str:
+    """Use the INDEPENDENT_INDICATOR_INTERVALS to convert from float to color"""
+    intervals = INDEPENDENT_INDICATOR_INTERVALS[indicator]
+    if value < intervals['yellow'][0]:
+        return 'red'
+    if value > intervals['yellow'][1]:
+        return 'green'
+    return 'yellow'
+
+
+def indicators_from_financials(financials: Financials, as_colors: bool = False) -> QuantitativeIndicators:
+    """
+    Reverse the operation to calculate quantitative (independent/hard) indicators from financials.
+
+    :param financials:  Asset financials.
+    :param as_colors:   Whether to convert indicators to colors.
+
+    :return: Dictionary of independent indicators.
+    """
+    # Extract key components from financials
+    income_statement: dict[str, float] = financials['income_statement']
+    balance_sheet: dict[str, float] = financials['balance_sheet']
+    cash_flow: dict[str, float] = financials['cash_flow']
+    prev_period: dict[str, float] = financials['prev_period']
+    revenue = income_statement['revenue']
+
+    # Calculate independent indicators
+    independent_indicators = {}
+
+    # Gross Margin
+    independent_indicators['gross_margin'] = (
+        income_statement['gross_profit'] / revenue
+    )
+
+    # Operating Margin
+    independent_indicators['operating_margin'] = (
+        income_statement['operating_income'] / revenue
+    )
+
+    # Asset Turnover
+    independent_indicators['asset_turnover'] = (
+        revenue / balance_sheet['total_assets']
+    )
+
+    # Leverage
+    independent_indicators['leverage'] = (
+        balance_sheet['total_debt'] / balance_sheet['total_equity']
+    )
+
+    # Revenue Growth
+    independent_indicators['revenue_growth'] = (
+        (revenue / prev_period['revenue']) - 1
+    )
+
+    # EBITDA Growth
+    independent_indicators['ebitda_growth'] = (
+        (income_statement['ebitda'] / prev_period['ebitda']) - 1
+    )
+
+    # Working Capital Ratio
+    independent_indicators['working_capital_ratio'] = (
+        balance_sheet['current_assets'] / balance_sheet['current_liabilities']
+    )
+
+    # Reinvestment Rate
+    independent_indicators['reinvestment_rate'] = (
+        -cash_flow['capex'] / income_statement['net_income']
+    )
+
+    if as_colors:
+        # Convert to colors
+        independent_indicators = {
+            indicator: indicator_to_color(indicator, value)
+            for indicator, value in independent_indicators.items()
+        }
+
+    return independent_indicators
+
+
 def generate_synthetic_stocks(n_stocks: int, as_dataset: bool = True) -> List[Dict[str, Any]] | xr.Dataset:
     """
     Generate a specified number of synthetic stocks with full financial data.
@@ -777,7 +909,7 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
 # Ground Truth data
 
 def load_indicators() -> xr.Dataset:
-    return np.load(f"{utils.PROJECT_ROOT}/ground-truth/stock_indicators.pkl", allow_pickle=True)
+    return np.load(f"{utils.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
 def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:

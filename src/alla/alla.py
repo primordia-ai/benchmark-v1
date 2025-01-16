@@ -8,7 +8,7 @@ import random
 import sys
 import time
 from enum import Enum
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Dict, Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -63,6 +63,8 @@ class ALLA:
         """
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
+        # Contains e.g. the financials
+        self.stocks_json: Dict[str, synth.AssetJSON] = synth.load_stocks(as_dataset=False)
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
         self.budget_mode = budget_mode
@@ -349,9 +351,6 @@ class ALLA:
             asset = self.stocks.sel(asset=asset)
 
         asset_id = str(asset.asset.values)
-        # We load synthetic colors even if we plan to use the SE values,
-        # because hard indicators will still use the synthetic values
-        synthetic_colors = asset.ryg.values  # List of color words, not distributions
 
         # Get most recent alphas
         alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
@@ -369,6 +368,17 @@ class ALLA:
         color_to_ind = {
             "red": 0, "yellow": 1, "green": 2
         }
+
+        # Generate hard indicators from asset financials
+        # Uses the synth.INDEPENDENT_INDICATOR_INTERVALS to map from float to color
+        if not pre_extracted:
+            quant_indicators = synth.indicators_from_financials(
+                self.stocks_json[asset_id]['financials'], as_colors=True
+            )
+        else:
+            quant_indicators = {
+                ind: pre_extracted[ind]['color'] for ind in synth.QuantitativeIndicators.model_fields.keys()
+            }
 
         with logging_redirect_tqdm():
             for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
@@ -391,7 +401,6 @@ class ALLA:
                 growth_means.append(mean_g)
                 growth_stds.append(std_g)
 
-                # TODO -- Maybe we should exclude hards?
                 next_ranking = self.rank_indicators(p_k, candidates)
                 # This shouldn't occur, but...
                 assert next_ranking, "Failed to rank indicators"
@@ -428,10 +437,8 @@ class ALLA:
                             selected_name, extr_color
                         )
                     else:
-                        # Pull directly from saved financials
-                        # TODO -- Consider. These are directly saved color values on the asset and we aren't
-                        #  calculating these values inversely from the other, maybe more realistic, values
-                        extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
+                        color = quant_indicators[selected_name]
+                        extracted_color_pred = np.eye(3)[color_to_ind[color]]  # one-hot
                         se_cost = 0.5
 
                 # Inference
