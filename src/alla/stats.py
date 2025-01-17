@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.optimize import root_scalar
-from scipy.stats import norm
 from alla.logger import logger
 
 
@@ -145,7 +144,7 @@ def fit_distribution_to_quantiles(quantiles : list, true_growth : float) -> floa
 
     mean = np.mean(quantiles)
     std = np.std(quantiles)
-    distribution = norm(loc=mean, scale=std)
+    distribution = stats.norm(loc=mean, scale=std)
     return distribution.logpdf(true_growth)
 
 def quantile_loss(alpha: float, true: float, pred: float) -> float:
