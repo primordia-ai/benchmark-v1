@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.optimize import root_scalar
-
+from scipy.stats import norm
 from alla.logger import logger
 
 
