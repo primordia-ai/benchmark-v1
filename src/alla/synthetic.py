@@ -861,15 +861,18 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     colors = np.empty((n_stocks, len(all_indicators)), dtype='U6')  # U6 for 'yellow'
 
     # Fill arrays
-    for i, stock in enumerate(stocks):
-        for j, indicator in enumerate(all_indicators):
-            color = stock['sampled_colors'][indicator]
-            colors[i, j] = color
+    asset_coords = []
+    categories = []
+    for asset_num in range(n_stocks):
+        asset_id = f'asset_{asset_num}'
+        asset_coords.append(asset_id)
+        data = stocks[asset_id]
+        categories.append(data['category'])
+        for i, indicator in enumerate(all_indicators):
+            color = data['sampled_colors'][indicator]
+            colors[asset_num, i] = color
             if indicator in financial_indicators:
-                values[i, j] = stock['indicators'][indicator]
-
-    # Create asset coordinates
-    asset_coords = [f'asset_{i}' for i in range(n_stocks)]
+                values[asset_num, i] = data['indicators'][indicator]
 
     # Create the dataset
     ds = xr.Dataset(
@@ -879,15 +882,11 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
         },
         coords={
             'asset': asset_coords,
+            'category': categories,
             'indicator': all_indicators,
             'indicator_type': ('indicator', ['financial' if ind in financial_indicators else 'soft'
-                for ind in all_indicators])
+                for ind in all_indicators]),
         }
-    )
-
-    # Add stock categories as coordinate
-    ds = ds.assign_coords(
-        category=('asset', [stock['category'] for stock in stocks])
     )
 
     # Add some 2025 simulated growths to ds
