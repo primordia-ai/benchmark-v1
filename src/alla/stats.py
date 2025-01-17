@@ -1,6 +1,6 @@
 import functools
 from typing import Union
-
+import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.optimize import root_scalar
