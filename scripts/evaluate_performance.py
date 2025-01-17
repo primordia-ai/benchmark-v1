@@ -78,9 +78,7 @@ def main():
         #ground_truth = synth.load_stocks(as_dataset=True)
         #predictions = synth.load_stocks(as_dataset=True)
         predictions = None
-        ground_truth = synth.load_stocks(as_dataset=True)
-        categories = ["high_growth", "stable", "time_bomb"]
-        assets = {cat: [] for cat in categories}
+        ground_truth = None
             
     performance_df = evaluate_performance(predictions, ground_truth)
     # Create results directory if it doesn't exist
