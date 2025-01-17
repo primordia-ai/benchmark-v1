@@ -215,6 +215,8 @@ def main():
     with open(llm_results_path, 'w') as f:
         logger.info(f"Saving LLM results to {llm_results_path}")
         json.dump(llm_results, f, indent=4)
+    # evaluate the performance of the model here
+    
 
 if __name__ == '__main__':
 

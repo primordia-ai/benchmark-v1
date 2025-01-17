@@ -78,8 +78,10 @@ def main():
         #ground_truth = synth.load_stocks(as_dataset=True)
         #predictions = synth.load_stocks(as_dataset=True)
         predictions = None
-        ground_truth = None
-        
+        ground_truth = synth.load_stocks(as_dataset=True)
+        categories = ["high_growth", "stable", "time_bomb"]
+        assets = {cat: [] for cat in categories}
+            
     performance_df = evaluate_performance(predictions, ground_truth)
     # Create results directory if it doesn't exist
     results_dir = os.path.join(utils.PROJECT_ROOT, f"results/exp-1/{run_name}")
