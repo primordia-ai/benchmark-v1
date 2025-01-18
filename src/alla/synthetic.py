@@ -882,10 +882,10 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
         },
         coords={
             'asset': asset_coords,
-            'category': categories,
             'indicator': all_indicators,
             'indicator_type': ('indicator', ['financial' if ind in financial_indicators else 'soft'
                 for ind in all_indicators]),
+            'category': ('asset', categories),
         }
     )
 
