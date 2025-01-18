@@ -377,7 +377,7 @@ class ALLA:
             )
         else:
             quant_indicators = {
-                ind: pre_extracted[ind]['color'] for ind in synth.QuantitativeIndicators.model_fields.keys()
+                ind: pre_extracted[ind] for ind in synth.QuantitativeIndicators.model_fields.keys()
             }
 
         with logging_redirect_tqdm():
