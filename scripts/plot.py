@@ -14,7 +14,7 @@ def exp1():
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/test")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/llama3-70b")
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
 

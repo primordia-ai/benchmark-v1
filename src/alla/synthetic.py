@@ -1,13 +1,150 @@
+import copy
 from typing import Any, Dict, List
-from pydantic import BaseModel, Field
 
 import numpy as np
 import xarray as xr
+from pydantic import BaseModel
 
 from alla import utils
 
+# Has relevance for data arrays
+ORDERED_INDICATORS = (
+    # Quantitative
+    {
+        'name': 'gross_margin',
+        'title': 'Gross Margin',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'operating_margin',
+        'title': 'Operating Margin',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'asset_turnover',
+        'title': 'Asset Turnover',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'leverage',
+        'title': 'Leverage',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'revenue_growth',
+        'title': 'Revenue Growth',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'ebitda_growth',
+        'title': 'EBITDA Growth',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'working_capital_ratio',
+        'title': 'Working Capital Ratio',
+        'type': 'quantitative',
+    },
+    {
+        'name': 'reinvestment_rate',
+        'title': 'Reinvestment Rate',
+        'type': 'quantitative',
+    },
+        # Qualitative
+    {
+        'name': 'disruptor_stagnant',
+        'title': 'Disruptor Stagnant',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'incumbent_stagnant',
+        'title': 'Incumbent Stagnant',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'turnaround_plan',
+        'title': 'Turnaround Plan',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'succession_risk',
+        'title': 'Succession Risk',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'mismanagement',
+        'title': 'Mismanagement',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'geopolitical_risk',
+        'title': 'Geopolitical Risk',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'environmental_risk',
+        'title': 'Environmental Risk',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'product_moat',
+        'title': 'Product Moat',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'supply_chain_resilience',
+        'title': 'Supply Chain Resilience',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'regulatory_pressure',
+        'title': 'Regulatory Pressure',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'innovation_pipeline',
+        'title': 'Innovation Pipeline',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'customer_concentration',
+        'title': 'Customer Concentration',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'brand_strength',
+        'title': 'Brand Strength',
+        'type': 'qualitative',
+    },
+    {
+        'name': 'digital_transformation',
+        'title': 'Digital Transformation',
+        'type': 'qualitative',
+    },
+)
 
-class QuantitativeIndicators(BaseModel):
+
+class Indicators:
+    names = [ind['name'] for ind in ORDERED_INDICATORS]
+    quantitative = [ind['name'] for ind in ORDERED_INDICATORS if ind['type'] == 'quantitative']
+    qualitative = [ind['name'] for ind in ORDERED_INDICATORS if ind['type'] == 'qualitative']
+    count = len(names)
+
+    @classmethod
+    def __getitem__(cls, idx):
+        # Use index to get a name, Indicators[idx]
+        return cls.names[idx]
+
+    @classmethod
+    def from_idx(cls, idx):
+        return cls.names[idx]
+
+    @classmethod
+    def index_of(cls, name):
+        return cls.names.index(name)
+
+
+class QuantitativeIndicatorsType(BaseModel):
     """Hard indicators"""
     gross_margin: float | str
     operating_margin: float | str
@@ -19,7 +156,7 @@ class QuantitativeIndicators(BaseModel):
     reinvestment_rate: float | str
 
 
-class QualitativeIndicators(BaseModel):
+class QualitativeIndicatorsType(BaseModel):
     """Soft indicators"""
     disruptor_stagnant: float | str
     incumbent_stagnant: float | str
@@ -37,8 +174,8 @@ class QualitativeIndicators(BaseModel):
     digital_transformation: float | str
 
 
-class Indicators(QuantitativeIndicators, QualitativeIndicators):
-    """Combines QuantitativeIndicators and QualitativeIndicators."""
+class IndicatorsType(QuantitativeIndicatorsType, QualitativeIndicatorsType):
+    """Combines QuantitativeIndicatorsType and QualitativeIndicatorsType."""
     pass
 
 
@@ -54,8 +191,8 @@ class Financials(BaseModel):
 class AssetJSON(BaseModel):
     category: str
     financials: Financials
-    indicators: QuantitativeIndicators
-    sampled_colors: Indicators
+    indicators: QuantitativeIndicatorsType
+    sampled_colors: IndicatorsType
 
 
 # Core independent indicators with more realistic bounds
@@ -279,44 +416,83 @@ INDICATOR_LIKELIHOODS = {
     'time_bomb': {**FINANCIAL_LIKELIHOOD_MATRIX['time_bomb'], **SOFT_LIKELIHOOD_MATRIX['time_bomb']}
 }
 
-INDICATOR_NAMES = list(INDICATOR_LIKELIHOODS['high_growth'].keys())
-
 # Underlying growth parameters
 GROWTH_MU = np.array([0.097, 0.01, -0.048])
 GROWTH_SCALE = np.array([0.1, 0.01, 0.05])
 
 
-def get_indicator_dataset(soft_only: bool = False) -> xr.Dataset:
+def get_indicator_dataset() -> xr.Dataset:
     """
     Convert the INDICATOR_LIKELIHOODS into an xarray dataset
     """
-    if soft_only:
-        matrix_copy = SOFT_LIKELIHOOD_MATRIX.copy()
-    else:
-        matrix_copy = INDICATOR_LIKELIHOODS.copy()
+    matrix_copy = copy.deepcopy(INDICATOR_LIKELIHOODS)
+    n_indicator = Indicators.count
 
-    # First we need to add yellow to the values
+    utilities = np.full(n_indicator, -np.inf, dtype=float)
+    observations = np.zeros(n_indicator, dtype=int)
+    ranking = np.zeros(n_indicator, dtype=int)
+    cost = np.zeros(n_indicator, dtype=float)
+    qualitative = np.full(n_indicator, False, dtype=bool)
+    quals = Indicators.qualitative
+
+    # Add yellow values
     for category in matrix_copy:
-        for indicator in matrix_copy[category]:
+        for indicator in Indicators.names:
+            # for idx, indicator in enumerate(matrix_copy[category]):
             matrix_copy[category][indicator]['yellow'] = 1.0 - sum(
                 matrix_copy[category][indicator].values()
             )
+            if indicator in quals:
+                qualitative[Indicators.index_of(indicator)] = True
 
-    likelihoods = xr.Dataset(
+    # Convert the matrix_copy into a numpy array
+    likelihoods = np.array(
+        [
+            [
+                [
+                    matrix_copy[category][indicator][color]
+                    for color in ['red', 'yellow', 'green']
+                ]
+                for indicator in matrix_copy[category]
+            ]
+            for category in ['high_growth', 'stable', 'time_bomb']
+        ],
+        dtype=float
+    )
+
+    return xr.Dataset(
         {
-            indicator: (
-                ['category', 'color'],
-                [[matrix_copy[category][indicator][color] for color in ['red', 'yellow', 'green']]
-                    for category in ['high_growth', 'stable', 'time_bomb']]
+            "likelihood": (
+                ['category', 'indicator', 'color'],
+                likelihoods,
+            ),
+            "utility": (
+                ['indicator'],
+                utilities
+            ),
+            "observations": (
+                ['indicator'],
+                observations
+            ),
+            "ranking": (
+                ['indicator'],
+                ranking
+            ),
+            "cost": (
+                ['indicator'],
+                cost
+            ),
+            "qualitative": (
+                ['indicator'],
+                qualitative
             )
-            for indicator in matrix_copy['high_growth']
         },
         coords={
-            'category': ['high_growth', 'stable', 'time_bomb'],
-            'color': ['red', 'yellow', 'green']
-        }
+            "category": ['high_growth', 'stable', 'time_bomb'],
+            "indicator": Indicators.names,  # is ordered
+            "color": ['red', 'yellow', 'green'],
+        },
     )
-    return likelihoods
 
 
 def synthetic_indicator_cost(mu: float) -> float:
@@ -655,7 +831,7 @@ def generate_financials(independent_indicators):
     return financials
 
 
-def indicator_to_color(indicator: str, value: float) -> str:
+def _indicator_to_color(indicator: str, value: float) -> str:
     """Use the INDEPENDENT_INDICATOR_INTERVALS to convert from float to color"""
     intervals = INDEPENDENT_INDICATOR_INTERVALS[indicator]
     if value < intervals['yellow'][0]:
@@ -665,7 +841,7 @@ def indicator_to_color(indicator: str, value: float) -> str:
     return 'yellow'
 
 
-def indicators_from_financials(financials: Financials, as_colors: bool = False) -> QuantitativeIndicators:
+def indicators_from_financials(financials: Financials, as_colors: bool = False) -> QuantitativeIndicatorsType:
     """
     Reverse the operation to calculate quantitative (independent/hard) indicators from financials.
 
@@ -686,48 +862,48 @@ def indicators_from_financials(financials: Financials, as_colors: bool = False) 
 
     # Gross Margin
     independent_indicators['gross_margin'] = (
-        income_statement['gross_profit'] / revenue
+            income_statement['gross_profit'] / revenue
     )
 
     # Operating Margin
     independent_indicators['operating_margin'] = (
-        income_statement['operating_income'] / revenue
+            income_statement['operating_income'] / revenue
     )
 
     # Asset Turnover
     independent_indicators['asset_turnover'] = (
-        revenue / balance_sheet['total_assets']
+            revenue / balance_sheet['total_assets']
     )
 
     # Leverage
     independent_indicators['leverage'] = (
-        balance_sheet['total_debt'] / balance_sheet['total_equity']
+            balance_sheet['total_debt'] / balance_sheet['total_equity']
     )
 
     # Revenue Growth
     independent_indicators['revenue_growth'] = (
-        (revenue / prev_period['revenue']) - 1
+            (revenue / prev_period['revenue']) - 1
     )
 
     # EBITDA Growth
     independent_indicators['ebitda_growth'] = (
-        (income_statement['ebitda'] / prev_period['ebitda']) - 1
+            (income_statement['ebitda'] / prev_period['ebitda']) - 1
     )
 
     # Working Capital Ratio
     independent_indicators['working_capital_ratio'] = (
-        balance_sheet['current_assets'] / balance_sheet['current_liabilities']
+            balance_sheet['current_assets'] / balance_sheet['current_liabilities']
     )
 
     # Reinvestment Rate
     independent_indicators['reinvestment_rate'] = (
-        -cash_flow['capex'] / income_statement['net_income']
+            -cash_flow['capex'] / income_statement['net_income']
     )
 
     if as_colors:
         # Convert to colors
         independent_indicators = {
-            indicator: indicator_to_color(indicator, value)
+            indicator: _indicator_to_color(indicator, value)
             for indicator, value in independent_indicators.items()
         }
 

@@ -141,7 +141,7 @@ def main():
     # ALLA portion
     alla_results = {}
 
-    with logging_redirect_tqdm():
+    with logging_redirect_tqdm(loggers=[logger]):
         for cat, a_ids in assets.items():
             print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
             for asset_id in tqdm(a_ids, desc="Assets"):
@@ -211,7 +211,7 @@ def main():
     indicator_llm_code = "llama3_8b"
     llm_results = {}
 
-    with logging_redirect_tqdm(loggers=logger):
+    with logging_redirect_tqdm(loggers=[logger]):
         for cat, a_ids in assets.items():
             print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
             for asset_id in tqdm(a_ids, desc="Assets"):
