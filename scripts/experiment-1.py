@@ -41,7 +41,10 @@ def main():
         "--temp", type=float, default=0.0, help="Temperature for LLM. Default 0.0."
     )
     parser.add_argument(
-        "--raise-exception", action="store_true", help="Raise exceptions on certain iteration failures."
+        "--strict", action="store_true", help="Otherwise, continues iterating over assets."
+    )
+    parser.add_argument(
+        "--pre-extracted", action="store_true", help="Use pre-extracted indicators."
     )
 
     args = parser.parse_args()
@@ -50,7 +53,7 @@ def main():
     run_name = args.name
     testing = args.test
     temp = args.temp
-    raise_exception = args.raise_exception
+    strict = args.strict
     # Seed rng
     seed = args.seed
     np.random.seed(seed)
@@ -94,15 +97,7 @@ def main():
     truth_data = {}
     for asset_id in os.listdir(report_dir):
         # Check category
-        try:
-            asset = m.stocks.sel(asset=asset_id)
-        except KeyError as e:
-            if raise_exception:
-                raise e
-            # Else log and continue
-            print(f"Asset {asset_id} not found in stocks. Continuing.")
-            continue
-
+        asset = m.stocks.sel(asset=asset_id)
         category = asset.category.values.item()
         if testing and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
@@ -141,34 +136,70 @@ def main():
 
     for cat, ids in assets.items():
         print(f"{len(ids)} reports found for '{cat}'")
-    #
-    # #####################
-    # # ALLA portion
-    #
-    # for cat, a_ids in assets.items():
-    #     print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-    #     for asset_id in tqdm(a_ids, desc="Assets"):
-    #         try:
-    #             success, reason = m.process_asset(asset_id, max_budget=budget_per_task)
-    #         except Exception as e:
-    #             if raise_exception:
-    #                 raise e
-    #             # Else log and continue
-    #             logger.warning(f"Exception processing asset {asset_id}: {e}")
-    #         else:
-    #             if not success:
-    #                 if raise_exception:
-    #                     raise ValueError(f"Failed to process asset {asset_id}: {reason}")
-    #                 # Else log and continue
-    #                 logger.warning(f"Failed to process asset {asset_id}: {reason}")
-    #
-    # # Save the alla model
-    # m.save_model(
-    #     model_name=f"alla-{run_name}",
-    #     save_dir=os.path.join(results_dir, "models")
-    # )
-    #
-    # TODO -- Format and save the alla results mainly
+
+    #####################
+    # ALLA portion
+    alla_results = {}
+
+    with logging_redirect_tqdm(loggers=[logger]):
+        for cat, a_ids in assets.items():
+            print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+            for asset_id in tqdm(a_ids, desc="Assets"):
+                extracted_colors = None
+                if args.pre_extracted:
+                    # Load the pre-extracted indicators
+                    # Technically you don't need to use the {llm.code} subset
+                    extract_path = os.path.join(
+                        utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
+                    )
+                    # Result is list of {"value": .., "indicator": ..} items
+                    extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
+                    # Convert to dict of values
+                    extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
+
+                try:
+                    success, reason = m.process_asset(
+                        asset_id, max_budget=budget_per_task, pre_extracted=extracted_colors
+                    )
+                except Exception as e:
+                    if strict:
+                        raise e
+                    # Else log and continue
+                    logger.warning(f"Exception processing asset {asset_id}: {e}")
+                    alla_results[asset_id] = {
+                        "error": str(e),
+                        "truth": truth_data[asset_id]
+                    }
+                else:
+                    if not success:
+                        alla_results[asset_id] = {
+                            "error": reason,
+                            "truth": truth_data[asset_id]
+                        }
+                        if strict:
+                            raise ValueError(f"Failed to process asset {asset_id}: {reason}")
+                        # Else log and continue
+                        logger.warning(f"Failed to process asset {asset_id}: {reason}")
+                    # Record the growth quantiles and the category distribution
+                    quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
+                    cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
+                    alla_results[asset_id] = {
+                        "growth": {q: p for q, p in zip(m.quantiles, quantile_pred)},
+                        "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
+                        "truth": truth_data[asset_id]
+                    }
+
+    # Save ALLA results
+    alla_results_path = os.path.join(results_dir, "alla_results.json")
+    with open(alla_results_path, 'w') as f:
+        logger.info(f"Saving ALLA results to {alla_results_path}")
+        json.dump(alla_results, f, indent=4)
+
+    # Save the alla model
+    m.save_model(
+        model_name=f"alla-{run_name}",
+        save_dir=os.path.join(results_dir, "models")
+    )
 
     #####################
     # LLM Portion
@@ -180,35 +211,36 @@ def main():
     indicator_llm_code = "llama3_8b"
     llm_results = {}
 
-    for cat, a_ids in assets.items():
-        print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-        for asset_id in tqdm(a_ids, desc="Assets"):
-            # Load indicators
-            indicator_file = os.path.join(
-                utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset_id}.json"
-            )
-            with open(indicator_file, 'r') as f:
-                indicators = json.load(f)
-            # Get report text
-            report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
-            reports_text = read_reports(report_file)
+    with logging_redirect_tqdm(loggers=[logger]):
+        for cat, a_ids in assets.items():
+            print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+            for asset_id in tqdm(a_ids, desc="Assets"):
+                # Load indicators
+                indicator_file = os.path.join(
+                    utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset_id}.json"
+                )
+                with open(indicator_file, 'r') as f:
+                    indicators = json.load(f)
+                # Get report text
+                report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
+                reports_text = read_reports(report_file)
 
-            prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
-            try:
-                evaluation = llm.evaluate_asset(prompt, max_retries=5)
-            except Exception as e:
-                if raise_exception:
-                    raise e
-                # Else log and continue
-                logger.warning(f"Exception processing asset {asset_id}: {e}")
-                llm_results[asset_id] = {
-                    "error": str(e),
-                    "truth": truth_data[asset_id]
-                }
-            else:
-                result = evaluation.model_dump()
-                result["truth"] = truth_data[asset_id]
-                llm_results[asset_id] = result
+                prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
+                try:
+                    evaluation = llm.evaluate_asset(prompt, max_retries=5)
+                except Exception as e:
+                    if strict:
+                        raise e
+                    # Else log and continue
+                    logger.warning(f"Exception processing asset {asset_id}: {e}")
+                    llm_results[asset_id] = {
+                        "error": str(e),
+                        "truth": truth_data[asset_id]
+                    }
+                else:
+                    result = evaluation.model_dump()
+                    result["truth"] = truth_data[asset_id]
+                    llm_results[asset_id] = result
 
     # Save the llm results
     llm_results_path = os.path.join(results_dir, "llm_results.json")
@@ -218,6 +250,7 @@ def main():
     # evaluate the performance of the model here
     
 
+
 if __name__ == '__main__':
 
     import argparse
@@ -226,6 +259,7 @@ if __name__ == '__main__':
 
     import numpy as np
     from tqdm import tqdm
+    from tqdm.contrib.logging import logging_redirect_tqdm
 
     from alla.logger import logger
 

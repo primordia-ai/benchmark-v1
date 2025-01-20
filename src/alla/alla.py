@@ -1,13 +1,15 @@
 """
 ALLA Models
 """
+import copy
 import datetime
 import json
 import os
 import random
+import sys
 import time
 from enum import Enum
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Dict, Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,13 +20,15 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.llm import AVAILABLE_MODELS, utils as llm_utils
+from alla.llm import AVAILABLE_MODELS
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import PROJECT_ROOT
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
+
+Indicators = synth.Indicators
 
 
 class BudgetMode(Enum):
@@ -62,6 +66,8 @@ class ALLA:
         """
         # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
+        # Contains e.g. the financials
+        self.stocks_json: Dict[str, synth.AssetJSON] = synth.load_stocks(as_dataset=False)
         self.asset_memory_depth = asset_memory_depth
         self.budget = budget
         self.budget_mode = budget_mode
@@ -87,33 +93,9 @@ class ALLA:
         # Shorthand
         self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
 
-        # List of soft indicator names
-        self.soft_indicators = list(
-            stocks_dataset.coords['indicator'].values[
-                stocks_dataset.coords['indicator_type'].values == 'soft'
-            ]
-        )
-        self.indicators = self.ordered_indicators = stocks_dataset.coords['indicator'].values.tolist()
-        self.name_to_idx = {name: i for i, name in enumerate(self.ordered_indicators)}
-        self.idx_to_name = {i: name for i, name in enumerate(self.ordered_indicators)}
-
-        self.n_indicator = len(self.ordered_indicators)
-
-        # Get the likelihood dataset. Dimensions are indicator, asset-class, and color
-        self.ind_likelihoods: xr.Dataset = synth.get_indicator_dataset()
-
-        # Integer costs by indicator name
-        self.indicator_costs: dict = {}
-        for ind in self.ordered_indicators:
-            try:
-                self.indicator_costs[ind] = synth.SOFT_INDICATOR_COSTS[ind]
-            except KeyError:
-                # Hard Indicator
-                self.indicator_costs[ind] = 0.5
-
-        # Init our results data, essentially
-        self.indicator_utility_avg = None
-        self.ranked_indicators = np.arange(self.n_indicator)
+        # These are set in the reset method
+        self.indicators = None
+        self._cached_reports = None
         self.reset()
 
     def to_json(self):
@@ -123,11 +105,14 @@ class ALLA:
         """
         return {
             "version": self._version,
-            # "stocks": self.stocks.to,
-            # "ind_likelihoods": self.ind_likelihoods.to_dict(),
-            # "indicator_costs": self.indicator_costs,
-            # "indicator_utility_avg": self.indicator_utility_avg.tolist(),
-            # "ranked_indicators": self.ranked_indicators.tolist(),
+            "indicators": {
+                "indicator": self.indicators.indicator.values.tolist(),
+                "qualitative": self.indicators.qualitative.tolist(),
+                "utility": self.indicators.utility.tolist(),
+                "observations": self.indicators.observations.tolist(),
+                "ranking": self.indicators.ranking.tolist(),
+                "cost": self.indicators.cost.tolist(),
+            },
             "llm": self.llm.to_json(),
             "asset_memory_depth": self.asset_memory_depth,
             "mu_g": self.mu_g.tolist(),
@@ -180,12 +165,37 @@ class ALLA:
             },
         )
 
-        # Indicator utility -- how much information in each indicator (for ranking)
-        # We use a running average where [i, 0] and [i, 1] are the number of observations and current mean
-        # for indicator i, respectively
-        self.indicator_utility_avg = np.zeros((self.n_indicator, 2))
-        self.indicator_utility_avg[:, 1] = -np.inf
-        self.ranked_indicators = np.arange(self.n_indicator)
+        # Indicator Dataset
+        self.indicators: xr.Dataset = synth.get_indicator_dataset()
+        self._cached_reports = {}
+
+    def ind_likelihood(self, name: str) -> np.ndarray:
+        """
+        Helper function
+        Return the likelihoods for the given indicator
+        """
+        return self.indicators.likelihood.sel(indicator=name).values
+
+    @property
+    def ranking_idx(self) -> np.ndarray:
+        return self.indicators.utility.argsort()[::-1].values
+
+    @property
+    def sp_ranking_idx(self) -> np.ndarray:
+        """
+        The special ranking index ranks by utility, but has a higher order ranking
+        that places quantitative indicators first, then qualitative
+        """
+        quant_masked = self.indicators.where(~self.indicators.qualitative)
+        quant_sorted = quant_masked.utility.argsort()[::-1].values
+        # Only grab the last few that are quants
+        quant_sorted = quant_sorted[-len(Indicators.quantitative):]
+        # Similar for qualitative
+        qual_masked = self.indicators.where(self.indicators.qualitative)
+        qual_sorted = qual_masked.utility.argsort()[::-1].values
+        qual_sorted = qual_sorted[-len(Indicators.qualitative):]
+        # Combine
+        return np.concatenate([quant_sorted, qual_sorted])
 
     def _update_quantile_pred(self, asset: xr.Dataset, quantile_pred):
         """
@@ -223,15 +233,31 @@ class ALLA:
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
-    def refresh_indicator_rank(self):
-        """Returns the indicators ranked by utility average, descending"""
-        self.ranked_indicators = np.argsort(self.indicator_utility_avg[:, 1])[::-1]
-
     def add_budget(self, budget: float):
         """
         Add budget to the model
         """
         self.budget += budget
+
+    def get_report(self, asset_id: str) -> str:
+        """
+        Return the cached report for the selected asset
+
+        :return:
+        """
+        if asset_id in self._cached_reports:
+            return self._cached_reports[asset_id]
+
+        report_text = read_reports(
+            report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
+        )
+        size_limit = 1e7  # in bytes
+        self._cached_reports[asset_id] = report_text
+        if sys.getsizeof(self._cached_reports) > size_limit:
+            # Clear cache
+            self._cached_reports = {}
+
+        return report_text
 
     def rank_indicators(self, prior, candidates) -> list:
         """
@@ -242,11 +268,10 @@ class ALLA:
         # For tracking utility
         indicator_tuples = []
 
-        for j in candidates:
+        for can in candidates:
             utility = 0
 
-            indicator_name = self.ordered_indicators[j]
-            class_color_matrix = self.ind_likelihoods[indicator_name].values  # [classes, colors]
+            class_color_matrix = self.ind_likelihood(can['name'])  # [classes, colors]
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
             color_likelihoods = color_likelihoods.reshape(-1, )
@@ -289,29 +314,37 @@ class ALLA:
                                            (g_points[1] - g_points[0])
 
             # Add to list
-            indicator_tuples.append((j, utility))
+            indicator_tuples.append((can, utility))
 
             # Update the utility of this indicator
-            if self.indicator_utility_avg[j, 0] == 0:
+            obs = self.indicators.observations.sel(indicator=can['name']).item()
+            if obs == 0:
                 # First observation
-                self.indicator_utility_avg[j, 0] = 1
-                self.indicator_utility_avg[j, 1] = utility
+                self.indicators.observations.loc[can['name']] = 1
+                self.indicators.utility.loc[can['name']] = utility
             else:
                 # Running average
-                self.indicator_utility_avg[j, 0] += 1
-                self.indicator_utility_avg[j, 1] += ((utility - self.indicator_utility_avg[j, 1]) /
-                                                     self.indicator_utility_avg[j, 0])
+                current_avg = self.indicators.utility.loc[can['name']].item()
+                self.indicators.observations.loc[can['name']] = obs + 1
+                self.indicators.utility.loc[can['name']] += ((utility - current_avg) / obs)
+                # self.indicator_utility_avg[j, 1] += ((utility - self.indicator_utility_avg[j, 1]) /
+                #                                      self.indicator_utility_avg[j, 0])
 
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def process_asset(self, asset: Union[xr.Dataset, str], max_budget: float = None) -> tuple[bool, Optional[str]]:
+    def process_asset(
+        self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
+    ) -> tuple[bool, Optional[str]]:
         """
         Process an asset to infer its class and growth forecast
 
-        :param asset:       xr.Dataset for the selected asset
-        :param max_budget:  Max budget to use for this asset
-        :return:            Boolean indicating success, and an optional string reason on failure
+        :param asset:               xr.Dataset for the selected asset
+        :param max_budget:          Max budget to use for this asset
+        :param pre_extracted:       Optional dictionary of extracted indicators colors for this asset,
+                                    {<indicator>: <value>}
+
+        :return:    Boolean indicating success, and an optional string reason on failure
         """
         start = iter_start = time.time()
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
@@ -321,150 +354,141 @@ class ALLA:
             asset = self.stocks.sel(asset=asset)
 
         asset_id = str(asset.asset.values)
-        extracted_complete = False
-        reports_text = None
-        extracted_colors = None  # List of color words, not distributions
-        # We load synthetic colors even if we plan to use the SE values,
-        # because hard indicators will still use the synthetic values
-        synthetic_colors = asset.ryg.values  # List of color words, not distributions
-        use_SE = True
-        if not use_SE:
-            # Get the indicators from direct synthetic data
-            extracted_complete = True
-        else:
-            # Get extracted color values
-            # First look for save results
-            extract_path = os.path.join(
-                PROJECT_ROOT, f"data/extracted_indicators/{self.llm.code}/{asset_id}.json"
-            )
-            if os.path.exists(extract_path):
-                logger.info(f"Loading extracted indicator results from '{extract_path}'")
-                # Result is list of {"value": .., "indicator": ..} items
-                extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
-                # Convert to dict of values
-                extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
-
-                # Convert to ordered values
-                # x = {item['indicator']: item['value'] for item in extracted_colors}
-                # # We only extract the soft indicators -- all hards will be treated synthetic
-                # extracted_colors = [x[name] for name in self.ordered_indicators if name in self.soft_indicators]
-                extracted_complete = True
-            else:
-                # Generate the reports for use later,
-                # but we will color-extract individually in the main loop
-                # reports_text = read_reports(str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)))
-                extracted_complete = False
 
         # Get most recent alphas
         alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
         p_k = self.stocks.prior.sel(asset=asset.asset).values[:, -1].copy()
 
-        candidates = list(self.ranked_indicators.copy())
-        selected_indicators = []
-        growth_means = []
-        growth_stds = []
+        # Special ranking index sorts by quant vs. qual, then utility within.
+        indicator_items = [
+            {
+                "idx": idx,
+                "name": self.indicators.indicator[idx].item(),
+                "qualitative": self.indicators.qualitative[idx].item(),
+                "cost": self.indicators.cost[idx].item(),
+                "utility": self.indicators.utility[idx].item(),
+            }
+            for idx in self.sp_ranking_idx
+        ]
+        candidates = copy.deepcopy(indicator_items)  # For modification and removal during iteration
 
         # Shorthand
-        ind_cost = {
-            j: self.indicator_costs[self.ordered_indicators[j]] for j in candidates
-        }
         color_to_ind = {
             "red": 0, "yellow": 1, "green": 2
         }
 
-        with logging_redirect_tqdm():
-            for i_ind in tqdm(range(self.n_indicator), desc="Indicator"):
-                logger.info(f"Remaining asset budget: {budget}")
+        # Generate hard indicators from asset financials
+        # Uses the synth.INDEPENDENT_INDICATOR_INTERVALS to map from float to color
+        if not pre_extracted:
+            quant_indicators = synth.indicators_from_financials(
+                self.stocks_json[asset_id]['financials'], as_colors=True
+            )
+        else:
+            quant_indicators = {
+                ind: pre_extracted[ind] for ind in synth.Indicators.quantitative
+            }
 
-                if self.budget_mode == BudgetMode.SYNTH:
-                    # Iterate through remaining candidates and filter by remaining budget
-                    for j in candidates.copy():
-                        if ind_cost[j] > budget:
-                            logger.debug(
-                                f"Skipping {j}: {self.ordered_indicators[j]} due to expected cost: {ind_cost[j]}"
-                            )
-                            candidates.remove(j)
+        def _update(_indicator_name, _color_pred, _p_k, _alphas):
+            """Update our beliefs with indicator inference"""
+            # mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
+            # growth_means.append(mean_g)
+            # growth_stds.append(std_g)
+            likelihood = self.ind_likelihood(_indicator_name) @ _color_pred.reshape(-1, 1)
+            likelihood = likelihood.reshape(3, )
+
+            posterior = _p_k * likelihood
+            posterior /= np.sum(posterior)
+            _alphas += posterior
+            _p_k = posterior
+            ###
+            # MAP method.
+            # From some brief experimenting, is essentially same outcome but very slightly worse variance
+            # alphas_star = alphas + posterior - 1
+            # alphas += alphas_star / np.sum(alphas_star)
+            ###
+
+            self._update_alphas(asset, alphas)
+            self._update_prior(asset, posterior)
+            # TODO -- Maybe move this out for performance
+            self.compute_growth_quantiles(asset=asset)
+
+            return _p_k, _alphas
+
+        with logging_redirect_tqdm(loggers=[logger]):
+            # We will at most to one evaluation for each indicator
+            for i_ind in tqdm(range(Indicators.count), desc="Indicator"):
+                logger.debug(f"Remaining asset budget: {budget}")
+
+                # Filter candidates based on remaining budget
+                for c in candidates.copy():
+                    if c['cost'] > budget:
+                        logger.debug(
+                            f"Skipping '{c['name']}' due to expected cost: {c['cost']}"
+                        )
+                        candidates.remove(c)
 
                 if not candidates:
                     break
 
-                # Track growth predictions
-                mean_g, std_g = alla_stats.mixture_stats(p_k, self.mu_g, self.sigma_g)
-                growth_means.append(mean_g)
-                growth_stds.append(std_g)
+                # We first see if the next-up indicator is quantitative
+                # If it is, we can skip the ranking algorithm and immediately process
+                ind = indicator_items[i_ind]
+                if ind['qualitative'] is False:
+                    # Quickly process the quant indicator
+                    try:
+                        candidates.remove(ind)  # pop
+                    except ValueError:
+                        # Removed from budget filter
+                        continue
+                    color = quant_indicators[ind['name']]
+                    color_pred = np.eye(3)[color_to_ind[color]]
+                    p_k, alphas = _update(ind['name'], color_pred, p_k, alphas)
+                    continue
 
-                # TODO -- Maybe we should exclude hards?
+                ###################
+                # Qualitative stage
+
+                # Rank the remaining indicator candidates that are qualitative and within budget
                 next_ranking = self.rank_indicators(p_k, candidates)
                 # This shouldn't occur, but...
                 assert next_ranking, "Failed to rank indicators"
 
-                # We should have already filtered out candidates with expected costs outside of budget
-                # Therefore we pick the first ranked indicator
-                selected_idx = next_ranking[0]
-                selected_name = self.ordered_indicators[selected_idx]
-                selected_indicators.append(selected_idx)
-                candidates.remove(selected_idx)
-                logger.info(
+                # Select best
+                selected = next_ranking[0]
+                selected_name = selected['name']
+                # Assert it isn't quantitative
+                assert selected['qualitative'], (f"Quantitative indicator '{selected_name}' leaked into Qualitative "
+                                                 "evaluation stage")
+
+                candidates.remove(selected)
+                logger.debug(
                     f"Selecting '{selected_name}' | "
-                    f"Expected cost {ind_cost[selected_idx]} | Remaining budget {budget})"
+                    f"Expected cost {selected['cost']} | Remaining budget {budget})"
                 )
 
-                # Call SE if we have a soft indicator
-                if selected_name in self.soft_indicators:
-                    if not use_SE:
-                        extracted_color_pred, se_cost = self._synthetic_soft_extractor(
-                            asset, selected_name, synthetic_colors[selected_idx]
-                        )
-                    else:
-                        # Check if we have already extracted the color
-                        if extracted_complete:
-                            # Convert from point estimate to distribution, like the synthetics
-                            # TODO -- Have soft-extractor return distributions?
-                            extracted_color_pred, se_cost = self._synthetic_soft_extractor(
-                                asset, selected_name, extracted_colors[selected_name]
-                            )
-                        else:
-                            # Perform extraction now, first generate report text prompt
-                            # Just get report for this indicator
-                            reports_text = read_reports(
-                                report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
-                                include=[f"{selected_name}_report.txt"]
-                            )
-                            extr_color, se_cost = self._call_soft_extractor(
-                                asset, selected_name, reports_text
-                            )
-                            # Now get distribution -- ignore its cost, same function as above
-                            extracted_color_pred, _ = self._synthetic_soft_extractor(
-                                asset, selected_name, extr_color
-                            )
-
+                if pre_extracted:
+                    # Convert from point estimate to distribution, like the synthetics
+                    extracted_color_pred = np.eye(3)[color_to_ind[pre_extracted[selected_name]]]  # one-hot
+                    se_cost = synth.synthetic_indicator_cost(selected['cost'])
                 else:
-                    # Just use synthetic value for hard indicators
-                    # One-hot
-                    extracted_color_pred = np.eye(3)[color_to_ind[synthetic_colors[selected_idx]]]  # one-hot
-                    se_cost = 0.5
+                    # Call soft extractor
+                    # Get report for this indicator, returns cached if available
+                    reports_text = self.get_report(asset_id)
+                    extr_color, se_cost = self._call_soft_extractor(
+                        asset, selected_name, reports_text
+                    )
+                    # Now get distribution -- ignore its cost, same function as above
+                    extracted_color_pred, _ = self._synthetic_soft_extractor(
+                        selected_name, extr_color
+                    )
+                    # Update this indicators soft-extraction cost
+                    # TODO -- Could be improved with an expected cost (same approach as for 'utility')
+                    self.indicators.cost.loc[selected_name] = se_cost
 
-                # Inference
-                # Likelihood of asset-classes given color predictions
-                A = self.ind_likelihoods[selected_name].values  # [classes, colors]
-                likelihood = A @ extracted_color_pred.reshape(-1, 1)
-                likelihood = likelihood.reshape(3, )
+                p_k, alphas = _update(selected_name, extracted_color_pred, p_k, alphas)
 
-                posterior = p_k * likelihood
-                posterior /= np.sum(posterior)
-                alphas += posterior
-                p_k = posterior
-                ###
-                # MAP method.
-                # From some brief experimenting, is essentially same outcome but very slightly worse variance
-                # alphas_star = alphas + posterior - 1
-                # alphas += alphas_star / np.sum(alphas_star)
-                ###
-
-                self._update_alphas(asset, alphas)
-                self._update_prior(asset, posterior)
-                # TODO -- Maybe move this out for performance
-                self.compute_growth_quantiles(asset=asset)
+                ###############
+                # Update Budget
 
                 if self.budget_mode == BudgetMode.WALL:
                     cost = time.time() - iter_start
@@ -478,15 +502,15 @@ class ALLA:
                     raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
 
                 if budget <= 0:
-                    logger.info(f"Budget exhausted after {i_ind} loops")
+                    logger.debug(f"Asset budget exhausted")
                     break
 
         # If no indicators were within budget, return False
-        if len(selected_indicators) == 0:
-            return False, "No indicators were within budget."
+        if len(candidates) == len(Indicators.qualitative):
+            return False, "No qualitative indicators were within budget."
 
         # Refresh indicator rank at the end
-        self.refresh_indicator_rank()
+        # self.refresh_indicator_rank()
 
         return True, ""
 
@@ -505,7 +529,8 @@ class ALLA:
         )["value"]
 
         if self.budget_mode == BudgetMode.SYNTH:
-            cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+            _cost = self.indicators.cost.loc[indicator_name].item()
+            cost = synth.synthetic_indicator_cost(_cost)
         elif self.budget_mode == BudgetMode.WALL:
             cost = time.time() - se_start
         else:
@@ -513,12 +538,10 @@ class ALLA:
 
         return result, cost
 
-    def _synthetic_soft_extractor(self, asset: xr.Dataset, indicator_name: str, synthetic_color: str) -> tuple:
+    def _synthetic_soft_extractor(self, indicator_name: str, synthetic_color: str) -> tuple:
         """
-        Call Soft-Indicator Extractor to get color prediction
-        Artificial at this point
+        Emulate SE call, return fake budget cost and noisy color transformation
 
-        :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
         :param synthetic_color: Synthetic observed color
         :return: Tuple of color prediction, and simulated cost
@@ -533,7 +556,7 @@ class ALLA:
         # extracted_color_pred = synth.synthetic_extractor_noise(extracted_color_pred)
 
         # Simulate SE cost
-        cost = synth.synthetic_indicator_cost(self.indicator_costs[indicator_name])
+        cost = synth.synthetic_indicator_cost(self.indicators.cost.loc[indicator_name].item())
 
         return extracted_color_pred, cost
 
@@ -706,17 +729,16 @@ class ALLA:
             self.stocks.to_netcdf(
                 os.path.join(save_dir, "stocks.nc")
             )
-            self.ind_likelihoods.to_netcdf(
-                os.path.join(save_dir, "ind_likelihoods.nc")
+            self.indicators.to_netcdf(
+                os.path.join(save_dir, "indicator_data.nc")
             )
 
             # Save as npz
             npz_path = os.path.join(save_dir, "alla.npz")
             np.savez(
                 npz_path,
-                indicator_costs=self.indicator_costs,
-                indicator_utility_avg=self.indicator_utility_avg,
-                ranked_indicators=self.ranked_indicators,
+                indicator_costs=self.indicators.cost.values.tolist(),
+                indicator_utility_avg=self.indicators.utility.values.tolist(),
                 llm_code=self.llm.code,
                 llm_temp=self.llm.temperature,
                 mu_g=self.mu_g,
@@ -741,16 +763,13 @@ class ALLA:
             raise FileNotFoundError(f"Model directory '{model_dir}' not found")
 
         stocks_path = os.path.join(model_dir, "stocks.nc")
-        ind_path = os.path.join(model_dir, "ind_likelihoods.nc")
+        ind_path = os.path.join(model_dir, "indicator_likelihoods.nc")
         model_path = os.path.join(model_dir, "alla.npz")
 
         stocks = xr.open_dataset(stocks_path)
-        ind_likelihoods = xr.open_dataset(ind_path)
+        indicator_data = xr.open_dataset(ind_path)
         model_data = np.load(model_path, allow_pickle=True)
 
-        indicator_costs = model_data['indicator_costs'].item()
-        indicator_utility_avg = model_data['indicator_utility_avg']
-        ranked_indicators = model_data['ranked_indicators']
         llm_code = model_data['llm_code'].item()
         llm_temp = model_data['llm_temp'].item()
         mu_g = model_data['mu_g']
@@ -772,26 +791,10 @@ class ALLA:
             stocks, llm, asset_memory_depth=asset_memory_depth,
         )
         # Set the loaded data
-        m.ind_likelihoods = ind_likelihoods
-        m.indicator_costs = indicator_costs
-        m.indicator_utility_avg = indicator_utility_avg
-        m.ranked_indicators = ranked_indicators
+        m.indicators = indicator_data
         m.mu_g = mu_g
         m.sigma_g = sigma_g
         m.quantiles = quantiles
-
-        # Some extras
-        # List of soft indicator names
-        m.soft_indicators = list(
-            stocks.coords['indicator'].values[
-                stocks.coords['indicator_type'].values == 'soft'
-            ]
-        )
-        m.indicators = m.ordered_indicators = stocks.coords['indicator'].values.tolist()
-        m.name_to_idx = {name: i for i, name in enumerate(m.ordered_indicators)}
-        m.idx_to_name = {i: name for i, name in enumerate(m.ordered_indicators)}
-
-        m.n_indicator = len(m.ordered_indicators)
 
         logger.info("Model loaded successfully")
         return m
@@ -859,7 +862,7 @@ class ALLA:
         # Plot growth estimate history, including the truth value for its asset-class
         # The quantile values will have shape [5, time]
         growth_quantiles = self.stocks.quantile_pred.sel(asset=asset.asset).values
-        # Colors -- Get 5 colors from the icefire diverging palette
+        # Colors -- Get 5 colors from viridis
         colors = sns.color_palette("viridis", 5)
         q_labels = [
             "q-2.5",

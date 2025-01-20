@@ -14,9 +14,20 @@ def exp1():
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/latest")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/llama3-70b")
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
+
+    # Load ALLA results
+    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+    # For now we use the .5 percentile for plotting
+    alla_data = [
+        {
+            "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "growth": asset['growth']["0.5"],
+        }
+        for asset in alla_results.values()
+    ]
 
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
     llm_data = [
@@ -36,6 +47,7 @@ def exp1():
     # Create a combined pandas df of the category and growth values for llm and truth sets
     df = pd.concat(
         [
+            pd.DataFrame(alla_data).assign(source="ALLA"),
             pd.DataFrame(llm_data).assign(source="LLM"),
             pd.DataFrame(truth_data).assign(source="Truth")
         ], ignore_index=True

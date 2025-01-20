@@ -25,9 +25,10 @@ if __name__ == '__main__':
     from alla.llm import get_llm
     from alla.llm.wrangling import read_reports
     from alla.utils import PROJECT_ROOT
-    from alla.synthetic import SOFT_INDICATOR_COSTS
+    from alla.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
 
     soft_indicators = list(SOFT_INDICATOR_COSTS.keys())
+    hard_indicator_names = list(FINANCIAL_LIKELIHOOD_MATRIX['high_growth'].keys())
     asset_ids = ['asset_1', ]  # , 'asset_25', 'asset_35', 'asset_45']
     test_list = {}
 
@@ -36,14 +37,33 @@ if __name__ == '__main__':
 
     # Create the extraction directory if needed
     extract_dir = os.path.join(
-        PROJECT_ROOT, f"data/extracted_indicators/{llm.code}"
+        PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}"
     )
     # Create the directory if it doesn't exist
     # os.makedirs(extract_dir, exist_ok=True)
 
-    with logging_redirect_tqdm():
+    # Load the stocks array
+    stocks = load_stocks(as_dataset=True)
+
+    with logging_redirect_tqdm(loggers=[logger]):
         for asset in tqdm(asset_ids, desc="Asset"):
             ind_list = []
+            stock = stocks.sel(asset=asset)
+            indicators = stock.indicator.values
+            colors = stock.ryg.values
+            numeric_values = stock.val.values
+            # First, populate with independent (hard) indicators
+            for ind, color, numeric in zip(indicators, colors, numeric_values):
+                if ind in hard_indicator_names:
+                    ind_list.append(
+                        {
+                            "indicator": ind,
+                            "value": color,
+                            "numeric": numeric,
+                            "reason": "Synthetic source",
+                        }
+                    )
+
             # Read all the reports for this asset
             reports_dir = os.path.join(PROJECT_ROOT, f"data/reports/{asset}")
 
