@@ -120,20 +120,6 @@ class MixtureDistribution:
         return mixture.ppf(quantiles)
 
 
-def log_probability_score(predicted_probs: dict[str, float], true_class: str) -> float:
-    """
-    Calculate the log probability score for the true class.
-
-    Args:
-        predicted_probs (dict): Dict of class probabilities
-        true_class (str): Class name
-
-    Returns:
-        float: The log probability score for the true class.
-    """
-    return - np.log(predicted_probs[true_class])
-
-
 def fit_distribution_to_quantiles(quantiles: list, true_growth: float) -> float:
     """
     Fits a Gaussian distribution to the given quantiles and returns the log probability density 
@@ -215,33 +201,28 @@ def evaluate_performance(
     """
     scores = []
     for asset, data in predictions.items():
-        predicted_class = data['category']
+        # Class loss is the neg log loss
         true_class = data['truth']['category']
-        # TODO -- This just equates to the class prob
-        log_class_score = log_probability_score(predicted_class, true_class)
-        class_score = np.exp(log_class_score)
+        class_loss = - np.log(data['category'][true_class])
 
         growth_quantiles = [g[1] for g in data['growth']]
         alphas = [g[0] for g in data['growth']]
         true_growth = data['truth']['growth']
         # TODO -- Seems sketchy?
         parametric_score = fit_distribution_to_quantiles(growth_quantiles, true_growth)
-
-        non_parametric_score = non_parametric_quantile_loss(growth_quantiles, true_growth, alphas)
+        non_parametric_loss = non_parametric_quantile_loss(growth_quantiles, true_growth, alphas)
 
         if in_place:
-            predictions[asset]['log_class_score'] = class_score
-            predictions[asset]['class_score'] = class_score
+            predictions[asset]['class_loss'] = class_loss
             predictions[asset]['parametric_score'] = parametric_score
-            predictions[asset]['non_parametric_score'] = non_parametric_score
+            predictions[asset]['non_parametric_loss'] = non_parametric_loss
         else:
             scores.append(
                 {
                     'asset': asset,
-                    'log_class_score': log_class_score,
-                    'class_score': class_score,
+                    'class_loss': class_loss,
                     'parametric_score': parametric_score,
-                    'non_parametric_score': non_parametric_score
+                    'non_parametric_loss': non_parametric_loss
                 }
             )
 
