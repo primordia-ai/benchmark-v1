@@ -1,9 +1,11 @@
 import functools
-from typing import Union
-import pandas as pd
+from typing import Union, TypedDict
+
 import numpy as np
+import pandas as pd
 from scipy import stats
 from scipy.optimize import root_scalar
+
 from alla.logger import logger
 
 
@@ -118,28 +120,31 @@ class MixtureDistribution:
         return mixture.ppf(quantiles)
 
 
-def log_probability_score(predicted_probs : list, true_class : int) -> float:
+def log_probability_score(predicted_probs: dict[str, float], true_class: str) -> float:
     """
     Calculate the log probability score for the true class.
 
-    Parameters:
-    predicted_probs (list): List of predicted probabilities for each class.
-    true_class (int): The index of the true class.
+    Args:
+        predicted_probs (dict): Dict of class probabilities
+        true_class (str): Class name
 
     Returns:
-    float: The log probability score for the true class.
+        float: The log probability score for the true class.
     """
-    return np.log(predicted_probs[true_class])
+    return - np.log(predicted_probs[true_class])
 
-def fit_distribution_to_quantiles(quantiles : list, true_growth : float) -> float:
+
+def fit_distribution_to_quantiles(quantiles: list, true_growth: float) -> float:
     """
     Fits a Gaussian distribution to the given quantiles and returns the log probability density 
     of the true growth value under the fitted distribution.
-    Parameters:
-    quantiles (list): A list of quantile values to fit the Gaussian distribution to.
-    true_growth (float): The true growth value for which the log probability density is calculated.
+
+    Args:
+        quantiles (list): A list of quantile values to fit the Gaussian distribution to.
+        true_growth (float): The true growth value for which the log probability density is calculated.
+
     Returns:
-    float: The log probability density of the true growth value under the fitted Gaussian distribution.
+        float: The log probability density of the true growth value under the fitted Gaussian distribution.
     """
 
     mean = np.mean(quantiles)
@@ -147,77 +152,100 @@ def fit_distribution_to_quantiles(quantiles : list, true_growth : float) -> floa
     distribution = stats.norm(loc=mean, scale=std)
     return distribution.logpdf(true_growth)
 
+
 def quantile_loss(alpha: float, true: float, pred: float) -> float:
     """
     Calculate the quantile loss for a given prediction.
     The quantile loss is used to measure the accuracy of quantile forecasts.
     It is asymmetric and assigns different penalties to overestimation and underestimation.
-    Parameters:
-    alpha (float): The quantile to be estimated, a value between 0 and 1.
-    true (float): The true observed value.
-    pred (float): The predicted value.
+
+    Args:
+        alpha (float): The quantile to be estimated, a value between 0 and 1.
+        true (float): The true observed value.
+        pred (float): The predicted value.
+
     Returns:
-    float: The quantile loss.
+        float: The quantile loss.
     """
 
     return alpha * (true - pred) if true > pred else (1 - alpha) * (pred - true)
 
 
-def non_parametric_quantile_loss(predicted_quantiles : list, true_growth : float, alphas : list) -> float:
+def non_parametric_quantile_loss(predicted_quantiles: list, true_growth: float, alphas: list) -> float:
     """
     Calculate the non-parametric quantile loss for a set of predicted quantiles.
 
-    Parameters:
-    predicted_quantiles (list of float): The predicted quantile values.
-    true_growth (float): The true growth value.
-    alphas (list of float): The quantile levels corresponding to the predicted quantiles.
+    Args:
+        predicted_quantiles (list of float): The predicted quantile values.
+        true_growth (float): The true growth value.
+        alphas (list of float): The quantile levels corresponding to the predicted quantiles.
 
     Returns:
-    float: The total quantile loss.
+        float: The total quantile loss.
     """
     loss = 0
     for predicted_gq, alpha in zip(predicted_quantiles, alphas):
         loss += quantile_loss(predicted_gq, true_growth, alpha)
     return loss
 
-def evaluate_performance(predictions : dict, ground_truth : dict) -> pd.DataFrame:
+
+class PredictionResult(TypedDict):
+    growth: tuple[float, float]  # ( (<quantile>, <growth_value>), ... )
+    category: dict[str, float]  # {<category>: <probability>, ...}
+    truth: dict[str, float|str]  # {"category": <str>, "growth": <float>}
+
+
+def evaluate_performance(
+    predictions: dict[str, PredictionResult], in_place: bool = False
+) -> pd.DataFrame | dict:
     """
     Evaluate the performance of predictions against ground truth data.
-    Parameters:
-    predictions (dict): A dictionary where each key is an asset and the value is another dictionary containing:
-        - 'class_probs' (list of float): The predicted probabilities for each class.
-        - 'growth_quantiles' (list of float): The predicted growth quantiles.
-        - 'alphas' (list of float): The alpha values for non-parametric quantile loss calculation.
-    ground_truth (dict): A dictionary where each key is an asset and the value is another dictionary containing:
-        - 'true_class' (int): The true class label.
-        - 'true_growth' (float): The true growth value.
+    Args:
+        predictions (dict): A dictionary where each key is an asset and the value is a prediction PredictionResult
+        alphas (list of float): The quantile levels corresponding to the predicted quantiles.
+        in_place (bool): If True, the evaluation scores are added to the predictions dictionary.
+
     Returns:
-    pd.DataFrame: A DataFrame containing the evaluation scores for each asset with columns:
-        - 'asset' (str): The asset identifier.
-        - 'log_class_score' (float): The log probability score for the class prediction.
-        - 'class_score' (float): The exponentiated log class score.
-        - 'parametric_score' (float): The score from fitting a distribution to the growth quantiles.
-        - 'non_parametric_score' (float): The non-parametric quantile loss score.
+        pd.DataFrame: A DataFrame containing the evaluation scores for each asset with columns:
+            - 'asset' (str): The asset identifier.
+            - 'log_class_score' (float): The log probability score for the class prediction.
+            - 'class_score' (float): The exponentiated log class score.
+            - 'parametric_score' (float): The score from fitting a distribution to the growth quantiles.
+            - 'non_parametric_score' (float): The non-parametric quantile loss score.
     """
     scores = []
-    for asset in predictions:
-        predicted_probs = predictions[asset]['class_probs']
-        true_class = ground_truth[asset]['true_class']
-        log_class_score = log_probability_score(predicted_probs, true_class)
+    for asset, data in predictions.items():
+        predicted_class = data['category']
+        true_class = data['truth']['category']
+        # TODO -- This just equates to the class prob
+        log_class_score = log_probability_score(predicted_class, true_class)
         class_score = np.exp(log_class_score)
 
-        quantiles = predictions[asset]['growth_quantiles']
-        true_growth = ground_truth[asset]['true_growth']
-        parametric_score = fit_distribution_to_quantiles(quantiles, true_growth)
+        growth_quantiles = [g[1] for g in data['growth']]
+        alphas = [g[0] for g in data['growth']]
+        true_growth = data['truth']['growth']
+        # TODO -- Seems sketchy?
+        parametric_score = fit_distribution_to_quantiles(growth_quantiles, true_growth)
 
-        alphas = predictions[asset]['alphas']
-        non_parametric_score = non_parametric_quantile_loss(quantiles, true_growth, alphas)
+        non_parametric_score = non_parametric_quantile_loss(growth_quantiles, true_growth, alphas)
 
-        scores.append({
-            'asset': asset,
-            'log_class_score': log_class_score,
-            'class_score': class_score,
-            'parametric_score': parametric_score,
-            'non_parametric_score': non_parametric_score
-        })
-    return pd.DataFrame(scores)
+        if in_place:
+            predictions[asset]['log_class_score'] = class_score
+            predictions[asset]['class_score'] = class_score
+            predictions[asset]['parametric_score'] = parametric_score
+            predictions[asset]['non_parametric_score'] = non_parametric_score
+        else:
+            scores.append(
+                {
+                    'asset': asset,
+                    'log_class_score': log_class_score,
+                    'class_score': class_score,
+                    'parametric_score': parametric_score,
+                    'non_parametric_score': non_parametric_score
+                }
+            )
+
+    if not in_place:
+        return pd.DataFrame(scores)
+
+    return predictions

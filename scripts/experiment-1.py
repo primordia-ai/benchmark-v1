@@ -184,10 +184,13 @@ def main():
                     quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
                     cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
                     alla_results[asset_id] = {
-                        "growth": {q: p for q, p in zip(m.quantiles, quantile_pred)},
+                        "growth": ((q, p) for q, p in zip(m.quantiles, quantile_pred)),
                         "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
                         "truth": truth_data[asset_id]
                     }
+
+    # Add in-place performance evaluation
+    stats.evaluate_performance(alla_results, in_place=True)
 
     # Save ALLA results
     alla_results_path = os.path.join(results_dir, "alla_results.json")
@@ -247,8 +250,7 @@ def main():
     with open(llm_results_path, 'w') as f:
         logger.info(f"Saving LLM results to {llm_results_path}")
         json.dump(llm_results, f, indent=4)
-    # evaluate the performance of the model here
-    
+
 
 
 if __name__ == '__main__':
@@ -263,7 +265,7 @@ if __name__ == '__main__':
 
     from alla.logger import logger
 
-    from alla import synthetic as synth, utils
+    from alla import synthetic as synth, utils, stats
     from alla.alla import ALLA, BudgetMode
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
