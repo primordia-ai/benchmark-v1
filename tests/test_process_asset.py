@@ -13,34 +13,16 @@ if __name__ == '__main__':
 
     from alla import synthetic as synth
     from alla.alla import ALLA
-    from alla.utils import PROJECT_ROOT
+    from alla.utils import PROJECT_ROOT, TESTS_OUT
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
 
-    # Generate synthetic stocks
-    # n_stock = 111
-    # print(f"Generating {n_stock} synthetic stocks...")
-    # stocks = synth.generate_synthetic_stocks(n_stock)
-
-    # Select the first stock that is of this category
-    # asset_name = None
-    # category_select = "high_growth"
-    # for asset in stocks.asset:
-    #     if asset['category'] == category_select:
-    #         asset_name = str(asset['asset'].values)
-    #         break
-    #
-    # if asset_name is None:
-    #     raise RuntimeError(f"No {category_select} asset generated")
-
     stocks = synth.load_stocks(as_dataset=True)
-
     asset_name = "asset_0"
     # Create ALLA model
     print("Initializing ALLA")
     # Initialize our LLM
     llm = get_llm('llama-tiny')(temperature=0)
-
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=20, budget=8,
@@ -65,5 +47,5 @@ if __name__ == '__main__':
     print("Done.")
 
     # Plot
-    save_path = "../results/tmp/latest.png"
+    save_path = os.path.join(TESTS_OUT, "latest.png")
     m.plot_history(asset_name, save_path=save_path)
