@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # Load the stocks array
     stocks = load_stocks(as_dataset=True)
 
-    with logging_redirect_tqdm():
+    with logging_redirect_tqdm(loggers=[logger]):
         for asset in tqdm(asset_ids, desc="Asset"):
             ind_list = []
             stock = stocks.sel(asset=asset)
