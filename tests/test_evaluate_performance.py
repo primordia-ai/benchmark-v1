@@ -8,29 +8,41 @@ def main():
     # Seed rng
     predictions = {
         'asset1': {
-            'class_probs': [0.1, 0.7, 0.2],
-            'growth_quantiles': [0.05, 0.1, 0.15],
-            'alphas': [0.1, 0.5, 0.9]
+            'category': {
+                'high_growth': 0.1,
+                'stable': 0.2,
+                'time_bomb': 0.7
+            },
+            'growth': (
+                (0.1, 0.05),
+                (0.5, 0.1),
+                (0.9, 0.15)
+            ),
+            'truth': {
+                'category': 'time_bomb',
+                'growth': 0.12
+            }
         },
         'asset2': {
-            'class_probs': [0.3, 0.4, 0.3],
-            'growth_quantiles': [0.02, 0.08, 0.12],
-            'alphas': [0.1, 0.5, 0.9]
+            'category': {
+                'high_growth': 0.3,
+                'stable': 0.4,
+                'time_bomb': 0.3
+            },
+            'growth': (
+                (0.1, 0.02),
+                (0.5, 0.08),
+                (0.9, 0.12)
+            ),
+            'truth': {
+                'category': 'stable',
+                'growth': 0.1
+            }
         }
     }
 
-    ground_truth = {
-        'asset1': {
-            'true_class': 1,
-            'true_growth': 0.12
-        },
-        'asset2': {
-            'true_class': 2,
-            'true_growth': 0.1
-        }
-    }
-
-    performance_df = evaluate_performance(predictions, ground_truth)
+    performance_df = evaluate_performance(predictions, in_place=False)
+    print(f"MW performance_df: {performance_df}")
     # Create results directory if it doesn't exist
     results_dir = os.path.join(utils.TESTS_OUT, "test_evaluate_performance")
     os.makedirs(results_dir, exist_ok=True)
