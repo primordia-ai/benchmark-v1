@@ -77,7 +77,7 @@ def main():
         # Otherwise, just run all assets
         n_asset = 200
         n_asset_per = None
-        budget_mode = BudgetMode.WALL
+        budget_mode = BudgetMode.SYNTH
         total_budget = 1e8  # arbitrarily large
         budget_per_task = 20
         asset_memory_depth = 100
