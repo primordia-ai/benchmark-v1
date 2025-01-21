@@ -420,7 +420,7 @@ class ALLA:
 
         with logging_redirect_tqdm(loggers=[logger]):
             # We will at most to one evaluation for each indicator
-            for i_ind in tqdm(range(Indicators.count), desc="Indicator"):
+            for i_ind in tqdm(range(Indicators.count), desc="Indicator", leave=False):
                 logger.debug(f"Remaining asset budget: {budget}")
 
                 # Filter candidates based on remaining budget
