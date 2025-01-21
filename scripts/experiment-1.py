@@ -216,6 +216,8 @@ def main():
         save_dir=os.path.join(results_dir, "models")
     )
 
+    return
+
     #####################
     # LLM Portion
     #
