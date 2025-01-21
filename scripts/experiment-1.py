@@ -67,11 +67,11 @@ def main():
 
     if testing:
         # If testing, we will have 12 assets, and 4 per category
-        n_asset = 9
+        n_asset = 6
         n_asset_per = n_asset / 3
         budget_mode = BudgetMode.WALL
         total_budget = 1e5
-        budget_per_task = 20
+        budget_per_task = 4
         asset_memory_depth = 20
     else:
         # Otherwise, just run all assets
@@ -184,7 +184,7 @@ def main():
                     quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
                     cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
                     alla_results[asset_id] = {
-                        "growth": ((q, p) for q, p in zip(m.quantiles, quantile_pred)),
+                        "growth": tuple([(q, p) for q, p in zip(m.quantiles, quantile_pred)]),
                         "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
                         "truth": truth_data[asset_id]
                     }

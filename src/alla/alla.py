@@ -107,16 +107,20 @@ class ALLA:
             "version": self._version,
             "indicators": {
                 "indicator": self.indicators.indicator.values.tolist(),
-                "qualitative": self.indicators.qualitative.tolist(),
-                "utility": self.indicators.utility.tolist(),
-                "observations": self.indicators.observations.tolist(),
-                "ranking": self.indicators.ranking.tolist(),
-                "cost": self.indicators.cost.tolist(),
+                "qualitative": self.indicators.qualitative.values.tolist(),
+                "utility": self.indicators.utility.values.tolist(),
+                "observations": self.indicators.observations.values.tolist(),
+                "ranking": self.indicators.ranking.values.tolist(),
+                "cost": self.indicators.cost.values.tolist(),
             },
             "llm": self.llm.to_json(),
             "asset_memory_depth": self.asset_memory_depth,
-            "mu_g": self.mu_g.tolist(),
-            "sigma_g": self.sigma_g.tolist(),
+            "ground_truth": {
+                "classes": self.classes,
+                "class_idx": self.class_idx,
+                "mu_g": self.mu_g.tolist(),
+                "sigma_g": self.sigma_g.tolist(),
+            },
             "quantiles": self.quantiles,
         }
 
