@@ -2,6 +2,7 @@ import os
 
 from alla import utils
 from alla.stats import evaluate_performance
+from alla.synthetic import GROWTH_MU, GROWTH_SCALE
 
 
 def main():
@@ -40,9 +41,20 @@ def main():
             }
         }
     }
+    mixture_params = {
+        "mu": {
+            "high_growth": GROWTH_MU[0],
+            "stable": GROWTH_MU[1],
+            "time_bomb": GROWTH_MU[2]
+        },
+        "sigma": {
+            "high_growth": GROWTH_SCALE[0],
+            "stable": GROWTH_SCALE[1],
+            "time_bomb": GROWTH_SCALE[2]
+        }
+    }
 
-    performance_df = evaluate_performance(predictions, in_place=False)
-    print(f"MW performance_df: {performance_df}")
+    performance_df = evaluate_performance(predictions, mixture_params, in_place=False)
     # Create results directory if it doesn't exist
     results_dir = os.path.join(utils.TESTS_OUT, "test_evaluate_performance")
     os.makedirs(results_dir, exist_ok=True)

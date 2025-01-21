@@ -107,7 +107,7 @@ def main():
         assets[category].append(asset_id)
         truth_data[asset_id] = {
             "category": category,
-            "growth": asset.growth_2025.values.item()
+            "growth": asset.growth_2025.values.item(),
         }
 
     # Save run data to config.yaml
@@ -190,7 +190,19 @@ def main():
                     }
 
     # Add in-place performance evaluation
-    stats.evaluate_performance(alla_results, in_place=True)
+    mixture_params = {
+        "mu": {
+            "high_growth": m.mu_g[0],
+            "stable": m.mu_g[1],
+            "time_bomb": m.mu_g[2],
+        },
+        "sigma": {
+            "high_growth": m.sigma_g[0],
+            "stable": m.sigma_g[1],
+            "time_bomb": m.sigma_g[2],
+        },
+    }
+    stats.evaluate_performance(alla_results, mixture_params, in_place=True)
 
     # Save ALLA results
     alla_results_path = os.path.join(results_dir, "alla_results.json")
@@ -250,7 +262,6 @@ def main():
     with open(llm_results_path, 'w') as f:
         logger.info(f"Saving LLM results to {llm_results_path}")
         json.dump(llm_results, f, indent=4)
-
 
 
 if __name__ == '__main__':
