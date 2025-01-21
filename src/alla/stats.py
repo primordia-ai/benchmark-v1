@@ -1,8 +1,9 @@
 import functools
-from typing import Union, TypedDict
+from typing import TypedDict, Union
 
 import numpy as np
 import pandas as pd
+import pymc
 from scipy import stats
 from scipy.optimize import root_scalar
 
@@ -120,25 +121,6 @@ class MixtureDistribution:
         return mixture.ppf(quantiles)
 
 
-def fit_distribution_to_quantiles(quantiles: list, true_growth: float) -> float:
-    """
-    Fits a Gaussian distribution to the given quantiles and returns the log probability density 
-    of the true growth value under the fitted distribution.
-
-    Args:
-        quantiles (list): A list of quantile values to fit the Gaussian distribution to.
-        true_growth (float): The true growth value for which the log probability density is calculated.
-
-    Returns:
-        float: The log probability density of the true growth value under the fitted Gaussian distribution.
-    """
-
-    mean = np.mean(quantiles)
-    std = np.std(quantiles)
-    distribution = stats.norm(loc=mean, scale=std)
-    return distribution.logpdf(true_growth)
-
-
 def quantile_loss(alpha: float, true: float, pred: float) -> float:
     """
     Calculate the quantile loss for a given prediction.
@@ -178,17 +160,17 @@ def non_parametric_quantile_loss(predicted_quantiles: list, true_growth: float, 
 class PredictionResult(TypedDict):
     growth: tuple[float, float]  # ( (<quantile>, <growth_value>), ... )
     category: dict[str, float]  # {<category>: <probability>, ...}
-    truth: dict[str, float|str]  # {"category": <str>, "growth": <float>}
+    truth: dict[str, float | str]  # {"category": <str>, "growth": <float>}
 
 
 def evaluate_performance(
-    predictions: dict[str, PredictionResult], in_place: bool = False
+    predictions: dict[str, PredictionResult], mixture_params: dict[str, dict], in_place: bool = False
 ) -> pd.DataFrame | dict:
     """
     Evaluate the performance of predictions against ground truth data.
     Args:
         predictions (dict): A dictionary where each key is an asset and the value is a prediction PredictionResult
-        alphas (list of float): The quantile levels corresponding to the predicted quantiles.
+        mixture_params (dict): Dictionary as {"mu": {<category>: <mean>, ...}, "sigma": {<category>: <std>, ...}}
         in_place (bool): If True, the evaluation scores are added to the predictions dictionary.
 
     Returns:
@@ -199,29 +181,51 @@ def evaluate_performance(
             - 'parametric_score' (float): The score from fitting a distribution to the growth quantiles.
             - 'non_parametric_score' (float): The non-parametric quantile loss score.
     """
-    scores = []
-    for asset, data in predictions.items():
-        # Class loss is the neg log loss
-        true_class = data['truth']['category']
-        class_loss = - np.log(data['category'][true_class])
+    assets = list(predictions.keys())
+    n_asset = len(predictions)
+    classes = list(mixture_params['mu'].keys())
+    n_class = len(classes)
 
-        growth_quantiles = [g[1] for g in data['growth']]
-        alphas = [g[0] for g in data['growth']]
-        true_growth = data['truth']['growth']
-        # TODO -- Seems sketchy?
-        parametric_score = fit_distribution_to_quantiles(growth_quantiles, true_growth)
-        non_parametric_loss = non_parametric_quantile_loss(growth_quantiles, true_growth, alphas)
+    weights = np.zeros((n_asset, n_class))
+    mus = np.zeros((n_asset, n_class))
+    sigmas = np.zeros((n_asset, n_class))
+    true_growths = np.zeros(n_asset, dtype=float)
+
+    for i, asset in enumerate(assets):
+        data = predictions[asset]
+        true_growths[i] = data['truth']['growth']
+
+        for j, cat in enumerate(classes):
+            weights[i, j] = data['category'][cat]
+            mus[i, j] = mixture_params['mu'][cat]
+            sigmas[i, j] = mixture_params['sigma'][cat]
+
+    with pymc.Model() as model:
+        dist = pymc.NormalMixture.dist(w=weights, mu=mus, sigma=sigmas)
+        logp = pymc.logp(dist, true_growths)
+
+    parametric_scores = logp.eval()
+
+    scores = []
+    for i, asset in enumerate(assets):
+        data = predictions[asset]
+        true_class = data['truth']['category']
+        class_loss = -np.log(data['category'][true_class])
+
+        alphas = [q[0] for q in data['growth']]
+        growth_quantiles = [q[1] for q in data['growth']]
+        non_parametric_loss = non_parametric_quantile_loss(growth_quantiles, true_growths[i], alphas)
 
         if in_place:
             predictions[asset]['class_loss'] = class_loss
-            predictions[asset]['parametric_score'] = parametric_score
+            predictions[asset]['parametric_score'] = parametric_scores[i]
             predictions[asset]['non_parametric_loss'] = non_parametric_loss
         else:
             scores.append(
                 {
                     'asset': asset,
                     'class_loss': class_loss,
-                    'parametric_score': parametric_score,
+                    'parametric_score': parametric_scores[i],
                     'non_parametric_loss': non_parametric_loss
                 }
             )
