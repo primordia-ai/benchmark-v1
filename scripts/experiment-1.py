@@ -108,7 +108,7 @@ def main():
     for asset_id in os.listdir(report_dir):
         # Check category
         category = stocks[asset_id]['category']
-        if testing and len(assets[category]) >= n_asset_per:
+        if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
             continue
 
