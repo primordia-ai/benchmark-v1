@@ -131,6 +131,9 @@ def main():
         "n_asset_per": n_asset_per,
         "assets": {cat: len(reports) for cat, reports in assets.items()}
     }
+
+    # Convert stocks to dataset now
+    stocks = synth.stocks_to_xarray(stocks)
     if mode in ['alla', 'both']:
         # Create ALLA model
         m = ALLA(
