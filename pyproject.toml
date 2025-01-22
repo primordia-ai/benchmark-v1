@@ -20,6 +20,7 @@ build-backend = "poetry.core.masonry.api"
 # Remember to 'poetry update' after changing
 [tool.poetry.dependencies]
 # python = ">=3.12,<3.13"  # pytensor has a restrictive range
+# NOTE: On FH-SWF, try python 3.11
 python = ">=3.10,<3.13"
 numpy = "^1.26.4"
 scikit-learn = "^1.4.1"

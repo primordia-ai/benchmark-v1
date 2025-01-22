@@ -928,10 +928,15 @@ def generate_synthetic_stocks(n_stocks: int, as_dataset: bool = True) -> List[Di
         'stable': 0.5,  # 50% are stable
         'time_bomb': 0.2  # 20% are time bombs
     }
+    category_to_int = {
+        'high_growth': 0,
+        'stable': 1,
+        'time_bomb': 2
+    }
 
-    stocks = []
+    stocks = {}
 
-    for _ in range(n_stocks):
+    for i in range(n_stocks):
         # Step 1: Sample company category
         category = np.random.choice(
             list(category_probs.keys()),
@@ -967,16 +972,23 @@ def generate_synthetic_stocks(n_stocks: int, as_dataset: bool = True) -> List[Di
 
         # Step 4: Generate financial statements
         financials = generate_financials(indicators)
+        growth_2025 = np.random.normal(
+            loc=GROWTH_MU[category_to_int[category]],
+            scale=GROWTH_SCALE[category_to_int[category]]
+        )
 
         # Step 5: Package everything together
         stock_data = {
             'category': category,
+            'growth_2025': growth_2025,
             'sampled_colors': indicator_colors,
             'indicators': indicators,
             'financials': financials
         }
 
-        stocks.append(stock_data)
+        asset_id = f'asset_{i}'
+
+        stocks[asset_id] = stock_data
 
     if as_dataset:
         return stocks_to_xarray(stocks)
@@ -1035,6 +1047,7 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     # Create empty arrays
     values = np.full((n_stocks, len(all_indicators)), np.nan)  # NaN for soft indicators
     colors = np.empty((n_stocks, len(all_indicators)), dtype='U6')  # U6 for 'yellow'
+    growth_2025 = np.empty(n_stocks, dtype=float)
 
     # Fill arrays
     asset_coords = []
@@ -1044,6 +1057,7 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
         asset_coords.append(asset_id)
         data = stocks[asset_id]
         categories.append(data['category'])
+        growth_2025[asset_num] = data['growth_2025']
         for i, indicator in enumerate(all_indicators):
             color = data['sampled_colors'][indicator]
             colors[asset_num, i] = color
@@ -1054,7 +1068,8 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     ds = xr.Dataset(
         data_vars={
             'val': (('asset', 'indicator'), values),
-            'ryg': (('asset', 'indicator'), colors)
+            'ryg': (('asset', 'indicator'), colors),
+            'growth_2025': (('asset',), growth_2025)
         },
         coords={
             'asset': asset_coords,
@@ -1064,12 +1079,6 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
             'category': ('asset', categories),
         }
     )
-
-    # Add some 2025 simulated growths to ds
-    company_types = ['high_growth', 'stable', 'time_bomb']
-    company_type = np.array([company_types.index(val) for val in ds.category.values])
-    growth_2025 = np.random.normal(loc=GROWTH_MU[company_type], scale=GROWTH_SCALE[company_type])
-    ds['growth_2025'] = xr.DataArray(growth_2025, dims='asset')
 
     # Add attributes for metadata
     ds.attrs['description'] = 'Synthetic stock data with financial and soft indicators'
