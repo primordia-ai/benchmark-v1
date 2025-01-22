@@ -23,7 +23,14 @@ TODO -- Ablations
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category."
+        description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category.",
+        epilog="""
+        - Choose from one of three modes for your experiment: 'alla', 'llm', or 'both'.
+        - Pre-extracted as True loads indicator colors that were previously extracted. This is useful for debugging 
+        and development.
+        - Test is a reduced run that selects only a couple assets for each category, and has a reduced 
+        budget for tasks for a more hasty run-through.
+        """
     )
     parser.add_argument(
         "--mode", type=str, help="Whether to run 'alla' or 'llm' or 'both'. Note that 'alla' still requires an "
@@ -45,7 +52,8 @@ def main():
         "--temp", type=float, default=0.0, help="Temperature for LLM. Default 0.0."
     )
     parser.add_argument(
-        "--strict", action="store_true", help="Otherwise, continues iterating over assets."
+        "--strict", action="store_true", help="Do not ignore exceptions on asset evaluation. By default this "
+                                              "is excluded, so that other assets can continue to be evaluated."
     )
     parser.add_argument(
         "--pre-extracted", action="store_true", help="Use pre-extracted indicators."
@@ -69,7 +77,6 @@ def main():
     results_dir = os.path.join(utils.PROJECT_ROOT, f"results/exp-1/{run_name}")
     os.makedirs(results_dir, exist_ok=True)
 
-    stocks = synth.load_stocks(as_dataset=True)
     categories = ["high_growth", "stable", "time_bomb"]
     assets = {cat: [] for cat in categories}
 

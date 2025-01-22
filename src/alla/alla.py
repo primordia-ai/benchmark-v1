@@ -481,10 +481,8 @@ class ALLA:
                     extr_color, se_cost = self._call_soft_extractor(
                         asset, selected_name, reports_text
                     )
-                    # Now get distribution -- ignore its cost, same function as above
-                    extracted_color_pred, _ = self._synthetic_soft_extractor(
-                        selected_name, extr_color
-                    )
+                    # Convert to one-hot distribution
+                    extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
                     # Update this indicators soft-extraction cost
                     # TODO -- Could be improved with an expected cost (same approach as for 'utility')
                     self.indicators.cost.loc[selected_name] = se_cost

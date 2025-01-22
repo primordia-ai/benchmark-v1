@@ -171,12 +171,13 @@ def prompt_se_context(indicator, report_text: str):
         where red indicates a negative performance, yellow indicates a neutral performance, and green indicates a positive performance.
         The indicator you are evaluating is: '{indicator}'
         Your task is to read the business reports and infer the value of the indicator. 
-        Your output should be one of the following: red, yellow, or green.
+        Your output should include your color estimate (red, yellow, or green) for the given indicator.
         Also give an explanation of why you chose that value.
         The description of the indicator and the company reports are given below:
         '''
 
     indicator_desc = SOFT_INDICATOR_DESC[indicator]
+    indicator_desc += "\n=================\nREPORTS BEGIN\n=================\n\n"
 
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
