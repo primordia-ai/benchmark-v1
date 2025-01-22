@@ -90,11 +90,11 @@ def main():
         asset_memory_depth = 20
     else:
         # Otherwise, just run all assets
-        n_asset = 200
-        n_asset_per = None
+        n_asset = 6
+        n_asset_per = 2
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
-        budget_per_task = 20
+        budget_per_task = 10
         asset_memory_depth = 100
 
     # Initialize our LLM
