@@ -77,6 +77,7 @@ def main():
     testing = args.test
     temp = args.temp
     strict = args.strict
+    pre_extract = args.pre_extracted
     # Seed rng
     seed = args.seed
     np.random.seed(seed)
@@ -97,8 +98,8 @@ def main():
         asset_memory_depth = 20
     else:
         # Otherwise, just run all assets
-        n_asset = 6
-        n_asset_per = 2
+        n_asset = 200
+        n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
         budget_per_task = 30
@@ -173,7 +174,7 @@ def main():
                 print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     extracted_colors = None
-                    if args.pre_extracted:
+                    if pre_extract:
                         # Load the pre-extracted indicators
                         # Technically you don't need to use the {llm.code} subset
                         extract_path = os.path.join(
