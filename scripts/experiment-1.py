@@ -26,6 +26,10 @@ def main():
         description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category."
     )
     parser.add_argument(
+        "--mode", type=str, help="Whether to run 'alla' or 'llm' or 'both'. Note that 'alla' still requires an "
+                                 "llm-code for its usage."
+    )
+    parser.add_argument(
         "--test", action="store_true", help="Run in test mode"
     )
     parser.add_argument(
@@ -48,6 +52,10 @@ def main():
     )
 
     args = parser.parse_args()
+
+    mode = args.mode
+    if mode not in ["alla", "llm", "both"]:
+        raise ValueError(f"Invalid mode '{mode}'")
 
     llm_code = args.llm_code
     run_name = args.name
@@ -85,20 +93,14 @@ def main():
     # Initialize our LLM
     llm = get_llm(llm_code)(temperature=temp)
 
-    # Create ALLA model
-    m = ALLA(
-        stocks, llm, asset_memory_depth=asset_memory_depth,
-        budget_mode=budget_mode, budget=total_budget,
-    )
-
     # We can just compile asset names here
     # Only for assets that we have reports for
     report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports")
     truth_data = {}
+    stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
         # Check category
-        asset = m.stocks.sel(asset=asset_id)
-        category = asset.category.values.item()
+        category = stocks[asset_id]['category']
         if testing and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
             continue
@@ -107,7 +109,7 @@ def main():
         assets[category].append(asset_id)
         truth_data[asset_id] = {
             "category": category,
-            "growth": asset.growth_2025.values.item(),
+            "growth": stocks[asset_id]['growth_2025'],
         }
 
     # Save run data to config.yaml
@@ -115,7 +117,6 @@ def main():
         "seed": seed,
         "test": testing,
         "llm": llm.to_json(),
-        "alla": m.to_json(),
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
@@ -123,6 +124,14 @@ def main():
         "n_asset_per": n_asset_per,
         "assets": {cat: len(reports) for cat, reports in assets.items()}
     }
+    if mode in ['alla', 'both']:
+        # Create ALLA model
+        m = ALLA(
+            stocks, llm, asset_memory_depth=asset_memory_depth,
+            budget_mode=budget_mode, budget=total_budget,
+        )
+        run_data['alla'] = m.to_json()
+
     config_path = os.path.join(results_dir, "config.json")
     with open(config_path, 'w') as f:
         logger.info(f"Saving run data to {config_path}")
@@ -137,131 +146,134 @@ def main():
     for cat, ids in assets.items():
         print(f"{len(ids)} reports found for '{cat}'")
 
-    #####################
-    # ALLA portion
-    alla_results = {}
+    if mode in ["alla", "both"]:
+        #####################
+        # ALLA portion
+        alla_results = {}
 
-    with logging_redirect_tqdm(loggers=[logger]):
-        for cat, a_ids in assets.items():
-            print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-            for asset_id in tqdm(a_ids, desc="Assets"):
-                extracted_colors = None
-                if args.pre_extracted:
-                    # Load the pre-extracted indicators
-                    # Technically you don't need to use the {llm.code} subset
-                    extract_path = os.path.join(
-                        utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
-                    )
-                    # Result is list of {"value": .., "indicator": ..} items
-                    extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
-                    # Convert to dict of values
-                    extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
+        with logging_redirect_tqdm(loggers=[logger]):
+            for cat, a_ids in assets.items():
+                print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                for asset_id in tqdm(a_ids, desc="Assets"):
+                    extracted_colors = None
+                    if args.pre_extracted:
+                        # Load the pre-extracted indicators
+                        # Technically you don't need to use the {llm.code} subset
+                        extract_path = os.path.join(
+                            utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
+                        )
+                        # Result is list of {"value": .., "indicator": ..} items
+                        extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
+                        # Convert to dict of values
+                        extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
 
-                try:
-                    success, reason = m.process_asset(
-                        asset_id, max_budget=budget_per_task, pre_extracted=extracted_colors
-                    )
-                except Exception as e:
-                    if strict:
-                        raise e
-                    # Else log and continue
-                    logger.warning(f"Exception processing asset {asset_id}: {e}")
-                    alla_results[asset_id] = {
-                        "error": str(e),
-                        "truth": truth_data[asset_id]
-                    }
-                else:
-                    if not success:
+                    try:
+                        success, reason = m.process_asset(
+                            asset_id, max_budget=budget_per_task, pre_extracted=extracted_colors
+                        )
+                    except Exception as e:
+                        if strict:
+                            raise e
+                        # Else log and continue
+                        logger.warning(f"Exception processing asset {asset_id}: {e}")
                         alla_results[asset_id] = {
-                            "error": reason,
+                            "error": str(e),
                             "truth": truth_data[asset_id]
                         }
+                    else:
+                        if not success:
+                            alla_results[asset_id] = {
+                                "error": reason,
+                                "truth": truth_data[asset_id]
+                            }
+                            if strict:
+                                raise ValueError(f"Failed to process asset {asset_id}: {reason}")
+                            # Else log and continue
+                            logger.warning(f"Failed to process asset {asset_id}: {reason}")
+                        # Record the growth quantiles and the category distribution
+                        quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
+                        cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
+                        alla_results[asset_id] = {
+                            "growth": tuple([(q, p) for q, p in zip(m.quantiles, quantile_pred)]),
+                            "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
+                            "truth": truth_data[asset_id]
+                        }
+
+        # Add in-place performance evaluation
+        mixture_params = {
+            "mu": {
+                "high_growth": m.mu_g[0],
+                "stable": m.mu_g[1],
+                "time_bomb": m.mu_g[2],
+            },
+            "sigma": {
+                "high_growth": m.sigma_g[0],
+                "stable": m.sigma_g[1],
+                "time_bomb": m.sigma_g[2],
+            },
+        }
+        stats.evaluate_performance(alla_results, mixture_params, in_place=True)
+
+        # Save ALLA results
+        alla_results_path = os.path.join(results_dir, "alla_results.json")
+        with open(alla_results_path, 'w') as f:
+            logger.info(f"Saving ALLA results to {alla_results_path}")
+            json.dump(alla_results, f, indent=4)
+
+        # Save the alla model
+        m.save_model(
+            model_name=f"alla-{run_name}",
+            save_dir=os.path.join(results_dir, "models")
+        )
+
+
+    if mode in ['llm', 'both']:
+        #####################
+        # LLM Portion
+        #
+        # For each asset combine its report text and the pre-extract indicators into one prompt
+
+        # The llm that generated the indicators doesn't necessarily have to be the subject model
+        # (At least for this experiment)
+        indicator_llm_path_code = "llama3_8b"
+        llm_results = {}
+
+        with logging_redirect_tqdm(loggers=[logger]):
+            for cat, a_ids in assets.items():
+                print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                for asset_id in tqdm(a_ids, desc="Assets"):
+                    # Load indicators
+                    indicator_file = os.path.join(
+                        utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
+                    )
+                    with open(indicator_file, 'r') as f:
+                        indicators = json.load(f)
+                    # Get report text
+                    report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
+                    reports_text = read_reports(report_file)
+
+                    prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
+                    try:
+                        evaluation = llm.evaluate_asset(prompt, max_retries=5)
+                    except Exception as e:
                         if strict:
-                            raise ValueError(f"Failed to process asset {asset_id}: {reason}")
+                            raise e
                         # Else log and continue
-                        logger.warning(f"Failed to process asset {asset_id}: {reason}")
-                    # Record the growth quantiles and the category distribution
-                    quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
-                    cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
-                    alla_results[asset_id] = {
-                        "growth": tuple([(q, p) for q, p in zip(m.quantiles, quantile_pred)]),
-                        "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
-                        "truth": truth_data[asset_id]
-                    }
+                        logger.warning(f"Exception processing asset {asset_id}: {e}")
+                        llm_results[asset_id] = {
+                            "error": str(e),
+                            "truth": truth_data[asset_id]
+                        }
+                    else:
+                        result = evaluation.model_dump()
+                        result["truth"] = truth_data[asset_id]
+                        llm_results[asset_id] = result
 
-    # Add in-place performance evaluation
-    mixture_params = {
-        "mu": {
-            "high_growth": m.mu_g[0],
-            "stable": m.mu_g[1],
-            "time_bomb": m.mu_g[2],
-        },
-        "sigma": {
-            "high_growth": m.sigma_g[0],
-            "stable": m.sigma_g[1],
-            "time_bomb": m.sigma_g[2],
-        },
-    }
-    stats.evaluate_performance(alla_results, mixture_params, in_place=True)
-
-    # Save ALLA results
-    alla_results_path = os.path.join(results_dir, "alla_results.json")
-    with open(alla_results_path, 'w') as f:
-        logger.info(f"Saving ALLA results to {alla_results_path}")
-        json.dump(alla_results, f, indent=4)
-
-    # Save the alla model
-    m.save_model(
-        model_name=f"alla-{run_name}",
-        save_dir=os.path.join(results_dir, "models")
-    )
-
-    #####################
-    # LLM Portion
-    #
-    # For each asset combine its report text and the pre-extract indicators into one prompt
-
-    # The llm that generated the indicators doesn't necessarily have to be the subject model
-    # (At least for this experiment)
-    indicator_llm_code = "llama3_8b"
-    llm_results = {}
-
-    with logging_redirect_tqdm(loggers=[logger]):
-        for cat, a_ids in assets.items():
-            print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-            for asset_id in tqdm(a_ids, desc="Assets"):
-                # Load indicators
-                indicator_file = os.path.join(
-                    utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset_id}.json"
-                )
-                with open(indicator_file, 'r') as f:
-                    indicators = json.load(f)
-                # Get report text
-                report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
-                reports_text = read_reports(report_file)
-
-                prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
-                try:
-                    evaluation = llm.evaluate_asset(prompt, max_retries=5)
-                except Exception as e:
-                    if strict:
-                        raise e
-                    # Else log and continue
-                    logger.warning(f"Exception processing asset {asset_id}: {e}")
-                    llm_results[asset_id] = {
-                        "error": str(e),
-                        "truth": truth_data[asset_id]
-                    }
-                else:
-                    result = evaluation.model_dump()
-                    result["truth"] = truth_data[asset_id]
-                    llm_results[asset_id] = result
-
-    # Save the llm results
-    llm_results_path = os.path.join(results_dir, "llm_results.json")
-    with open(llm_results_path, 'w') as f:
-        logger.info(f"Saving LLM results to {llm_results_path}")
-        json.dump(llm_results, f, indent=4)
+        # Save the llm results
+        llm_results_path = os.path.join(results_dir, "llm_results.json")
+        with open(llm_results_path, 'w') as f:
+            logger.info(f"Saving LLM results to {llm_results_path}")
+            json.dump(llm_results, f, indent=4)
 
 
 if __name__ == '__main__':
