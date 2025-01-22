@@ -58,12 +58,19 @@ def main():
     parser.add_argument(
         "--pre-extracted", action="store_true", help="Use pre-extracted indicators."
     )
+    parser.add_argument(
+        "--log-level", type=str, default="INFO", help="Logging level. Default 'INFO'."
+    )
 
     args = parser.parse_args()
 
     mode = args.mode
     if mode not in ["alla", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
+
+    loglevel = args.log_level
+    if loglevel != "INFO":
+        reset_logger(loglevel)
 
     llm_code = args.llm_code
     run_name = args.name
@@ -94,7 +101,7 @@ def main():
         n_asset_per = 2
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
-        budget_per_task = 10
+        budget_per_task = 30
         asset_memory_depth = 100
 
     # Initialize our LLM
@@ -296,7 +303,7 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
 
-    from alla.logger import logger
+    from alla.logger import logger, reset_logger
 
     from alla import synthetic as synth, utils, stats
     from alla.alla import ALLA, BudgetMode
