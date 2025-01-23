@@ -2,11 +2,16 @@
 Consolidate LLM models, and LLM utils etc.
 """
 import os
-from abc import ABC, abstractmethod
+import time
+
+from abc import ABC
 from typing import Literal
-
 from pydantic import BaseModel, create_model, Field
+from tqdm import tqdm
 
+from alla.llm import utils as llm_utils
+from alla.llm.wrangling import read_reports
+from alla.logger import logger
 from alla.utils import PROJECT_ROOT
 
 
@@ -48,6 +53,7 @@ class LLMBaseClass(ABC):
         self.temperature = temperature
         self.seed = seed
         self.path_code = self.path_code or self.code
+        self._client = None
 
     def to_json(self):
         return {
@@ -58,6 +64,15 @@ class LLMBaseClass(ABC):
             "context_window": self.context_window,
             "temperature": self.temperature,
         }
+
+    def init_client(self) -> None:
+        raise NotImplementedError()
+
+    def get_client(self, cached: bool = True):
+        """Return the client, initializing if needed. Use cached=False to re-init"""
+        if not cached or not self._client:
+            self.init_client()
+        return self._client
 
     @staticmethod
     def _create_indicator_class():
@@ -79,7 +94,6 @@ class LLMBaseClass(ABC):
             ))
         )
 
-    @abstractmethod
     def extract_indicator(
         self,
         indicator_name: str,
@@ -103,10 +117,44 @@ class LLMBaseClass(ABC):
 
         :return:                A dictionary with keys "name", "value", "reason"
         """
-        raise NotImplementedError()
+        if not report_dir and not reports_text:
+            raise ValueError("Either report_dir or reports_text must be provided")
+        if report_dir and reports_text:
+            # Hmm...
+            logger.warning("Received report_dir and reports_text. Opting for reports_text.")
+
+        if not reports_text:
+            reports_text = read_reports(report_dir, include, exclude)
+
+        if verbose is True:
+            tqdm.write(f"Inferring value from report for '{asset_id}' for {indicator_name}")
+
+        try:
+            prompt = llm_utils.prompt_se_context(indicator_name, reports_text)
+        except KeyError:
+            raise ValueError(f'Prompt for {indicator_name} not found')
+        except FileNotFoundError:
+            raise FileNotFoundError(f'File not found for asset_id {asset_id}')
+
+        client = self.get_client()
+        response, completion = client.chat.completions.create_with_completion(
+            model=self.code,
+            temperature=self.temperature,
+            messages=[
+                {"role": "user", "content": prompt},
+            ],
+            response_model=self._create_indicator_class(),
+            max_retries=3,
+            seed=self.seed,
+        )
+        py_response = response.model_dump()
+        # Add the indicator value
+        py_response["indicator"] = indicator_name
+
+        return py_response
 
     def evaluate_asset(
-        self, prompt: str, max_retries: int = 3
+        self, prompt: str, max_retries: int = 3, budget: float | None = None
     ) -> AssetEvaluation:
         """
         Evaluates an asset given its reports and indicators.
@@ -114,9 +162,21 @@ class LLMBaseClass(ABC):
 
         :param prompt:                  The prompt to use for the evaluation.
         :param max_retries:             The maximum number of retries to attempt.
+        :param budget:                  Budget to perform the evaluation within.
         :return:                        AssetEvaluation
         """
-        raise NotImplementedError()
+        client = self.get_client()
+        response, completion = client.chat.completions.create_with_completion(
+            model=self.code,
+            temperature=self.temperature,
+            messages=[
+                {"role": "user", "content": prompt},
+            ],
+            response_model=AssetEvaluation,
+            max_retries=max_retries,
+            seed=self.seed,
+        )
+        return response
 
     def __str__(self):
         """Return name and class dot notation"""

@@ -41,4 +41,4 @@ if __name__ == '__main__':
 
     prompt = llm_utils.prompt_exp1_task(report_txt, indicators)
     result = llm.evaluate_asset(prompt, max_retries=5)
-    print(f"MW RESULT -- {result}")
+    print(f"RESULT -- {result}")

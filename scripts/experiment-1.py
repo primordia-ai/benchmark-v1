@@ -105,6 +105,9 @@ def main():
         budget_per_task = 30
         asset_memory_depth = 100
 
+    if mode in ['llm', 'both'] and budget_mode != BudgetMode.WALL:
+        raise ValueError("LLM mode only available for WALL budget")
+
     # Initialize our LLM
     llm = get_llm(llm_code)(temperature=temp)
 
@@ -181,7 +184,9 @@ def main():
                             utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
                         )
                         # Result is list of {"value": .., "indicator": ..} items
-                        extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
+                        extracted_colors = llm_utils.load_extracted_indicators(
+                            extract_path, keys=["value", "indicator"]
+                        )
                         # Convert to dict of values
                         extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
 
@@ -244,7 +249,6 @@ def main():
             save_dir=os.path.join(results_dir, "models")
         )
 
-
     if mode in ['llm', 'both']:
         #####################
         # LLM Portion
@@ -260,6 +264,7 @@ def main():
             for cat, a_ids in assets.items():
                 print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
+                    indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
                         utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
@@ -267,25 +272,35 @@ def main():
                     with open(indicator_file, 'r') as f:
                         indicators = json.load(f)
                     # Get report text
+                    # TODO -- The report text provides descriptions of qualitative indicators
+                    #  but not quantitative atm
                     report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
                     reports_text = read_reports(report_file)
 
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
-                    try:
-                        evaluation = llm.evaluate_asset(prompt, max_retries=5)
-                    except Exception as e:
-                        if strict:
-                            raise e
-                        # Else log and continue
-                        logger.warning(f"Exception processing asset {asset_id}: {e}")
-                        llm_results[asset_id] = {
-                            "error": str(e),
-                            "truth": truth_data[asset_id]
-                        }
-                    else:
-                        result = evaluation.model_dump()
-                        result["truth"] = truth_data[asset_id]
-                        llm_results[asset_id] = result
+                    # Start the clock
+                    task_start = time.time()
+                    # TODO -- Implement the budget termination (through retry callbacks)
+                    while (time.time() - task_start) < budget_per_task:
+                        try:
+                            evaluation = llm.evaluate_asset(prompt, max_retries=3, budget=budget_per_task)
+                        except Exception as e:
+                            # Log the error and try again if there's budget
+                            logger.warning(f"Exception evaluating asset {asset_id}: {e}")
+                            if (time.time() - task_start) < budget_per_task:
+                                logger.warning("Retrying within remaining budget...")
+                            else:
+                                # Time's up
+                                logger.warning(f"Out of budget")
+                                llm_results[asset_id] = {
+                                    "error": str(e),
+                                    "truth": truth_data[asset_id]
+                                }
+                        else:
+                            # Successful eval
+                            result = evaluation.model_dump()
+                            result["truth"] = truth_data[asset_id]
+                            llm_results[asset_id] = result
 
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
@@ -299,6 +314,7 @@ if __name__ == '__main__':
     import argparse
     import json
     import os
+    import time
 
     import numpy as np
     from tqdm import tqdm
