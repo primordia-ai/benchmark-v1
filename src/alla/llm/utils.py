@@ -182,7 +182,26 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
-def prompt_exp1_task(report_text: str, indicators_json: str):
+def prompt_indicator_likelihood(select_indicator: str | None = None) -> str:
+    """
+    Returns the indicator likelihood matrix information, formatted for LLM consumption.
+    Args:
+        select_indicator (str):     Optionally specify an indicator to filter the output
+    """
+    return NotImplementedError("Work In Progress")
+
+    ind = synth.get_indicator_dataset()
+    if select_indicator:
+        preample = f"""
+        Below is a lookup table of class and color likelihoods for the '{select_indicator}' indicator. 
+        """
+    else:
+        preample = """
+        Below is a lookup table of indicator likelihoods
+        """
+
+
+def prompt_exp1_task(report_text: str, indicators_json: str | None):
     """
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
     Args:
@@ -194,21 +213,51 @@ def prompt_exp1_task(report_text: str, indicators_json: str):
     mu_g = {cls: mu for cls, mu in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_MU)}
     scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
 
-    prompt = f'''
+    if indicators_json:
+        text_alternatives = [
+            """
+            You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+            
+            The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
+            yellow indicates a neutral performance, and green indicates a positive performance.
+            """,
+            f"""
+            Below are the report data and indicators.
+            
+            REPORTS:
+            {report_text}
+            *************
+            INDICATORS:
+            {indicators_json} 
+            """
+        ]
+    else:
+        text_alternatives = [
+            """
+            You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+            """,
+            f"""
+            Below are the report data and indicators.
+        
+            REPORTS:
+            {report_text}
+            """,
+        ]
+
+    prompt = f"""
         You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
         You goal is to evaluate this company across two dimensions:
             1. It's investment class, which can be one of "high_growth", "stable", or "time_bomb".
             2. Its predicted upcoming growth for the next year.
             
-        The classes are rather self-evident: high_growth companies are promising investments; time_bomb companies
-        have problematic outlooks; and stable companies are the moderate.
+        The classes are self-evident: 'high_growth' companies are promising investments; 'time_bomb' companies
+        have problematic outlooks; and 'stable' companies are the moderate.
         ---
-        You have been given the following information:
-            - A compilation of various performance reports in text
-            - A list of financial indicators
-            
-        The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
-        yellow indicates a neutral performance, and green indicates a positive performance.
+        {text_alternatives[0]}
         
         You are also given some statistical parameters that underlie company growth rates by class, 
         which parametrize a Gaussian form:
@@ -218,17 +267,11 @@ def prompt_exp1_task(report_text: str, indicators_json: str):
         growth is the mean from mu_growth -- You'll have to consider the reports and indicators to further
         inform the exact growth value
         ---
-        Below are the report data and indicators.
-        
-        REPORTS:
-        {report_text}
-        *************
-        INDICATORS:
-        {indicators_json} 
+        {text_alternatives[1]}
         ---
         You have received all the information you need.
         Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
-        '''
+        """
 
     return prompt
 

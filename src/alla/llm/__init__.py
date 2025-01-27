@@ -1,7 +1,7 @@
 from typing import Type
 
 from .base import LLMBaseClass
-from .llama import LlamaSmall, LlamaSmallAlt, LlamaTiny, LlamaMamma
+from .llama import LlamaMamma, LlamaSmall, LlamaSmallAlt, LlamaTiny
 
 AVAILABLE_MODELS = {
     # Model codes to classes
