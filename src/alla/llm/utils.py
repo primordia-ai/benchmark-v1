@@ -213,16 +213,14 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
         indicator_likelihood_prompt = prompt_indicator_likelihoods()
 
         text_alternatives = [
-            """
-            You have been given the following information:
+            """You have been given the following information:
                 - A compilation of various performance reports in text
                 - A list of financial indicators
             
             The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
             yellow indicates a neutral performance, and green indicates a positive performance.
             """,
-            f"""
-            Below are the report data and indicators.
+            f"""Below are the report data and indicators.
             
             REPORTS:
             {report_text}
@@ -236,43 +234,40 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
         ]
     else:
         text_alternatives = [
-            """
-            You have been given the following information:
+            """You have been given the following information:
                 - A compilation of various performance reports in text
                 - A list of financial indicators
             """,
-            f"""
-            Below are the report data and indicators.
+            f"""Below are the report data and indicators.
         
             REPORTS:
             {report_text}
             """,
         ]
 
-    prompt = f"""
-        You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
-        You goal is to evaluate this company across two dimensions:
-            1. It's investment class, which can be one of "high_growth", "stable", or "time_bomb".
-            2. Its predicted upcoming growth for the next year.
+    prompt = f"""You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
+    You goal is to evaluate this company across two dimensions:
+        1. It's investment class, which can be one of "high_growth", "stable", or "time_bomb".
+        2. Its predicted upcoming growth for the next year.
             
-        The classes are self-evident: 'high_growth' companies are promising investments; 'time_bomb' companies
-        have problematic outlooks; and 'stable' companies are the moderate.
-        ---
-        {text_alternatives[0]}
-        
-        You are also given some statistical parameters that underlie company growth rates by class, 
-        which parametrize a Gaussian form:
-            mu_growth: {mu_g},
-            sigma_growth: {scale_g}
-        Keep in mind, that just because an asset may belong to a certain investment class, does not mean its
-        growth is the mean from mu_growth -- You'll have to consider the reports and indicators to further
-        inform the exact growth value
-        ---
-        {text_alternatives[1]}
-        ---
-        You have received all the information you need.
-        Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
-        """
+    The classes are self-evident: 'high_growth' companies are promising investments; 'time_bomb' companies have 
+    problematic outlooks; and 'stable' companies are the moderate.
+    ---
+    {text_alternatives[0]}
+    
+    You are also given some statistical parameters that underlie company growth rates by class, 
+    which parametrize a Gaussian form:
+        mu_growth: {mu_g},
+        sigma_growth: {scale_g}
+    Keep in mind, that just because an asset may belong to a certain investment class, does not mean its
+    growth is the mean from mu_growth -- You'll have to consider the reports and indicators to further
+    inform the exact growth value
+    ---
+    {text_alternatives[1]}
+    ---
+    You have received all the information you need.
+    Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
+    """
 
     return prompt
 

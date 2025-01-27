@@ -34,11 +34,13 @@ if __name__ == '__main__':
     )
 
     # indicator text
-    indicator_llm_code = "llama3:8b"
+    indicator_llm_code = "llama3_8b"
     indicator_file = os.path.join(PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset}.json")
     with open(indicator_file, 'r') as f:
         indicators = json.load(f)
 
     prompt = llm_utils.prompt_exp1_task(report_txt, indicators)
+    print(prompt)
     result = llm.evaluate_asset(prompt, max_retries=5)
-    print(f"RESULT -- {result}")
+    # NOTE: Llama-tiny truncates this prompt since it can't handle it...
+    print(f"\nTEST RESULT:\n{result}")
