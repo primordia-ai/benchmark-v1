@@ -182,23 +182,19 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
-def prompt_indicator_likelihood(select_indicator: str | None = None) -> str:
+def prompt_indicator_likelihoods(select_indicator: str | None = None) -> str:
     """
     Returns the indicator likelihood matrix information, formatted for LLM consumption.
     Args:
         select_indicator (str):     Optionally specify an indicator to filter the output
     """
-    return NotImplementedError("Work In Progress")
-
     ind = synth.get_indicator_dataset()
+    df = ind.likelihood.to_dataframe()
     if select_indicator:
-        preample = f"""
-        Below is a lookup table of class and color likelihoods for the '{select_indicator}' indicator. 
-        """
+        data = df.xs(select_indicator, level='indicator')
+        return f"Below is a lookup table of class and color likelihoods for the '{select_indicator}' indicator:\n\n{data.to_string()}\n"
     else:
-        preample = """
-        Below is a lookup table of indicator likelihoods
-        """
+        return f"Below is a lookup table of class and color likelihoods for company indicators:\n\n{df.to_string()}\n"
 
 
 def prompt_exp1_task(report_text: str, indicators_json: str | None):
@@ -214,6 +210,8 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
 
     if indicators_json:
+        indicator_likelihood_prompt = prompt_indicator_likelihoods()
+
         text_alternatives = [
             """
             You have been given the following information:
@@ -231,6 +229,9 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
             *************
             INDICATORS:
             {indicators_json} 
+            *************
+            INDICATOR LIKELIHOODS:
+            {indicator_likelihood_prompt}
             """
         ]
     else:
