@@ -182,6 +182,25 @@ def prompt_se_context(indicator, report_text: str):
     return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
 
 
+def prompt_indicator_likelihood(select_indicator: str | None = None) -> str:
+    """
+    Returns the indicator likelihood matrix information, formatted for LLM consumption.
+    Args:
+        select_indicator (str):     Optionally specify an indicator to filter the output
+    """
+    return NotImplementedError("Work In Progress")
+
+    ind = synth.get_indicator_dataset()
+    if select_indicator:
+        preample = f"""
+        Below is a lookup table of class and color likelihoods for the '{select_indicator}' indicator. 
+        """
+    else:
+        preample = """
+        Below is a lookup table of indicator likelihoods
+        """
+
+
 def prompt_exp1_task(report_text: str, indicators_json: str | None):
     """
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
@@ -204,7 +223,7 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
             The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
             yellow indicates a neutral performance, and green indicates a positive performance.
             """,
-            """
+            f"""
             Below are the report data and indicators.
             
             REPORTS:
@@ -221,7 +240,7 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
                 - A compilation of various performance reports in text
                 - A list of financial indicators
             """,
-            """
+            f"""
             Below are the report data and indicators.
         
             REPORTS:
@@ -229,7 +248,7 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
             """,
         ]
 
-    prompt = f'''
+    prompt = f"""
         You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
         You goal is to evaluate this company across two dimensions:
             1. It's investment class, which can be one of "high_growth", "stable", or "time_bomb".
@@ -252,7 +271,7 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
         ---
         You have received all the information you need.
         Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
-        '''
+        """
 
     return prompt
 
