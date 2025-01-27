@@ -18,7 +18,7 @@ if __name__ == '__main__':
     from alla.llm import wrangling
     from alla.utils import PROJECT_ROOT
 
-    llm_cls = get_llm("llama-tiny")
+    llm_cls = get_llm("llama-mamma")
     llm = llm_cls(temperature=0)
 
     # Load the report
