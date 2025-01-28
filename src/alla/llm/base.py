@@ -2,36 +2,17 @@
 Consolidate LLM models, and LLM utils etc.
 """
 import os
-import time
-
 from abc import ABC
 from typing import Literal
-from pydantic import BaseModel, create_model, Field
+
+import instructor
+from pydantic import create_model, Field
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import PROJECT_ROOT
-
-
-class GrowthEstimate(BaseModel):
-    mean: float
-    std: float
-
-
-# class CategoryDistribution(BaseModel):
-#     high_growth: float
-#     stable: float
-#     time_bomb: float
-
-class AssetEvaluation(BaseModel):
-    category: Literal['high_growth', 'stable', 'time_bomb'] = Field(
-        ..., title="Category", description="The category of the asset/company indicating its growth potential."
-    )
-    growth: float = Field(
-        ..., title="Growth", description="The estimated growth of the asset/company."
-    )
 
 
 class LLMBaseClass(ABC):
@@ -68,7 +49,7 @@ class LLMBaseClass(ABC):
     def init_client(self) -> None:
         raise NotImplementedError()
 
-    def get_client(self, cached: bool = True):
+    def get_client(self, cached: bool = True) -> instructor.Instructor | instructor.AsyncInstructor:
         """Return the client, initializing if needed. Use cached=False to re-init"""
         if not cached or not self._client:
             self.init_client()
@@ -155,7 +136,7 @@ class LLMBaseClass(ABC):
 
     def evaluate_asset(
         self, prompt: str, max_retries: int = 3, budget: float | None = None
-    ) -> AssetEvaluation:
+    ) -> llm_utils.AssetEvaluationV2:
         """
         Evaluates an asset given its reports and indicators.
         Produces this model's estimate of the asset's growth forecast and category distribution.
@@ -163,7 +144,7 @@ class LLMBaseClass(ABC):
         :param prompt:                  The prompt to use for the evaluation.
         :param max_retries:             The maximum number of retries to attempt.
         :param budget:                  Budget to perform the evaluation within.
-        :return:                        AssetEvaluation
+        :return:                        Asset evaluation
         """
         client = self.get_client()
         response, completion = client.chat.completions.create_with_completion(
@@ -172,7 +153,7 @@ class LLMBaseClass(ABC):
             messages=[
                 {"role": "user", "content": prompt},
             ],
-            response_model=AssetEvaluation,
+            response_model=llm_utils.AssetEvaluationV2,
             max_retries=max_retries,
             seed=self.seed,
         )
