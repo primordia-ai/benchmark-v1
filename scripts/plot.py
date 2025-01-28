@@ -14,22 +14,26 @@ def exp1():
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/llama3-70b")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/keep")
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
+    save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
+
+    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_se_full/alla_results.json"), 'r'))
+    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llama3_70b_full/llm_results.json"), 'r'))
 
     # Load ALLA results
-    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
-    # For now we use the .5 percentile for plotting
     alla_data = [
         {
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
-            "growth": asset['growth']["0.5"],
+            "growth": asset['growth'][2][1], # p_50
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
         }
         for asset in alla_results.values()
     ]
-
-    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
+    # LLM data
     llm_data = [
         {
             "category": v["category"],
@@ -93,6 +97,9 @@ def exp1():
     print(f"Saving to {save_path2}")
     plt.savefig(save_path2)
     plt.close()
+
+    # <><>< Figure 3 ><><>
+    # Plot a distribution of the class loss for ALLA
 
 
 if __name__ == '__main__':
