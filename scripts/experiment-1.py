@@ -309,6 +309,7 @@ def main():
                                 "category": result,
                                 "truth": truth_data[asset_id],
                             }
+                            print(f"MW RESULT -- {llm_results[asset_id]}")
 
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
