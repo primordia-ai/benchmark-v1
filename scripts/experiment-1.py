@@ -303,7 +303,7 @@ def main():
                             result = evaluation.model_dump()
                             # Compute growth quantiles
                             mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
-                            quantiles: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
+                            quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
                             llm_results[asset_id] = {
                                 "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
                                 "category": result,
