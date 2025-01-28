@@ -43,4 +43,4 @@ if __name__ == '__main__':
     print(prompt)
     result = llm.evaluate_asset(prompt, max_retries=5)
     # NOTE: Llama-tiny truncates this prompt since it can't handle it...
-    print(f"\nTEST RESULT:\n{result}")
+    print(f"\nTEST RESULT:\n{result.model_dump()}")

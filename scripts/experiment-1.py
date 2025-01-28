@@ -86,6 +86,20 @@ def main():
     os.makedirs(results_dir, exist_ok=True)
 
     categories = ["high_growth", "stable", "time_bomb"]
+    mixture_params = {
+        "mu": {
+            "high_growth": synth.GROWTH_MU[0],
+            "stable": synth.GROWTH_MU[1],
+            "time_bomb": synth.GROWTH_MU[2],
+        },
+        "sigma": {
+            "high_growth": synth.GROWTH_SCALE[0],
+            "stable": synth.GROWTH_SCALE[1],
+            "time_bomb": synth.GROWTH_SCALE[2],
+        },
+    }
+    quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
+
     assets = {cat: [] for cat in categories}
 
     if testing:
@@ -223,18 +237,6 @@ def main():
                         }
 
         # Add in-place performance evaluation
-        mixture_params = {
-            "mu": {
-                "high_growth": m.mu_g[0],
-                "stable": m.mu_g[1],
-                "time_bomb": m.mu_g[2],
-            },
-            "sigma": {
-                "high_growth": m.sigma_g[0],
-                "stable": m.sigma_g[1],
-                "time_bomb": m.sigma_g[2],
-            },
-        }
         stats.evaluate_performance(alla_results, mixture_params, in_place=True)
 
         # Save ALLA results
@@ -299,8 +301,17 @@ def main():
                         else:
                             # Successful eval
                             result = evaluation.model_dump()
-                            result["truth"] = truth_data[asset_id]
-                            llm_results[asset_id] = result
+                            # Compute growth quantiles
+                            mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
+                            quantiles: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
+                            llm_results[asset_id] = {
+                                "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
+                                "category": result,
+                                "truth": truth_data[asset_id],
+                            }
+
+        # Add in-place performance evaluation
+        stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
