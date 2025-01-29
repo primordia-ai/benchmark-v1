@@ -18,10 +18,10 @@ def exp1(results_name: str):
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
     save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
+    save_path4 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_alla.png")
     # Ensure the directories exist
     os.makedirs(os.path.dirname(save_path1), exist_ok=True)
-    os.makedirs(os.path.dirname(save_path2), exist_ok=True)
-    os.makedirs(os.path.dirname(save_path3), exist_ok=True)
+    
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
@@ -137,7 +137,7 @@ def exp1(results_name: str):
     plt.title("Confusion Matrix for ALLA")
     plt.tight_layout()
 
-    save_path4 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_alla.png")
+    
     print(f"Saving to {save_path4}")
     plt.savefig(save_path4)
     plt.close()
