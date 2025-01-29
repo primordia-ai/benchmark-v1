@@ -118,9 +118,9 @@ def exp1():
 if __name__ == '__main__':
     # Accept first argument as function name to be called
     import sys
-from sklearn.metrics import confusion_matrix
-import numpy as np
-import seaborn as sns
+    from sklearn.metrics import confusion_matrix
+    import numpy as np
+    import seaborn as sns
 
     if len(sys.argv) < 2:
         raise ValueError("Please provide a function name to call")
