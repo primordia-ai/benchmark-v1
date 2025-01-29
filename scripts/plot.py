@@ -93,11 +93,34 @@ def exp1():
     print(f"Saving to {save_path2}")
     plt.savefig(save_path2)
     plt.close()
+    # <><>< Confusion Matrix ><><>
+
+    # Create a confusion matrix for the category predictions
+    y_true = [v["truth"]["category"] for v in llm_results.values()]
+    y_pred = [v["category"] for v in llm_results.values()]
+
+    cm = confusion_matrix(y_true, y_pred, labels=["High Growth", "Stable", "Time-bomb"])
+    cm_df = pd.DataFrame(cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.tight_layout()
+
+    save_path3 = os.path.join(RESULTS_DIR, "figs/confusion_matrix.png")
+    print(f"Saving to {save_path3}")
+    plt.savefig(save_path3)
+    plt.close()
 
 
 if __name__ == '__main__':
     # Accept first argument as function name to be called
     import sys
+from sklearn.metrics import confusion_matrix
+import numpy as np
+import seaborn as sns
 
     if len(sys.argv) < 2:
         raise ValueError("Please provide a function name to call")
