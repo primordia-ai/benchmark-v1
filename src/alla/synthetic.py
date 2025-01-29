@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 from pydantic import BaseModel
 
-from alla import utils
+from alla import utils, stats as alla_stats
 
 # Has relevance for data arrays
 ORDERED_INDICATORS = (
@@ -1087,6 +1087,22 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     ds.ryg.attrs['description'] = 'Red/Yellow/Green classification of indicators'
 
     return ds
+
+
+def compute_growth_quantiles(mixture_weights: list[float], quantiles: list[float]) -> np.ndarray:
+    """
+    Using the defined GROWTH_MU and GROWTH_SCALE, we can compute growth quantiles
+    from a prior of mixture weights
+
+    :param mixture_weights:  Mixture weights in same order as GROWTH_MU, GROWTH_SCALE
+    :param quantiles:        List of quantiles to compute
+    """
+    generator_params = [(m, sig) for m, sig in zip(GROWTH_MU, GROWTH_SCALE)]
+    return alla_stats.MixtureDistribution.compute_quantiles(
+        distributions=generator_params,
+        weights=mixture_weights,
+        quantiles=quantiles
+    )
 
 
 # ==================

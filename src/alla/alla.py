@@ -581,13 +581,8 @@ class ALLA:
         else:
             # Compute the quantiles
             # We use the known Mixture means and stds, and then the asset mixture weights
-            generator_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
             prior = self.stocks.prior.sel(asset=asset.asset).values[:, -1]
-            quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
-                distributions=generator_params,
-                weights=prior,
-                quantiles=quantiles
-            )
+            quantile_values = synth.compute_growth_quantiles(prior, list(quantiles))
             self._update_quantile_pred(asset, quantile_values)
 
     def select_next_indicator_with_budget_evolutionary(

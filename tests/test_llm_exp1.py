@@ -18,7 +18,7 @@ if __name__ == '__main__':
     from alla.llm import wrangling
     from alla.utils import PROJECT_ROOT
 
-    llm_cls = get_llm("llama-mamma")
+    llm_cls = get_llm("llama-tiny")
     llm = llm_cls(temperature=0)
 
     # Load the report
@@ -43,4 +43,4 @@ if __name__ == '__main__':
     print(prompt)
     result = llm.evaluate_asset(prompt, max_retries=5)
     # NOTE: Llama-tiny truncates this prompt since it can't handle it...
-    print(f"\nTEST RESULT:\n{result}")
+    print(f"\nTEST RESULT:\n{result.model_dump()}")
