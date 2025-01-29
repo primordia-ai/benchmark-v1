@@ -306,6 +306,7 @@ def main():
                         else:
                             # Successful eval
                             result = evaluation.model_dump()
+                            print(f"MW RESULT -- {result}")
                             # Compute growth quantiles
                             mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
                             quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
