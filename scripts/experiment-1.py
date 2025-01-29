@@ -137,6 +137,10 @@ def main():
             # We have enough assets for this category
             continue
 
+        # TODO -- REMOVE
+        if category != "time_bomb":
+            continue
+
         # Add asset to category and record truth data
         assets[category].append(asset_id)
         truth_data[asset_id] = {
