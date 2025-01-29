@@ -21,7 +21,7 @@ def exp1(results_name: str):
     save_path4 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_alla.png")
     # Ensure the directories exist
     os.makedirs(os.path.dirname(save_path1), exist_ok=True)
-    
+
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
@@ -106,7 +106,7 @@ def exp1(results_name: str):
     y_true = df[df["source"] == "Truth"]["category"]
     y_pred = df[df["source"] == "LLM"]["category"]
 
-    cm = confusion_matrix(y_true, y_pred, labels=["High Growth", "Stable", "Time-bomb"])
+    cm = confusion_matrix(y_true, y_pred)
     cm_df = pd.DataFrame(cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
 
     plt.figure(figsize=(6, 4))
@@ -127,7 +127,7 @@ def exp1(results_name: str):
     y_true_alla = df[df["source"] == "Truth"]["category"]
     y_pred_alla = df[df["source"] == "ALLA"]["category"]
 
-    cm_alla = confusion_matrix(y_true_alla, y_pred_alla, labels=["High Growth", "Stable", "Time-bomb"])
+    cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
     cm_alla_df = pd.DataFrame(cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
 
     plt.figure(figsize=(6, 4))
