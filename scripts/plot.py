@@ -18,10 +18,10 @@ def exp1(results_name: str):
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
     save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
+    save_path4 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_alla.png")
     # Ensure the directories exist
     os.makedirs(os.path.dirname(save_path1), exist_ok=True)
-    os.makedirs(os.path.dirname(save_path2), exist_ok=True)
-    os.makedirs(os.path.dirname(save_path3), exist_ok=True)
+
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
@@ -100,6 +100,65 @@ def exp1(results_name: str):
     print(f"Saving to {save_path2}")
     plt.savefig(save_path2)
     plt.close()
+    # <><>< Confusion Matrix ><><>
+
+    # Create a confusion matrix for the category predictions
+    y_true = df[df["source"] == "Truth"]["category"]
+    y_pred = df[df["source"] == "LLM"]["category"]
+
+    cm = confusion_matrix(y_true, y_pred)
+    cm_df = pd.DataFrame(cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.tight_layout()
+
+    save_path3 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_llm.png")
+    print(f"Saving to {save_path3}")
+    plt.savefig(save_path3)
+    plt.close()
+
+    # <><>< Confusion Matrix for ALLA ><><>
+
+    # Create a confusion matrix for the category predictions for ALLA results
+    y_true_alla = df[df["source"] == "Truth"]["category"]
+    y_pred_alla = df[df["source"] == "ALLA"]["category"]
+
+    cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
+    cm_alla_df = pd.DataFrame(cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm_alla_df, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix for ALLA")
+    plt.tight_layout()
+
+    
+    print(f"Saving to {save_path4}")
+    plt.savefig(save_path4)
+    plt.close()
+
+    # Classification report for LLM results
+    report_llm = classification_report(y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_llm_df = pd.DataFrame(report_llm).transpose()
+
+    save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
+    print(f"Saving LLM classification report to {save_path_llm_report}")
+    with open(save_path_llm_report, 'w') as f:
+        f.write(report_llm_df.to_latex())
+
+    # Classification report for ALLA results
+    report_alla = classification_report(y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_alla_df = pd.DataFrame(report_alla).transpose()
+
+    save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
+    print(f"Saving ALLA classification report to {save_path_alla_report}")
+    with open(save_path_alla_report, 'w') as f:
+        f.write(report_alla_df.to_latex())
 
     # <><>< Figure 3 ><><>
     # Plot a distribution of the class loss for ALLA
@@ -107,6 +166,10 @@ def exp1(results_name: str):
 
 if __name__ == '__main__':
     import sys
+    from sklearn.metrics import confusion_matrix
+    import numpy as np
+    import seaborn as sns
+    from sklearn.metrics import classification_report
 
     if len(sys.argv) < 3:
         raise ValueError(
