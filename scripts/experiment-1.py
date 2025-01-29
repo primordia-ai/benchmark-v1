@@ -269,7 +269,8 @@ def main():
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
                 print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
-                for asset_id in tqdm(a_ids, desc="Assets"):
+                for asset_id in tqdm(a_ids[:18], desc="Assets"):
+                    print(f"MW ASSET -- {asset_id}")
                     indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
