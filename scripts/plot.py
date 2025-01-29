@@ -135,6 +135,24 @@ def exp1():
     plt.savefig(save_path4)
     plt.close()
 
+    # Classification report for LLM results
+    report_llm = classification_report(y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_llm_df = pd.DataFrame(report_llm).transpose()
+
+    save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
+    print(f"Saving LLM classification report to {save_path_llm_report}")
+    with open(save_path_llm_report, 'w') as f:
+        f.write(report_llm_df.to_latex())
+
+    # Classification report for ALLA results
+    report_alla = classification_report(y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_alla_df = pd.DataFrame(report_alla).transpose()
+
+    save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
+    print(f"Saving ALLA classification report to {save_path_alla_report}")
+    with open(save_path_alla_report, 'w') as f:
+        f.write(report_alla_df.to_latex())
+
 
 if __name__ == '__main__':
     # Accept first argument as function name to be called
@@ -142,6 +160,7 @@ if __name__ == '__main__':
     from sklearn.metrics import confusion_matrix
     import numpy as np
     import seaborn as sns
+    from sklearn.metrics import classification_report
 
     if len(sys.argv) < 2:
         raise ValueError("Please provide a function name to call")
