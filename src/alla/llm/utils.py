@@ -3,11 +3,74 @@ LLM Utils. In particular, those for retrieving and constructing prompts
 """
 import json
 import os
+from typing import Literal
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from alla import synthetic as synth
 from alla.utils import PROJECT_ROOT
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
+
+
+class GrowthEstimate(BaseModel):
+    mean: float
+    std: float
+
+
+def _prob_validate(value) -> float:
+    if 0 <= value <= 1.0:
+        return value
+    raise ValueError("Probabilities must be in range [0,1]")
+
+
+class CategoryDistribution(BaseModel):
+    high_growth: float = Field(
+        ..., title="High Growth", description="The probability that the asset/company is a high growth investment."
+    )
+    stable: float = Field(
+        ..., title="Stable", description="The probability that the asset/company is a stable investment."
+    )
+    time_bomb: float = Field(
+        ..., title="Time Bomb", description="The probability that the asset/company is a time-bomb investment."
+    )
+
+    @field_validator("high_growth", mode="after")
+    @classmethod
+    def validate_hg(cls, value: float) -> float:
+        return _prob_validate(value)
+
+    @field_validator("stable", mode="after")
+    @classmethod
+    def validate_st(cls, value: float) -> float:
+        return _prob_validate(value)
+
+    @field_validator("time_bomb", mode="after")
+    @classmethod
+    def validate_tb(cls, value: float) -> float:
+        return _prob_validate(value)
+
+    @model_validator(mode="after")
+    def normalize_probabilities(self):
+        total = sum(self.dict().values())
+        self.high_growth /= total
+        self.stable /= total
+        self.time_bomb /= total
+        return self
+
+
+class AssetEvaluationV1(BaseModel):
+    category: Literal['high_growth', 'stable', 'time_bomb'] = Field(
+        ..., title="Category", description="The category of the asset/company indicating its growth potential."
+    )
+    growth: float = Field(
+        ..., title="Growth", description="The estimated growth of the asset/company."
+    )
+
+
+class AssetEvaluationV2(CategoryDistribution):
+    pass
+
 
 SOFT_INDICATOR_DESC = {
     "disruptor_stagnant": """
@@ -197,8 +260,10 @@ def prompt_indicator_likelihoods(select_indicator: str | None = None) -> str:
         return f"Below is a lookup table of class and color likelihoods for company indicators:\n\n{df.to_string()}\n"
 
 
-def prompt_exp1_task(report_text: str, indicators_json: str | None):
+def prompt_exp1_task_deprecated(report_text: str, indicators_json: str | None):
     """
+    DEPRECATED: This requests LLM point estimates, instead of mixture weights.
+
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
     Args:
         report_text (str):      Reports providing information on a company.
@@ -267,6 +332,82 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     ---
     You have received all the information you need.
     Please return your evaluation in JSON format with keys "category" (str) and "growth" (float).
+    """
+
+    return prompt
+
+
+def prompt_exp1_task(report_text: str, indicators_json: str | None):
+    """
+    Generates a detailed prompt for evaluating a specific financial indicator based on company reports.
+
+    Args:
+        report_text (str):      Reports providing information on a company.
+        indicators_json (str):  Indicator data.
+    Returns:
+        str: A formatted prompt containing the description of the indicator, the company reports
+    """
+    mu_g = {cls: mu for cls, mu in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_MU)}
+    scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
+
+    if indicators_json:
+        indicator_likelihood_prompt = prompt_indicator_likelihoods()
+
+        text_alternatives = [
+            """You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+
+            The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
+            yellow indicates a neutral performance, and green indicates a positive performance.
+            """,
+            f"""Below are the report data and indicators.
+
+            REPORTS:
+            {report_text}
+            *************
+            INDICATORS:
+            {indicators_json} 
+            *************
+            INDICATOR LIKELIHOODS:
+            {indicator_likelihood_prompt}
+            """
+        ]
+    else:
+        text_alternatives = [
+            """You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+            """,
+            f"""Below is the report data.
+
+            REPORTS:
+            {report_text}
+            """,
+        ]
+
+    prompt = f"""You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
+    You goal is to evaluate this company to determine its category (class) likelihood.
+    
+    There are three categories: "high_growth", "stable", and "time_bomb".
+    The classes are self-evident: 'high_growth' companies are promising investments; 'time_bomb' companies have 
+    problematic outlooks; and 'stable' companies are the moderate.
+    
+    Your output must be a distribution of probabilities corresponding to your category beliefs for the given asset.
+    So, it will be three probabilities that sum to 1.
+    ---
+    {text_alternatives[0]}
+
+    ---
+    {text_alternatives[1]}
+    
+    ---
+    You have received all the information you need.
+    Please return your evaluation in JSON format with as:
+     
+    "high_growth": <float>, 
+    "stable": <float>, 
+    "time_bomb": <float>
     """
 
     return prompt
