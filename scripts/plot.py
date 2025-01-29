@@ -109,7 +109,7 @@ def exp1():
     plt.title("Confusion Matrix")
     plt.tight_layout()
 
-    save_path3 = os.path.join(RESULTS_DIR, "figs/confusion_matrix.png")
+    save_path3 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_llm.png")
     print(f"Saving to {save_path3}")
     plt.savefig(save_path3)
     plt.close()
