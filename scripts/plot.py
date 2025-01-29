@@ -19,8 +19,8 @@ def exp1(results_name: str):
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
     save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
 
-    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_se_full/alla_results.json"), 'r'))
-    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llama3_70b_full/llm_results.json"), 'r'))
+    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
     # Load ALLA results
     alla_data = [
