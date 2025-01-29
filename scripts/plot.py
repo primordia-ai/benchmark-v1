@@ -14,11 +14,14 @@ def exp1(results_name: str):
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", results_name)
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
     save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
-
+    # Ensure the directories exist
+    os.makedirs(os.path.dirname(save_path1), exist_ok=True)
+    os.makedirs(os.path.dirname(save_path2), exist_ok=True)
+    os.makedirs(os.path.dirname(save_path3), exist_ok=True)
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
