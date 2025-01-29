@@ -8,28 +8,35 @@ from matplotlib import pyplot as plt
 from alla.utils import PROJECT_ROOT
 
 
-def exp1():
+def exp1(results_name: str):
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/llama3-70b")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
+    save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
+    # Ensure the directories exist
+    os.makedirs(os.path.dirname(save_path1), exist_ok=True)
+    os.makedirs(os.path.dirname(save_path2), exist_ok=True)
+    os.makedirs(os.path.dirname(save_path3), exist_ok=True)
+    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
     # Load ALLA results
-    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
-    # For now we use the .5 percentile for plotting
     alla_data = [
         {
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
-            "growth": asset['growth']["0.5"],
+            "growth": asset['growth'][2][1],  # p_50
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
         }
         for asset in alla_results.values()
     ]
-
-    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
+    # LLM data
     llm_data = [
         {
             "category": v["category"],
@@ -153,21 +160,30 @@ def exp1():
     with open(save_path_alla_report, 'w') as f:
         f.write(report_alla_df.to_latex())
 
+    # <><>< Figure 3 ><><>
+    # Plot a distribution of the class loss for ALLA
+
 
 if __name__ == '__main__':
-    # Accept first argument as function name to be called
     import sys
     from sklearn.metrics import confusion_matrix
     import numpy as np
     import seaborn as sns
     from sklearn.metrics import classification_report
 
-    if len(sys.argv) < 2:
-        raise ValueError("Please provide a function name to call")
+    if len(sys.argv) < 3:
+        raise ValueError(
+            "Please provide a function name to call as first argument, and results name "
+            "(relative to results/ directory) as second"
+        )
 
+    # Accept first argument as function name to be called
     func_name = sys.argv[1]
     if func_name not in globals():
         raise ValueError(f"Function {func_name} not found")
 
+    # And second argument as the path to the results directory
+    _results_name = sys.argv[2]
+
     print(f"Calling {func_name}")
-    globals()[func_name]()
+    globals()[func_name](_results_name)
