@@ -271,6 +271,8 @@ def main():
                 print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     print(f"MW ASSET -- {asset_id}")
+                    if asset_id != 'asset_7':
+                        continue
                     indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
