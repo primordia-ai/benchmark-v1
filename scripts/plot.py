@@ -8,13 +8,13 @@ from matplotlib import pyplot as plt
 from alla.utils import PROJECT_ROOT
 
 
-def exp1():
+def exp1(results_name: str):
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results/exp-1/keep")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", results_name)
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
     save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
     save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
@@ -26,7 +26,7 @@ def exp1():
     alla_data = [
         {
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
-            "growth": asset['growth'][2][1], # p_50
+            "growth": asset['growth'][2][1],  # p_50
             "class_loss": asset['class_loss'],
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
@@ -103,15 +103,21 @@ def exp1():
 
 
 if __name__ == '__main__':
-    # Accept first argument as function name to be called
     import sys
 
-    if len(sys.argv) < 2:
-        raise ValueError("Please provide a function name to call")
+    if len(sys.argv) < 3:
+        raise ValueError(
+            "Please provide a function name to call as first argument, and results name "
+            "(relative to results/ directory) as second"
+        )
 
+    # Accept first argument as function name to be called
     func_name = sys.argv[1]
     if func_name not in globals():
         raise ValueError(f"Function {func_name} not found")
 
+    # And second argument as the path to the results directory
+    _results_name = sys.argv[2]
+
     print(f"Calling {func_name}")
-    globals()[func_name]()
+    globals()[func_name](_results_name)
