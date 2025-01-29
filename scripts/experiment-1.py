@@ -309,6 +309,7 @@ def main():
                             print(f"MW RESULT -- {result}")
                             # Compute growth quantiles
                             mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
+                            print(f"MW MIX WEIGHTS -- {mix_weights}")
                             quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
                             llm_results[asset_id] = {
                                 "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
