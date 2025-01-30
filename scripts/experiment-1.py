@@ -309,6 +309,7 @@ def main():
                                 "category": result,
                                 "truth": truth_data[asset_id],
                             }
+                            break
 
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
