@@ -45,7 +45,7 @@ def generate_report(
     value: str,
     model_code: str,
     asset_id: str = '',
-    save_path: str = '../reports',
+    save_path: str = '../data/reports',
     verbose=False
 ) -> str:
     """
@@ -74,13 +74,15 @@ def generate_report(
     response = ollama.generate(model=model_code, prompt=prompt)
     report = response['response']
     # Save the report to the specified path
-
+    model_name = model_code.replace(':', '_')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     if not os.path.exists(os.path.join(save_path, asset_id)):
-        os.makedirs(os.path.join(save_path, asset_id))
+        os.makedirs(os.path.join(save_path, model_name , asset_id))
 
-    report_path = os.path.join(save_path, f'{asset_id}/{indicator}_report.txt')
+    
+    report_path = os.path.join(save_path, f'{model_name}/{asset_id}/{indicator}_report.txt')
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
     with open(report_path, 'w') as report_file:
         report_file.write(report)
     return report
@@ -88,13 +90,14 @@ def generate_report(
 
 if __name__ == '__main__':
     import numpy as np
-import argparse
+    import argparse
 
     # Set seed
-    SEED = 10
+    SEED = 101010
     np.random.seed(SEED)
     parser = argparse.ArgumentParser(description='Generate financial reports based on soft indicators.')
     parser.add_argument('--model_code', type=str, required=True, help='The model code to be used for generating reports')
+    parser.add_argument('--test', action='store_true', help='Flag to run in test mode')
     args = parser.parse_args()
     model_code = args.model_code
 
@@ -103,7 +106,7 @@ import argparse
     if test == True:
         generate_report(
             indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports',
-            model_name='llama3.1:8b'
+            model_name=model_code
         )
 
     else:
