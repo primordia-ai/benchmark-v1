@@ -8,43 +8,46 @@ if __name__ == '__main__':
     import numpy as np
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
+    import logging
+    from alla.llm import get_llm
+    from alla.llm.wrangling import read_reports
+    from alla.utils import PROJECT_ROOT
+    from alla.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
+    from alla.logger import logger, reset_logger
 
     # Set seed
     SEED = 10
     np.random.seed(SEED)
     #TODO change the code so that we can choose the model that generated the reports and the one that extracts.
     # folder structure could be: data/extracted_indicators/{generator_code}/{extractor_code}/{asset_id}.json
-    # Check for command-line argument
-    if len(sys.argv) != 2:
-        print("Usage: python generate_reports.py <llm_code>")
+    # Check for command-line arguments
+    if len(sys.argv) != 3:
+        print("Usage: python generate_reports.py <generator_code> <extractor_code>\n Example: python generate_reports.py deepseek-r1:14b llama3.1:8b")
         sys.exit(1)
 
-    llm_code = sys.argv[1]
-
+    generator_code = sys.argv[1]
+    extractor_code = sys.argv[2]
+    llm_cls = get_llm(extractor_code)
+    llm = llm_cls(temperature=0)
+    #cleanup the generator and extractor codes since : does not works as pathname and filename in windows
+    generator_code_name = generator_code.replace(':', '_')
+    extractor_code_name = extractor_code.replace(':', '_')
+    # Update the extraction directory structure
+    extract_dir = os.path.join(
+        PROJECT_ROOT, f"data/extracted_indicators/{generator_code_name}/{extractor_code_name}"
+    )
+    # Create the directory if it doesn't exist
+    os.makedirs(extract_dir, exist_ok=True)
     # =========
-
-    from alla.llm import get_llm
-    from alla.llm.wrangling import read_reports
-    from alla.utils import PROJECT_ROOT
-    from alla.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
 
     soft_indicators = list(SOFT_INDICATOR_COSTS.keys())
     hard_indicator_names = list(FINANCIAL_LIKELIHOOD_MATRIX['high_growth'].keys())
     
-    llm_cls = get_llm(llm_code)
-    llm = llm_cls(temperature=0)
-
-    # Create the extraction directory if needed
-    extract_dir = os.path.join(
-        PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}"
-    )
-    # Create the directory if it doesn't exist
-    # os.makedirs(extract_dir, exist_ok=True)
-
     # Load the stocks array
     stocks = load_stocks(as_dataset=True)
     # Get all asset IDs from the stocks dataset
     asset_ids = stocks.asset.values
+ 
     #iterate over all assets
     with logging_redirect_tqdm(loggers=[logger]):
         for asset in tqdm(asset_ids, desc="Asset"):
@@ -79,6 +82,7 @@ if __name__ == '__main__':
 
                 ind_list.append(extracted)
 
+            print("writing to file"+extract_dir+asset+".json")
             write_path = os.path.join(extract_dir, f"{asset}.json")
 
             with open(write_path, 'w') as f:
