@@ -12,7 +12,8 @@ if __name__ == '__main__':
     # Set seed
     SEED = 10
     np.random.seed(SEED)
-
+    #TODO change the code so that we can choose the model that generated the reports and the one that extracts.
+    # folder structure could be: data/extracted_indicators/{generator_code}/{extractor_code}/{asset_id}.json
     # Check for command-line argument
     if len(sys.argv) != 2:
         print("Usage: python generate_reports.py <llm_code>")
