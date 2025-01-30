@@ -1,6 +1,6 @@
 import os
 import pickle
-
+import re
 import ollama
 from tqdm import tqdm
 
@@ -73,6 +73,12 @@ def generate_report(
     # Use LangChain Ollama API to call a local LLM and generate a report
     response = ollama.generate(model=model_code, prompt=prompt)
     report = response['response']
+    # maybe do some cleaning here for deepseek CoT models. the <think> </think> tags and
+    # everything in between should be removed because of information leakage.
+    # It leaks the indicator value and name which is not wanted in the reports.
+    # Remove everything between <think> and </think> tags
+    report = re.sub(r'<think>.*?</think>', '', report, flags=re.DOTALL)
+    report = report.replace('<think>', '').replace('</think>', '')
     # Save the report to the specified path
     model_name = model_code.replace(':', '_')
     if not os.path.exists(save_path):
@@ -91,6 +97,7 @@ def generate_report(
 if __name__ == '__main__':
     import numpy as np
     import argparse
+    
 
     # Set seed
     SEED = 101010
