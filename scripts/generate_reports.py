@@ -88,10 +88,15 @@ def generate_report(
 
 if __name__ == '__main__':
     import numpy as np
+import argparse
 
     # Set seed
     SEED = 10
     np.random.seed(SEED)
+    parser = argparse.ArgumentParser(description='Generate financial reports based on soft indicators.')
+    parser.add_argument('--model_code', type=str, required=True, help='The model code to be used for generating reports')
+    args = parser.parse_args()
+    model_code = args.model_code
 
     # Read the pkl file
     test = False
@@ -114,6 +119,5 @@ if __name__ == '__main__':
         ):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
             for indicator, value in tqdm(
-                    data.items(), desc="generating reports for indicators", position=1, leave=False
-            ):
-                generate_report(indicator=indicator, value=value, asset_id=asset_id)
+                    data.items(), desc="generating reports for indicators", position=1, leave=False):
+                generate_report(indicator=indicator, model_code=model_code, value=value, asset_id=asset_id)
