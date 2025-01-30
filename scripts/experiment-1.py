@@ -127,7 +127,7 @@ def main():
 
     # We can just compile asset names here
     # Only for assets that we have reports for
-    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports")
+    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):

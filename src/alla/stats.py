@@ -221,7 +221,11 @@ def evaluate_performance(
     for i, asset in enumerate(assets):
         data = predictions[asset]
         true_class = data['truth']['category']
-        class_loss = -np.log(data['category'][true_class])
+        class_pred = data['category'][true_class]
+        if class_pred < 1e-8:
+            class_loss = -1e8
+        else:
+            class_loss = -np.log(class_pred)
 
         alphas = [q[0] for q in data['growth']]
         growth_quantiles = [q[1] for q in data['growth']]
