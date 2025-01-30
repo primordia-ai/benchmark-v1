@@ -30,9 +30,7 @@ if __name__ == '__main__':
 
     soft_indicators = list(SOFT_INDICATOR_COSTS.keys())
     hard_indicator_names = list(FINANCIAL_LIKELIHOOD_MATRIX['high_growth'].keys())
-    asset_ids = ['asset_1', ]  # , 'asset_25', 'asset_35', 'asset_45']
-    test_list = {}
-
+    
     llm_cls = get_llm(llm_code)
     llm = llm_cls(temperature=0)
 
@@ -45,7 +43,9 @@ if __name__ == '__main__':
 
     # Load the stocks array
     stocks = load_stocks(as_dataset=True)
-
+    # Get all asset IDs from the stocks dataset
+    asset_ids = stocks.asset.values
+    #iterate over all assets
     with logging_redirect_tqdm(loggers=[logger]):
         for asset in tqdm(asset_ids, desc="Asset"):
             ind_list = []
