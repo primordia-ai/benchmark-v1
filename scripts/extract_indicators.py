@@ -70,7 +70,9 @@ if __name__ == '__main__':
 
             # Read all the reports for this asset
             reports_dir = os.path.join(PROJECT_ROOT, f"data/reports/{asset}")
-
+            #TODO should we log the actual times it takes to extract the indicators?
+            #might be useful for statistics when we use larger and smaller models
+            
             for ind in tqdm(soft_indicators, leave=False, desc="Indicator"):
                 # TODO -- Consider if we toss in the entire set of reports of just the singles
                 # On local machine, tiny llama truncated the max report, and even then it still chugged...
