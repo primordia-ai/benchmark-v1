@@ -57,14 +57,21 @@ class MixtureDistribution:
         self._distributions = list(distributions)
         self._weights = list(weights)
 
-        if not (all(w >= 0 for w in self._weights) and abs(1 - sum(self._weights)) < 1e-6):
-            raise ValueError("Invalid weight vector.")
+        if not abs(1 - sum(self._weights)) < 1e-6:
+            raise ValueError("Invalid weight vector sum.")
 
         if len(self._distributions) != len(self._weights):
             raise ValueError("Mixtures and weights must have the same length.")
 
-        if len(self._distributions) < 2:
-            raise ValueError("Must have at least two component distributions.")
+        if sum(w > 0 for w in self._weights) == 1:
+            # Singular distribution
+            selected_d, selected_w = None, None
+            for w, d in zip(self._weights, self._distributions):
+                if w > 0:
+                    selected_w, selected_d = w, d
+                    break
+            self._distributions = [selected_d]
+            self._weights = [selected_w]
 
     @_vectorize_float
     def pdf(self, x):
@@ -76,6 +83,10 @@ class MixtureDistribution:
 
     @_vectorize_float
     def ppf(self, p):
+        if len(self._weights) == 1:
+            # If only one active component, return its ppf directly
+            return self._distributions[0].ppf(p)
+
         bracket = [min(dist.ppf(p) for dist in self._distributions),
             max(dist.ppf(p) for dist in self._distributions)]
 
