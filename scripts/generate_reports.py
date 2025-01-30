@@ -78,7 +78,6 @@ def generate_report(
     # It leaks the indicator value and name which is not wanted in the reports.
     # Remove everything between <think> and </think> tags
     report = re.sub(r'<think>.*?</think>', '', report, flags=re.DOTALL)
-    report = report.replace('<think>', '').replace('</think>', '')
     # Save the report to the specified path
     model_name = model_code.replace(':', '_')
     if not os.path.exists(save_path):
