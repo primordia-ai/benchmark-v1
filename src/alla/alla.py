@@ -253,7 +253,7 @@ class ALLA:
             return self._cached_reports[asset_id]
 
         report_text = read_reports(
-            report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", asset_id)),
+            report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", self.llm.path_code, asset_id)),
         )
         size_limit = 1e7  # in bytes
         self._cached_reports[asset_id] = report_text

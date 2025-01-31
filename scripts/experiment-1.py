@@ -127,7 +127,7 @@ def main():
 
     # We can just compile asset names here
     # Only for assets that we have reports for
-    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports")
+    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
@@ -283,7 +283,7 @@ def main():
                     # Get report text
                     # TODO -- The report text provides descriptions of qualitative indicators
                     #  but not quantitative atm
-                    report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
+                    report_file = os.path.join(report_dir, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
