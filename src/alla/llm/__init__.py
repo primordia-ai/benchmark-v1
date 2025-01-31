@@ -2,6 +2,7 @@ from typing import Type
 
 from .base import LLMBaseClass
 from .llama import LlamaMamma, LlamaSmall, LlamaSmallAlt, LlamaTiny
+from .deepseek import DeepseekSmall, DeepseekMedium, DeepseekLarge
 
 AVAILABLE_MODELS = {
     # Model codes to classes
@@ -9,6 +10,9 @@ AVAILABLE_MODELS = {
     LlamaSmallAlt.code: LlamaSmallAlt,
     LlamaTiny.code: LlamaTiny,
     LlamaMamma.code: LlamaMamma,
+    DeepseekSmall.code: DeepseekSmall,
+    DeepseekMedium.code: DeepseekMedium,
+    DeepseekLarge.code: DeepseekLarge
 }
 
 
