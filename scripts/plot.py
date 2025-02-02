@@ -2,7 +2,6 @@ import json
 import os
 
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 
 from alla.utils import PROJECT_ROOT
@@ -13,6 +12,11 @@ def exp1(results_name: str):
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
     sns.set_context("notebook")
+    lbl_map = {
+        "stable": "Stable",
+        "high_growth": "High Growth",
+        "time_bomb": "Time-bomb",
+    }
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
@@ -28,29 +32,36 @@ def exp1(results_name: str):
     # Load ALLA results
     alla_data = [
         {
+            "asset": a_id,
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
             "growth": asset['growth'][2][1],  # p_50
             "class_loss": asset['class_loss'],
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
         }
-        for asset in alla_results.values()
+        for a_id, asset in alla_results.items()
     ]
     # LLM data
     llm_data = [
         {
-            "category": v["category"],
-            "growth": v["growth"],
+            "asset": a_id,
+            "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "growth": asset['growth'][2][1],  # p_50
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
         }
-        for v in llm_results.values()
+        for a_id, asset in llm_results.items()
     ]
     truth_data = [
         {
+            "asset": a_id,
             "category": v["truth"]["category"],
             "growth": v["truth"]["growth"],
         }
-        for v in llm_results.values()
+        for a_id, v in llm_results.items()
     ]
+
     # Create a combined pandas df of the category and growth values for llm and truth sets
     df = pd.concat(
         [
@@ -64,11 +75,11 @@ def exp1(results_name: str):
     # Category count plot
     plt.figure(figsize=(4, 4))
     sns.countplot(
-        data=df, x="category", hue="source"
+        data=df, x="category", hue="source", order=["high_growth", "stable", "time_bomb"]
     )
-    # Remove labels as it is self-evident
-    plt.xlabel("")
-    plt.xticks(ticks=[0, 1, 2], labels=["High Growth", "Stable", "Time-bomb"])
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0,1,2], labels=labels)
     plt.ylabel("")
     plt.legend(title=None)
     plt.tight_layout()
@@ -100,14 +111,17 @@ def exp1(results_name: str):
     print(f"Saving to {save_path2}")
     plt.savefig(save_path2)
     plt.close()
-    # <><>< Confusion Matrix ><><>
 
-    # Create a confusion matrix for the category predictions
-    y_true = df[df["source"] == "Truth"]["category"]
-    y_pred = df[df["source"] == "LLM"]["category"]
+    # <><>< Confusion Matrix ><><>
+    # Create a confusion matrix for the category predictions for LLM vs Truth sources
+    # We need to sort by 'asset' column
+    y_true = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred = df[df["source"] == "LLM"].sort_values("asset")["category"]
 
     cm = confusion_matrix(y_true, y_pred)
-    cm_df = pd.DataFrame(cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+    cm_df = pd.DataFrame(
+        cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
 
     plt.figure(figsize=(6, 4))
     sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
@@ -122,13 +136,13 @@ def exp1(results_name: str):
     plt.close()
 
     # <><>< Confusion Matrix for ALLA ><><>
-
-    # Create a confusion matrix for the category predictions for ALLA results
-    y_true_alla = df[df["source"] == "Truth"]["category"]
-    y_pred_alla = df[df["source"] == "ALLA"]["category"]
+    y_true_alla = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred_alla = df[df["source"] == "ALLA"].sort_values("asset")["category"]
 
     cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
-    cm_alla_df = pd.DataFrame(cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+    cm_alla_df = pd.DataFrame(
+        cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
 
     plt.figure(figsize=(6, 4))
     sns.heatmap(cm_alla_df, annot=True, fmt="d", cmap="Blues")
@@ -137,13 +151,14 @@ def exp1(results_name: str):
     plt.title("Confusion Matrix for ALLA")
     plt.tight_layout()
 
-    
     print(f"Saving to {save_path4}")
     plt.savefig(save_path4)
     plt.close()
 
     # Classification report for LLM results
-    report_llm = classification_report(y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_llm = classification_report(
+        y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
     report_llm_df = pd.DataFrame(report_llm).transpose()
 
     save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
@@ -152,7 +167,9 @@ def exp1(results_name: str):
         f.write(report_llm_df.to_latex())
 
     # Classification report for ALLA results
-    report_alla = classification_report(y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    report_alla = classification_report(
+        y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
     report_alla_df = pd.DataFrame(report_alla).transpose()
 
     save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
@@ -167,7 +184,6 @@ def exp1(results_name: str):
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
-    import numpy as np
     import seaborn as sns
     from sklearn.metrics import classification_report
 
