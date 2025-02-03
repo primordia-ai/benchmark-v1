@@ -2,25 +2,35 @@ import json
 import os
 
 import pandas as pd
-import seaborn as sns
 from matplotlib import pyplot as plt
 
 from alla.utils import PROJECT_ROOT
 
 
 def exp1(results_name: str):
+    # ================
+    # Some setup
+
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
-    save_path1 = os.path.join(RESULTS_DIR, "figs/cat-dist.png")
-    save_path2 = os.path.join(RESULTS_DIR, "figs/growth-dist.png")
-    save_path3 = os.path.join(RESULTS_DIR, "figs/alla-class-loss.png")
-    save_path4 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_alla.png")
-    # Ensure the directories exist
-    os.makedirs(os.path.dirname(save_path1), exist_ok=True)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "png"
+
+    # Create figs directory
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    lbl_map = {
+        "stable": "Stable",
+        "high_growth": "High Growth",
+        "time_bomb": "Time-bomb",
+    }
+
+    # ================
+    # Load data
 
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
@@ -28,29 +38,36 @@ def exp1(results_name: str):
     # Load ALLA results
     alla_data = [
         {
+            "asset": a_id,
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
             "growth": asset['growth'][2][1],  # p_50
             "class_loss": asset['class_loss'],
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
         }
-        for asset in alla_results.values()
+        for a_id, asset in alla_results.items()
     ]
     # LLM data
     llm_data = [
         {
-            "category": v["category"],
-            "growth": v["growth"],
+            "asset": a_id,
+            "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "growth": asset['growth'][2][1],  # p_50
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
         }
-        for v in llm_results.values()
+        for a_id, asset in llm_results.items()
     ]
     truth_data = [
         {
+            "asset": a_id,
             "category": v["truth"]["category"],
             "growth": v["truth"]["growth"],
         }
-        for v in llm_results.values()
+        for a_id, v in llm_results.items()
     ]
+
     # Create a combined pandas df of the category and growth values for llm and truth sets
     df = pd.concat(
         [
@@ -60,25 +77,35 @@ def exp1(results_name: str):
         ], ignore_index=True
     )
 
-    # <><>< Figure 1 ><><>
-    # Category count plot
+    # Often we want to filter out the Truth data
+    df_nt = df[df["source"] != "Truth"]
+
+    # ================
+    # On to figures
+
+    # <><>< 1. Category Count ><><>
+    save_path = os.path.join(SAVE_DIR, f"cat-dist.{save_fmt}")
     plt.figure(figsize=(4, 4))
     sns.countplot(
-        data=df, x="category", hue="source"
+        data=df, x="category", hue="source", order=["high_growth", "stable", "time_bomb"]
     )
-    # Remove labels as it is self-evident
+    # Remove x label
     plt.xlabel("")
-    plt.xticks(ticks=[0, 1, 2], labels=["High Growth", "Stable", "Time-bomb"])
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0, 1, 2], labels=labels)
     plt.ylabel("")
     plt.legend(title=None)
     plt.tight_layout()
     # Save and close
-    print(f"Saving to {save_path1}")
-    plt.savefig(save_path1)
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
     plt.close()
 
-    # <><>< Figure 2 ><><>
+    # <><>< 2. Growth Distribution ><><>
     # We plot the growth distributions for each category, and compare the sources
+    save_path = os.path.join(SAVE_DIR, f"growth-dist.{save_fmt}")
+
     g = sns.FacetGrid(
         df,
         col="category",
@@ -97,17 +124,22 @@ def exp1(results_name: str):
         ax.set_title(title)
         ax.set_xlabel("Growth")
 
-    print(f"Saving to {save_path2}")
-    plt.savefig(save_path2)
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
     plt.close()
-    # <><>< Confusion Matrix ><><>
 
-    # Create a confusion matrix for the category predictions
-    y_true = df[df["source"] == "Truth"]["category"]
-    y_pred = df[df["source"] == "LLM"]["category"]
+    # <><>< 3. Confusion Matrix, LLM ><><>
+    # Create a confusion matrix for the category predictions for LLM vs Truth sources
+    save_path = os.path.join(SAVE_DIR, f"confusion-llm.{save_fmt}")
+
+    # We need to sort by 'asset' column
+    y_true = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred = df[df["source"] == "LLM"].sort_values("asset")["category"]
 
     cm = confusion_matrix(y_true, y_pred)
-    cm_df = pd.DataFrame(cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+    cm_df = pd.DataFrame(
+        cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
 
     plt.figure(figsize=(6, 4))
     sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
@@ -116,19 +148,32 @@ def exp1(results_name: str):
     plt.title("Confusion Matrix")
     plt.tight_layout()
 
-    save_path3 = os.path.join(RESULTS_DIR, "figs/confusion_matrix_llm.png")
-    print(f"Saving to {save_path3}")
-    plt.savefig(save_path3)
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
     plt.close()
 
-    # <><>< Confusion Matrix for ALLA ><><>
+    ### Latex export ###
+    # Classification report for LLM results
+    report_llm = classification_report(
+        y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
+    report_llm_df = pd.DataFrame(report_llm).transpose()
 
-    # Create a confusion matrix for the category predictions for ALLA results
-    y_true_alla = df[df["source"] == "Truth"]["category"]
-    y_pred_alla = df[df["source"] == "ALLA"]["category"]
+    save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
+    print(f"Saving LLM classification report to {save_path_llm_report}")
+    with open(save_path_llm_report, 'w') as f:
+        f.write(report_llm_df.to_latex())
+
+    # <><>< 4. Confusion Matrix, ALLA ><><>
+    save_path = os.path.join(SAVE_DIR, f"confusion-alla.{save_fmt}")
+
+    y_true_alla = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred_alla = df[df["source"] == "ALLA"].sort_values("asset")["category"]
 
     cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
-    cm_alla_df = pd.DataFrame(cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"])
+    cm_alla_df = pd.DataFrame(
+        cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
 
     plt.figure(figsize=(6, 4))
     sns.heatmap(cm_alla_df, annot=True, fmt="d", cmap="Blues")
@@ -137,22 +182,14 @@ def exp1(results_name: str):
     plt.title("Confusion Matrix for ALLA")
     plt.tight_layout()
 
-    
-    print(f"Saving to {save_path4}")
-    plt.savefig(save_path4)
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
     plt.close()
 
-    # Classification report for LLM results
-    report_llm = classification_report(y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
-    report_llm_df = pd.DataFrame(report_llm).transpose()
-
-    save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
-    print(f"Saving LLM classification report to {save_path_llm_report}")
-    with open(save_path_llm_report, 'w') as f:
-        f.write(report_llm_df.to_latex())
-
-    # Classification report for ALLA results
-    report_alla = classification_report(y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True)
+    ### Latex export ###
+    report_alla = classification_report(
+        y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
     report_alla_df = pd.DataFrame(report_alla).transpose()
 
     save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
@@ -160,14 +197,96 @@ def exp1(results_name: str):
     with open(save_path_alla_report, 'w') as f:
         f.write(report_alla_df.to_latex())
 
-    # <><>< Figure 3 ><><>
-    # Plot a distribution of the class loss for ALLA
+    # <><>< 5. Class Loss Boxplot ><><>
+    # Create a boxplot of the class loss for each source (except for Truth), grouped by category
+    save_path = os.path.join(SAVE_DIR, f"class-loss-box.{save_fmt}")
+
+    plt.figure(figsize=(4, 4))
+    sns.boxplot(
+        data=df_nt, x="category", y="class_loss", hue="source",
+        log_scale=True,
+        showfliers=False,  # Shown thru stripplot
+    )
+    # Add in points to show each observation with stripplot
+    sns.stripplot(
+        data=df_nt, x="category", y="class_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False,
+    )
+
+    plt.ylabel("Class loss")
+    # Remove x label and legend title
+    plt.xlabel("")
+    plt.legend(title=None)
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 6. Parametric Score Boxplot ><><>
+    # Similar to above
+    save_path = os.path.join(SAVE_DIR, f"parametric-score-box.{save_fmt}")
+
+    plt.figure(figsize=(4, 4))
+    sns.boxplot(
+        data=df_nt, x="category", y="parametric_score", hue="source",
+        showfliers=False,  # Shown thru stripplot
+    )
+    # Add in points to show each observation with stripplot
+    sns.stripplot(
+        data=df_nt, x="category", y="parametric_score", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False,
+    )
+    plt.ylabel("Parametric score")
+    # Remove x label and legend title
+    plt.xlabel("")
+    plt.legend(title=None)
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 7. Non-Parametric Loss Boxplot ><><>
+    # Similar to above
+    save_path = os.path.join(SAVE_DIR, f"non-parametric-loss-box.{save_fmt}")
+
+    plt.figure(figsize=(4, 4))
+    sns.boxplot(
+        data=df_nt, x="category", y="non_parametric_loss", hue="source",
+        showfliers=False,  # Shown thru stripplot
+    )
+    # Add in points to show each observation with stripplot
+    sns.stripplot(
+        data=df_nt, x="category", y="non_parametric_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False,
+    )
+    plt.ylabel("Non-parametric loss")
+    # Remove x label and legend title
+    plt.xlabel("")
+    plt.legend(title=None)
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
 
 
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
-    import numpy as np
     import seaborn as sns
     from sklearn.metrics import classification_report
 

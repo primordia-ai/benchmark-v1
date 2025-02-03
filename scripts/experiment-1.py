@@ -270,7 +270,6 @@ def main():
             for cat, a_ids in assets.items():
                 print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
-                    print(f"MW ASSET -- {asset_id}")
                     if asset_id != 'asset_7':
                         continue
                     indicators = None
@@ -308,10 +307,8 @@ def main():
                         else:
                             # Successful eval
                             result = evaluation.model_dump()
-                            print(f"MW RESULT -- {result}")
                             # Compute growth quantiles
                             mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
-                            print(f"MW MIX WEIGHTS -- {mix_weights} -- {sum(mix_weights)}")
                             quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
                             llm_results[asset_id] = {
                                 "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
