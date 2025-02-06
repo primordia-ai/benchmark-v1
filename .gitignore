@@ -169,7 +169,4 @@ outputs/
 *tmp.yaml
 tmp.*
 
-results/tmp/*
-!results/tmp/.gitignore
-
 .secrets.json

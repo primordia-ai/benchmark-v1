@@ -1,6 +1,6 @@
 import os
 import pickle
-
+import re
 import ollama
 from tqdm import tqdm
 
@@ -45,7 +45,7 @@ def generate_report(
     value: str,
     model_code: str,
     asset_id: str = '',
-    save_path: str = '../reports',
+    save_path: str = '../data/reports',
     verbose=False
 ) -> str:
     """
@@ -73,14 +73,21 @@ def generate_report(
     # Use LangChain Ollama API to call a local LLM and generate a report
     response = ollama.generate(model=model_code, prompt=prompt)
     report = response['response']
+    # maybe do some cleaning here for deepseek CoT models. the <think> </think> tags and
+    # everything in between should be removed because of information leakage.
+    # It leaks the indicator value and name which is not wanted in the reports.
+    # Remove everything between <think> and </think> tags
+    report = re.sub(r'<think>.*?</think>', '', report, flags=re.DOTALL)
     # Save the report to the specified path
-
+    model_name = model_code.replace(':', '_')
     if not os.path.exists(save_path):
-        os.makedirs(save_path)
+        os.makedirs(save_path, exist_ok=True)
     if not os.path.exists(os.path.join(save_path, asset_id)):
-        os.makedirs(os.path.join(save_path, asset_id))
+        os.makedirs(os.path.join(save_path, model_name , asset_id), exist_ok=True)
 
-    report_path = os.path.join(save_path, f'{asset_id}/{indicator}_report.txt')
+    
+    report_path = os.path.join(save_path, f'{model_name}/{asset_id}/{indicator}_report.txt')
+    os.makedirs(os.path.dirname(report_path), exist_ok=True)
     with open(report_path, 'w') as report_file:
         report_file.write(report)
     return report
@@ -88,23 +95,28 @@ def generate_report(
 
 if __name__ == '__main__':
     import numpy as np
-
+    import argparse
+    
+    from alla import synthetic
     # Set seed
-    SEED = 10
+    SEED = 101010
     np.random.seed(SEED)
+    parser = argparse.ArgumentParser(description='Generate financial reports based on soft indicators.')
+    parser.add_argument('--model_code', type=str, required=True, help='The model code to be used for generating reports')
+    parser.add_argument('--test', action='store_true', help='Flag to run in test mode')
+    args = parser.parse_args()
+    model_code = args.model_code
 
     # Read the pkl file
     test = False
     if test == True:
         generate_report(
             indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports',
-            model_name='llama3.1:8b'
+            model_name=model_code
         )
 
     else:
-        ground_truth_path = '../data/ground-truth/stock_indicators.pkl'
-        with open(ground_truth_path, 'rb') as f:
-            ground_truth = pickle.load(f)
+        ground_truth = synthetic.load_indicators()
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
@@ -114,6 +126,5 @@ if __name__ == '__main__':
         ):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
             for indicator, value in tqdm(
-                    data.items(), desc="generating reports for indicators", position=1, leave=False
-            ):
-                generate_report(indicator=indicator, value=value, asset_id=asset_id)
+                    data.items(), desc="generating reports for indicators", position=1, leave=False):
+                generate_report(indicator=indicator, model_code=model_code, value=value, asset_id=asset_id)

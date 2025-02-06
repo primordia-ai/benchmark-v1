@@ -276,7 +276,7 @@ def main():
                     # Get report text
                     # TODO -- The report text provides descriptions of qualitative indicators
                     #  but not quantitative atm
-                    report_file = os.path.join(utils.PROJECT_ROOT, f"data/reports/{asset_id}")
+                    report_file = os.path.join(report_dir, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
