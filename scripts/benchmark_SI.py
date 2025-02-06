@@ -15,7 +15,7 @@ from glob import glob
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python generate_reports.py <generator_code> <extractor_code>\n Example: python generate_reports.py deepseek-r1:14b llama3.1:8b")
+        print("Usage: python bencmark_SI.py <generator_code> <extractor_code>\n Example: python benchmark_SI.py deepseek-r1:14b llama3.1:8b")
         sys.exit(1)
 
     generator_code = sys.argv[1]
