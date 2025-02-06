@@ -65,3 +65,17 @@ class DeepseekLarge(DeepseekSmall):
         "deepseek-r1-671b",
         "deepseek-r1 671b",
     ]
+
+class DeepseekMini(DeepseekSmall):
+    """
+    Mini Deepseek model.
+    """
+    name = "Deepseek R1 1.5B"
+    code = "deepseek-r1:1.5b"
+    path_code = "deepseek-r1_1.5b"
+    aliases = [
+        "deepseek_mini",
+        "deepseek mini",
+        "deepseek-r1-1.5b",
+        "deepseek-r1 1.5b",
+    ]
