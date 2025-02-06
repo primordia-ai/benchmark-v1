@@ -6,6 +6,7 @@ from abc import ABC
 from typing import Literal
 
 import instructor
+from instructor.exceptions import InstructorRetryException
 from pydantic import create_model, Field
 from tqdm import tqdm
 
@@ -119,21 +120,32 @@ class LLMBaseClass(ABC):
             raise FileNotFoundError(f'File not found for asset_id {asset_id}')
 
         client = self.get_client()
-        response, completion = client.chat.completions.create_with_completion(
-            model=self.code,
-            temperature=self.temperature,
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
-            response_model=self._create_indicator_class(),
-            max_retries=max_retries,
-            seed=self.seed,
-        )
-        py_response = response.model_dump()
-        # Add the indicator value
-        py_response["indicator"] = indicator_name
+        try:
+            response, completion = client.chat.completions.create_with_completion(
+                model=self.code,
+                temperature=self.temperature,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+                response_model=self._create_indicator_class(),
+                max_retries=max_retries,
+                seed=self.seed,
+            )
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
 
-        return py_response
+            return py_response
+        
+        except InstructorRetryException as e:
+            response = e.last_completion #e.messages[-1]
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
+            py_response["reason"] = "Failed to extract soft indicator from reports"
+            py_response["value"] = None
+            py_response["numeric"] = None
+            return py_response
 
     def evaluate_asset(
         self, prompt: str, max_retries: int = 3, budget: float | None = None
