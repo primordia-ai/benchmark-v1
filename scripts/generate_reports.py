@@ -97,7 +97,7 @@ if __name__ == '__main__':
     import numpy as np
     import argparse
     
-
+    from alla import synthetic
     # Set seed
     SEED = 101010
     np.random.seed(SEED)
@@ -116,9 +116,7 @@ if __name__ == '__main__':
         )
 
     else:
-        ground_truth_path = '../data/ground-truth/stock_indicators.pkl'
-        with open(ground_truth_path, 'rb') as f:
-            ground_truth = pickle.load(f)
+        ground_truth = synthetic.load_indicators()
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 

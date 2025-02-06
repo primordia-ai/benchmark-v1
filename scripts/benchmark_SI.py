@@ -73,7 +73,7 @@ def main():
             print(f"Length of y_true and y_pred for {indicator} are not the same")
             continue
         cm = confusion_matrix(y_true, y_pred, labels=['red', 'yellow', 'green', 'None'])
-        cm_df = pd.DataFrame(cm, index=['red', 'yellow', 'green', 'None'], columns=['red', 'yellow', 'green', 'None'])
+        cm_df = pd.DataFrame(cm, index=['green', 'yellow', 'red', 'None'], columns=['green', 'yellow', 'red', 'None'])
         confusion_matrices.append(cm_df)
         # Plot the confusion matrix
         plt.figure(figsize=(10, 7))
@@ -84,7 +84,7 @@ def main():
         plt.savefig(os.path.join(output_dir, f'{indicator}_confusion_matrix.png'))
         # Combine all accuracies into a single DataFrame
         accuracy = np.trace(confusion_matrices[-1].values) / np.sum(confusion_matrices[-1].values)
-        report = classification_report(y_true, y_pred, labels=['red', 'yellow', 'green', 'None'], output_dict=True)
+        report = classification_report(y_true, y_pred, labels=['green', 'yellow', 'red', 'None'], output_dict=True)
         mcc = matthews_corrcoef(y_true, y_pred)
         metrics_list.append({
             'Indicator': indicator,
