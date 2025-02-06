@@ -81,9 +81,9 @@ def generate_report(
     # Save the report to the specified path
     model_name = model_code.replace(':', '_')
     if not os.path.exists(save_path):
-        os.makedirs(save_path)
+        os.makedirs(save_path, exist_ok=True)
     if not os.path.exists(os.path.join(save_path, asset_id)):
-        os.makedirs(os.path.join(save_path, model_name , asset_id))
+        os.makedirs(os.path.join(save_path, model_name , asset_id), exist_ok=True)
 
     
     report_path = os.path.join(save_path, f'{model_name}/{asset_id}/{indicator}_report.txt')

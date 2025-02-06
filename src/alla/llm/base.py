@@ -6,6 +6,7 @@ from abc import ABC
 from typing import Literal
 
 import instructor
+from instructor.exceptions import InstructorRetryException
 from pydantic import create_model, Field
 from tqdm import tqdm
 
@@ -83,7 +84,8 @@ class LLMBaseClass(ABC):
         include: list[str] | None = None,
         exclude: list[str] | None = None,
         reports_text: str | None = None,
-        verbose=False
+        verbose=False,
+        max_retries: int = 3,
     ) -> dict:
         """
         Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
@@ -95,7 +97,7 @@ class LLMBaseClass(ABC):
         :param report_dir:      The path to the directory containing the reports.
         :param reports_text:    Optionally provide reports to skip the compilation.
         :param verbose:         If True, prints additional information during execution.
-
+        :param max_retries:     The maximum number of retries to attempt. Default is 5.
         :return:                A dictionary with keys "name", "value", "reason"
         """
         if not report_dir and not reports_text:
@@ -118,21 +120,32 @@ class LLMBaseClass(ABC):
             raise FileNotFoundError(f'File not found for asset_id {asset_id}')
 
         client = self.get_client()
-        response, completion = client.chat.completions.create_with_completion(
-            model=self.code,
-            temperature=self.temperature,
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
-            response_model=self._create_indicator_class(),
-            max_retries=3,
-            seed=self.seed,
-        )
-        py_response = response.model_dump()
-        # Add the indicator value
-        py_response["indicator"] = indicator_name
+        try:
+            response, completion = client.chat.completions.create_with_completion(
+                model=self.code,
+                temperature=self.temperature,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+                response_model=self._create_indicator_class(),
+                max_retries=max_retries,
+                seed=self.seed,
+            )
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
 
-        return py_response
+            return py_response
+        
+        except InstructorRetryException as e:
+            response = e.last_completion #e.messages[-1]
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
+            py_response["reason"] = "Failed to extract soft indicator from reports"
+            py_response["value"] = None
+            py_response["numeric"] = None
+            return py_response
 
     def evaluate_asset(
         self, prompt: str, max_retries: int = 3, budget: float | None = None
