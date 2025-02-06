@@ -13,6 +13,8 @@ import seaborn as sns
 from sklearn.metrics import classification_report
 from glob import glob
 
+from alla import synthetic
+
 def main():
     if len(sys.argv) != 3:
         print("Usage: python bencmark_SI.py <generator_code> <extractor_code>\n Example: python benchmark_SI.py deepseek-r1:14b llama3.1:8b")
@@ -23,9 +25,9 @@ def main():
     #cleanup the generator and extractor codes since : does not works as pathname and filename in windows
     generator_code_name = generator_code.replace(':', '_')
     extractor_code_name = extractor_code.replace(':', '_')
-    ground_truth_path = '../data/ground-truth/stock_indicators.pkl'
-    with open(ground_truth_path, 'rb') as f:
-        ground_truth = pickle.load(f)
+    # Load the ground truth data
+    ground_truth = synthetic.load_indicators()
+
     soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
     true_soft_indicators_df = pd.DataFrame(soft_indicators_data['ryg'].values, 
                                       columns=soft_indicators_data['indicator'].values,
