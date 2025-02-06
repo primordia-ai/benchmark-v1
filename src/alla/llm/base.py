@@ -83,7 +83,8 @@ class LLMBaseClass(ABC):
         include: list[str] | None = None,
         exclude: list[str] | None = None,
         reports_text: str | None = None,
-        verbose=False
+        verbose=False,
+        max_retries: int = 3,
     ) -> dict:
         """
         Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
@@ -95,7 +96,7 @@ class LLMBaseClass(ABC):
         :param report_dir:      The path to the directory containing the reports.
         :param reports_text:    Optionally provide reports to skip the compilation.
         :param verbose:         If True, prints additional information during execution.
-
+        :param max_retries:     The maximum number of retries to attempt. Default is 5.
         :return:                A dictionary with keys "name", "value", "reason"
         """
         if not report_dir and not reports_text:
@@ -125,7 +126,7 @@ class LLMBaseClass(ABC):
                 {"role": "user", "content": prompt},
             ],
             response_model=self._create_indicator_class(),
-            max_retries=3,
+            max_retries=max_retries,
             seed=self.seed,
         )
         py_response = response.model_dump()
