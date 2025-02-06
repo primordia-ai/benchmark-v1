@@ -202,14 +202,24 @@ def evaluate_performance(
     sigmas = np.zeros((n_asset, n_class))
     true_growths = np.zeros(n_asset, dtype=float)
 
+    atleast_one = False
     for i, asset in enumerate(assets):
         data = predictions[asset]
+        if "error" in data:
+            # This asset eval had an error
+            logger.warning(f"Excluding asset {asset} from evaluation due to error.")
+            continue
+        atleast_one = True
         true_growths[i] = data['truth']['growth']
 
         for j, cat in enumerate(classes):
             weights[i, j] = data['category'][cat]
             mus[i, j] = mixture_params['mu'][cat]
             sigmas[i, j] = mixture_params['sigma'][cat]
+
+    if not atleast_one:
+        logger.warning("No valid assets to evaluate.")
+        return pd.DataFrame() if not in_place else predictions
 
     with pymc.Model() as model:
         dist = pymc.NormalMixture.dist(w=weights, mu=mus, sigma=sigmas)
@@ -220,6 +230,9 @@ def evaluate_performance(
     scores = []
     for i, asset in enumerate(assets):
         data = predictions[asset]
+        if "error" in data:
+            # This asset eval had an error
+            continue
         true_class = data['truth']['category']
         class_pred = data['category'][true_class]
         if class_pred < 1e-8:

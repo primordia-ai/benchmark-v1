@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 import os
 
@@ -9,3 +10,9 @@ while not (PROJECT_ROOT / 'pyproject.toml').exists():
     PROJECT_ROOT = PROJECT_ROOT.parent
 
 TESTS_OUT = os.path.join(PROJECT_ROOT, "tests", "tmp")
+
+
+class BudgetMode(Enum):
+    SYNTH = "synthetic"  # Uses the synthetic, unitless costs
+    WALL = "wall"
+    CPU_HR = "cpu_hr"

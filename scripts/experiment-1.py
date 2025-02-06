@@ -108,7 +108,8 @@ def main():
         n_asset_per = n_asset / 3
         budget_mode = BudgetMode.WALL
         total_budget = 1e5
-        budget_per_task = 4
+        budget_per_task = 10
+        max_retries = 3
         asset_memory_depth = 20
     else:
         # Otherwise, just run all assets
@@ -117,6 +118,7 @@ def main():
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
         budget_per_task = 30
+        max_retries = 10
         asset_memory_depth = 100
 
     if mode in ['llm', 'both'] and budget_mode != BudgetMode.WALL:
@@ -286,36 +288,31 @@ def main():
                     reports_text = read_reports(report_file)
 
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
-                    # Start the clock
-                    task_start = time.time()
-                    # TODO -- Implement the budget termination (through retry callbacks)
-                    while (time.time() - task_start) < budget_per_task:
-                        try:
-                            evaluation = llm.evaluate_asset(prompt, max_retries=3, budget=budget_per_task)
-                        except Exception as e:
-                            # Log the error and try again if there's budget
-                            logger.warning(f"Exception evaluating asset {asset_id}: {e}")
-                            if (time.time() - task_start) < budget_per_task:
-                                logger.warning("Retrying within remaining budget...")
-                            else:
-                                # Time's up
-                                logger.warning(f"Out of budget")
-                                llm_results[asset_id] = {
-                                    "error": str(e),
-                                    "truth": truth_data[asset_id]
-                                }
-                        else:
-                            # Successful eval
-                            result = evaluation.model_dump()
-                            # Compute growth quantiles
-                            mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
-                            quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
-                            llm_results[asset_id] = {
-                                "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
-                                "category": result,
-                                "truth": truth_data[asset_id],
-                            }
-                            break
+                    # For checking
+                    start = time.time()
+                    # We might wrap this in try-except, but the method itself does so for LLM request
+                    evaluation, success = llm.evaluate_asset(prompt, max_retries=max_retries, budget=budget_per_task)
+                    end = time.time()
+                    if end - start > budget_per_task:
+                        logger.warning(f"Asset '{asset_id}' eval exceeded budget: {end - start} > {budget_per_task}")
+
+                    if not success:
+                        error = evaluation['error']
+                        logger.warning(f"Failed to evaluate asset {asset_id}: {error}")
+                        llm_results[asset_id] = {
+                            "error": error,
+                            "truth": truth_data[asset_id]
+                        }
+                    else:
+                        # Successful eval
+                        # Compute growth quantiles
+                        mix_weights = [evaluation['high_growth'], evaluation['stable'], evaluation['time_bomb']]
+                        quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
+                        llm_results[asset_id] = {
+                            "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
+                            "category": evaluation,
+                            "truth": truth_data[asset_id],
+                        }
 
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
@@ -341,7 +338,8 @@ if __name__ == '__main__':
     from alla.logger import logger, reset_logger
 
     from alla import synthetic as synth, utils, stats
-    from alla.alla import ALLA, BudgetMode
+    from alla.alla import ALLA
+    from alla.utils import BudgetMode
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
 

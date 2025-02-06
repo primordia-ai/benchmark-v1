@@ -8,7 +8,6 @@ import os
 import random
 import sys
 import time
-from enum import Enum
 from typing import Dict, Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
@@ -23,18 +22,12 @@ from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import PROJECT_ROOT
+from alla.utils import BudgetMode, PROJECT_ROOT
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
 Indicators = synth.Indicators
-
-
-class BudgetMode(Enum):
-    SYNTH = "synthetic"  # Uses the synthetic, unitless costs
-    WALL = "wall"
-    CPU_HR = "cpu_hr"
 
 
 class ALLA:
