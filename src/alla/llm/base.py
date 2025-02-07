@@ -1,6 +1,7 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
+import time
 import os
 from abc import ABC
 from typing import Literal
@@ -9,11 +10,43 @@ import instructor
 from instructor.exceptions import InstructorRetryException
 from pydantic import create_model, Field
 from tqdm import tqdm
+from instructor.exceptions import InstructorRetryException
+from tenacity import Retrying, stop_after_attempt, wait_random, stop_after_delay, wait_none
+
 
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import PROJECT_ROOT
+from alla.utils import PROJECT_ROOT, BudgetMode
+
+
+def get_retry_control(
+    max_retries: int | None = None, budget: float | None = None, wait_range: tuple[float, float] | None = None
+) -> Retrying:
+    # Wait time between requests
+    wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
+
+    if max_retries and budget:
+        return Retrying(
+            stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
+            wait=wait,
+        )
+    elif max_retries:
+        return Retrying(
+            stop=stop_after_attempt(max_retries),
+            wait=wait,
+        )
+    elif budget:
+        return Retrying(
+            stop=stop_after_delay(budget),
+            wait=wait,
+        )
+    else:
+        logger.warning("No retry control specified. Defaulting to 3 attempts.")
+        return Retrying(
+            stop=stop_after_attempt(3),
+            wait=wait,
+        )
 
 
 class LLMBaseClass(ABC):
@@ -31,9 +64,11 @@ class LLMBaseClass(ABC):
         self,
         temperature: float = 0.0,
         seed: int = 101010,
+        budget_mode: BudgetMode = BudgetMode.WALL,
     ):
         self.temperature = temperature
         self.seed = seed
+        self.budget_mode = budget_mode
         self.path_code = self.path_code or self.code
         self._client = None
 
@@ -42,6 +77,7 @@ class LLMBaseClass(ABC):
             "name": self.name,
             "code": self.code,
             "path_code": self.path_code,
+            "budget_mode": str(self.budget_mode),
             "seed": self.seed,
             "context_window": self.context_window,
             "temperature": self.temperature,
@@ -85,10 +121,13 @@ class LLMBaseClass(ABC):
         exclude: list[str] | None = None,
         reports_text: str | None = None,
         verbose=False,
-        max_retries: int = 3,
-    ) -> dict:
+        budget: float | None = None,
+        max_retries: int | None = None,
+    ) -> tuple[dict, bool]:
         """
         Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
+
+        Note, both max_retries and budget can be passed in as valid terminating conditions.
 
         :param indicator_name:  The name of the indicator to retrieve.
         :param asset_id:        The ID of the asset for which to retrieve the indicator.
@@ -97,9 +136,16 @@ class LLMBaseClass(ABC):
         :param report_dir:      The path to the directory containing the reports.
         :param reports_text:    Optionally provide reports to skip the compilation.
         :param verbose:         If True, prints additional information during execution.
-        :param max_retries:     The maximum number of retries to attempt. Default is 5.
-        :return:                A dictionary with keys "name", "value", "reason"
+        :param budget:          Budget to perform the evaluation within.
+        :param max_retries:     The maximum number of retries to attempt. Default is None.
+        :return:                Tuple[A dictionary with keys "name", "value", "reason", Boolean of LLM success]
         """
+        if max_retries is None and budget is None:
+            raise ValueError("One of max_retries or budget must be provided")
+
+        if budget and self.budget_mode != BudgetMode.WALL:
+            raise NotImplementedError(f"Budget mode '{self.budget_mode}' is not supported for 'extract_indicator'")
+
         if not report_dir and not reports_text:
             raise ValueError("Either report_dir or reports_text must be provided")
         if report_dir and reports_text:
@@ -128,15 +174,9 @@ class LLMBaseClass(ABC):
                     {"role": "user", "content": prompt},
                 ],
                 response_model=self._create_indicator_class(),
-                max_retries=max_retries,
+                max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
                 seed=self.seed,
             )
-            py_response = response.model_dump()
-            # Add the indicator value
-            py_response["indicator"] = indicator_name
-
-            return py_response
-        
         except InstructorRetryException as e:
             response = e.last_completion #e.messages[-1]
             py_response = response.model_dump()
@@ -145,32 +185,50 @@ class LLMBaseClass(ABC):
             py_response["reason"] = "Failed to extract soft indicator from reports"
             py_response["value"] = None
             py_response["numeric"] = None
-            return py_response
+            return py_response, False
+        else:
+            # Success
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
+
+            return py_response, True
 
     def evaluate_asset(
-        self, prompt: str, max_retries: int = 3, budget: float | None = None
-    ) -> llm_utils.AssetEvaluationV2:
+        self, prompt: str, max_retries: int | None = None, budget: float | None = None
+    ) -> tuple[dict, bool]:
         """
         Evaluates an asset given its reports and indicators.
         Produces this model's estimate of the asset's growth forecast and category distribution.
 
+        Note, both max_retries and budget can be passed in as valid terminating conditions.
+
         :param prompt:                  The prompt to use for the evaluation.
         :param max_retries:             The maximum number of retries to attempt.
         :param budget:                  Budget to perform the evaluation within.
-        :return:                        Asset evaluation
+        :return:                        Asset evaluation and bool indicating response success
         """
         client = self.get_client()
-        response, completion = client.chat.completions.create_with_completion(
-            model=self.code,
-            temperature=self.temperature,
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
-            response_model=llm_utils.AssetEvaluationV2,
-            max_retries=max_retries,
-            seed=self.seed,
-        )
-        return response
+        try:
+            response, completion = client.chat.completions.create_with_completion(
+                model=self.code,
+                temperature=self.temperature,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+                response_model=llm_utils.AssetEvaluationV2,
+                max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
+                seed=self.seed,
+            )
+        except InstructorRetryException as e:
+            result = {
+                "error": str(e),
+                "last_completion": e.last_completion, #e.messages[-1]
+            }
+            return result, False
+        else:
+            # Success
+            return response.model_dump(), True
 
     def __str__(self):
         """Return name and class dot notation"""

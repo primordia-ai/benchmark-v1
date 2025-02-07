@@ -41,6 +41,6 @@ if __name__ == '__main__':
 
     prompt = llm_utils.prompt_exp1_task(report_txt, indicators)
     print(prompt)
-    result = llm.evaluate_asset(prompt, max_retries=5)
+    result, success = llm.evaluate_asset(prompt, max_retries=5)
     # NOTE: Llama-tiny truncates this prompt since it can't handle it...
-    print(f"\nTEST RESULT:\n{result.model_dump()}")
+    print(f"\nTEST RESULT:\n{result}")
