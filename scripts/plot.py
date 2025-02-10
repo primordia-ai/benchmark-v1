@@ -27,6 +27,7 @@ def exp1(results_name: str):
         "stable": "Stable",
         "high_growth": "High Growth",
         "time_bomb": "Time-bomb",
+        "overall": "Overall"
     }
 
     # ================
@@ -40,7 +41,9 @@ def exp1(results_name: str):
         {
             "asset": a_id,
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "true_category": asset['truth']['category'],
             "growth": asset['growth'][2][1],  # p_50
+            "true_growth": asset['truth']['growth'],
             "class_loss": asset['class_loss'],
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
@@ -52,7 +55,9 @@ def exp1(results_name: str):
         {
             "asset": a_id,
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "true_category": asset['truth']['category'],
             "growth": asset['growth'][2][1],  # p_50
+            "true_growth": asset['truth']['growth'],
             "class_loss": asset['class_loss'],
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
@@ -79,6 +84,15 @@ def exp1(results_name: str):
 
     # Often we want to filter out the Truth data
     df_nt = df[df["source"] != "Truth"]
+
+    # We can also create an "Overall" category that duplicates the data but is helpful
+    # for plotting alongside the individual categories
+    df_overall = df_nt.copy()
+    df_overall["true_category"] = "overall"
+    df_overall["category"] = "overall"
+
+    # Append the overall values to the original DataFrame
+    # df_nt_w_overall = pd.concat([df_nt, df_overall], ignore_index=True)
 
     # ================
     # On to figures
@@ -198,29 +212,48 @@ def exp1(results_name: str):
         f.write(report_alla_df.to_latex())
 
     # <><>< 5. Class Loss Boxplot ><><>
-    # Create a boxplot of the class loss for each source (except for Truth), grouped by category
+    # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding
+    # true category. Includes "Overall" group as well
     save_path = os.path.join(SAVE_DIR, f"class-loss-box.{save_fmt}")
 
-    plt.figure(figsize=(4, 4))
-    sns.boxplot(
-        data=df_nt, x="category", y="class_loss", hue="source",
-        log_scale=True,
-        showfliers=False,  # Shown thru stripplot
-    )
-    # Add in points to show each observation with stripplot
-    sns.stripplot(
-        data=df_nt, x="category", y="class_loss", hue="source", size=3.2,
-        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
-        legend=False,
-    )
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
 
-    plt.ylabel("Class loss")
-    # Remove x label and legend title
-    plt.xlabel("")
-    plt.legend(title=None)
+    # --- Main categories ---
+    sns.boxplot(
+        data=df_nt, x="true_category", y="class_loss", hue="source",
+        log_scale=True, showfliers=False, ax=ax1
+    )
+    sns.stripplot(
+        data=df_nt, x="true_category", y="class_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax1
+    )
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Class Loss")
+    ax1.legend(title=None)
     # Reformat tick labels using lbl_map
-    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
-    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+
+    # --- Overall category ---
+    sns.boxplot(
+        data=df_overall, x="true_category", y="class_loss", hue="source",
+        log_scale=True, showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_overall, x="true_category", y="class_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
     plt.tight_layout()
 
     print(f"Saving to {save_path}")
@@ -231,24 +264,44 @@ def exp1(results_name: str):
     # Similar to above
     save_path = os.path.join(SAVE_DIR, f"parametric-score-box.{save_fmt}")
 
-    plt.figure(figsize=(4, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
+
+    # --- Main categories ---
     sns.boxplot(
-        data=df_nt, x="category", y="parametric_score", hue="source",
-        showfliers=False,  # Shown thru stripplot
+        data=df_nt, x="true_category", y="parametric_score", hue="source",
+        showfliers=False, ax=ax1
     )
-    # Add in points to show each observation with stripplot
     sns.stripplot(
-        data=df_nt, x="category", y="parametric_score", hue="source", size=3.2,
+        data=df_nt, x="true_category", y="parametric_score", hue="source", size=3.2,
         dodge=True, jitter=True, edgecolor="auto", linewidth=1,
-        legend=False,
+        legend=False, ax=ax1
     )
-    plt.ylabel("Parametric score")
-    # Remove x label and legend title
-    plt.xlabel("")
-    plt.legend(title=None)
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Parametric Score")
     # Reformat tick labels using lbl_map
-    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
-    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+    ax1.legend(title=None)
+
+    # --- Overall category ---
+    sns.boxplot(
+        data=df_overall, x="true_category", y="parametric_score", hue="source",
+        showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_overall, x="true_category", y="parametric_score", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
     plt.tight_layout()
 
     print(f"Saving to {save_path}")
@@ -259,24 +312,44 @@ def exp1(results_name: str):
     # Similar to above
     save_path = os.path.join(SAVE_DIR, f"non-parametric-loss-box.{save_fmt}")
 
-    plt.figure(figsize=(4, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
+
+    # --- Main categories ---
     sns.boxplot(
-        data=df_nt, x="category", y="non_parametric_loss", hue="source",
-        showfliers=False,  # Shown thru stripplot
+        data=df_nt, x="true_category", y="non_parametric_loss", hue="source",
+        showfliers=False, ax=ax1
     )
-    # Add in points to show each observation with stripplot
     sns.stripplot(
-        data=df_nt, x="category", y="non_parametric_loss", hue="source", size=3.2,
+        data=df_nt, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
         dodge=True, jitter=True, edgecolor="auto", linewidth=1,
-        legend=False,
+        legend=False, ax=ax1
     )
-    plt.ylabel("Non-parametric loss")
-    # Remove x label and legend title
-    plt.xlabel("")
-    plt.legend(title=None)
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Non-Parametric Loss")
     # Reformat tick labels using lbl_map
-    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
-    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+    ax1.legend(title=None)
+
+    # --- Overall category ---
+    sns.boxplot(
+        data=df_overall, x="true_category", y="non_parametric_loss", hue="source",
+        showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_overall, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
     plt.tight_layout()
 
     print(f"Saving to {save_path}")
