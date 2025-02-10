@@ -27,7 +27,7 @@ def exp1(results_name: str):
         "stable": "Stable",
         "high_growth": "High Growth",
         "time_bomb": "Time-bomb",
-        "overall": "Overall"
+        "aggregate": "Aggregate"
     }
 
     # ================
@@ -85,14 +85,11 @@ def exp1(results_name: str):
     # Often we want to filter out the Truth data
     df_nt = df[df["source"] != "Truth"]
 
-    # We can also create an "Overall" category that duplicates the data but is helpful
+    # We can also create an aggregate category that duplicates the data but is helpful
     # for plotting alongside the individual categories
-    df_overall = df_nt.copy()
-    df_overall["true_category"] = "overall"
-    df_overall["category"] = "overall"
-
-    # Append the overall values to the original DataFrame
-    # df_nt_w_overall = pd.concat([df_nt, df_overall], ignore_index=True)
+    df_aggregate = df_nt.copy()
+    df_aggregate["true_category"] = "aggregate"
+    df_aggregate["category"] = "aggregate"
 
     # ================
     # On to figures
@@ -213,7 +210,7 @@ def exp1(results_name: str):
 
     # <><>< 5. Class Loss Boxplot ><><>
     # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding
-    # true category. Includes "Overall" group as well
+    # true category. Includes "Aggregate" group as well
     save_path = os.path.join(SAVE_DIR, f"class-loss-box.{save_fmt}")
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
@@ -235,13 +232,13 @@ def exp1(results_name: str):
     labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
     ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
 
-    # --- Overall category ---
+    # --- Aggregate category ---
     sns.boxplot(
-        data=df_overall, x="true_category", y="class_loss", hue="source",
+        data=df_aggregate, x="true_category", y="class_loss", hue="source",
         log_scale=True, showfliers=False, ax=ax2
     )
     sns.stripplot(
-        data=df_overall, x="true_category", y="class_loss", hue="source", size=3.2,
+        data=df_aggregate, x="true_category", y="class_loss", hue="source", size=3.2,
         dodge=True, jitter=True, edgecolor="auto", linewidth=1,
         legend=False, ax=ax2
     )
@@ -283,13 +280,13 @@ def exp1(results_name: str):
     ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
     ax1.legend(title=None)
 
-    # --- Overall category ---
+    # --- Aggregate category ---
     sns.boxplot(
-        data=df_overall, x="true_category", y="parametric_score", hue="source",
+        data=df_aggregate, x="true_category", y="parametric_score", hue="source",
         showfliers=False, ax=ax2
     )
     sns.stripplot(
-        data=df_overall, x="true_category", y="parametric_score", hue="source", size=3.2,
+        data=df_aggregate, x="true_category", y="parametric_score", hue="source", size=3.2,
         dodge=True, jitter=True, edgecolor="auto", linewidth=1,
         legend=False, ax=ax2
     )
@@ -331,13 +328,13 @@ def exp1(results_name: str):
     ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
     ax1.legend(title=None)
 
-    # --- Overall category ---
+    # --- Aggregate category ---
     sns.boxplot(
-        data=df_overall, x="true_category", y="non_parametric_loss", hue="source",
+        data=df_aggregate, x="true_category", y="non_parametric_loss", hue="source",
         showfliers=False, ax=ax2
     )
     sns.stripplot(
-        data=df_overall, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
+        data=df_aggregate, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
         dodge=True, jitter=True, edgecolor="auto", linewidth=1,
         legend=False, ax=ax2
     )
