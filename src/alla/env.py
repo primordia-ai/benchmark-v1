@@ -1,5 +1,9 @@
-from pathlib import Path
+"""Env vars"""
+# TODO -- Incorporate logic to read user-defined envs from outside the system
+
 import os
+import time
+from pathlib import Path
 
 # Climb up the paths until we find the pyproject toml
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -9,4 +13,8 @@ while not (PROJECT_ROOT / 'pyproject.toml').exists():
     PROJECT_ROOT = PROJECT_ROOT.parent
 
 TESTS_OUT = os.path.join(PROJECT_ROOT, "tests", "tmp")
-LOG_DIR = os.path.join(PROJECT_ROOT, "results", "logs")
+
+# Log filename will be based on the current time
+_default_name = f"{time.strftime('%Y-%m-%d-%H%M%S')}.log"
+# Note the path may be modified in alla.logger.py so this is not a reliably imported variable
+LOG_PATH = os.path.join(PROJECT_ROOT, "results", "logs", _default_name)

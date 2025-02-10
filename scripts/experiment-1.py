@@ -68,22 +68,28 @@ def main():
     if mode not in ["alla", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
 
+    # Seed rng
+    seed = args.seed
+    np.random.seed(seed)
+    # Log level
     loglevel = args.log_level
+    file_loglevel = "DEBUG" if loglevel == "DEBUG" else "INFO"
     if loglevel != "INFO":
         reset_logger(loglevel)
 
-    llm_code = args.llm_code
+    # Run dir
     run_name = args.name
+    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
+    os.makedirs(results_dir, exist_ok=True)
+    log_path = os.path.join(results_dir, "out.log")
+    # Set logging to file
+    log_to_file(log_path, level=file_loglevel)
+
+    llm_code = args.llm_code
     testing = args.test
     temp = args.temp
     strict = args.strict
     pre_extract = args.pre_extracted
-    # Seed rng
-    seed = args.seed
-    np.random.seed(seed)
-
-    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
-    os.makedirs(results_dir, exist_ok=True)
 
     categories = ["high_growth", "stable", "time_bomb"]
     mixture_params = {
@@ -329,9 +335,9 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
 
-    from alla.logger import logger, reset_logger
+    from alla.logger import logger, reset_logger, log_to_file
 
-    from alla import synthetic as synth, utils, stats
+    from alla import synthetic as synth, stats
     from alla.alla import ALLA
     from alla.utils import BudgetMode
     from alla.env import PROJECT_ROOT

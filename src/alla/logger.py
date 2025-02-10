@@ -1,7 +1,9 @@
 """
 Call this before other scripts to use the alla logger
 """
-from alla.env import PROJECT_ROOT
+import os
+
+from alla.env import LOG_PATH
 
 # From logging module
 CRITICAL = 50
@@ -13,8 +15,16 @@ INFO = 20
 DEBUG = 10
 NOTSET = 0
 
+_LOG_PATH = LOG_PATH
 
-def reset_logger(level=INFO, log_file="out.log"):
+
+def validate_log_path(log_path: str):
+    # Let's throw error if the parent directory does not exist
+    if not os.path.exists(os.path.dirname(log_path)):
+        raise FileNotFoundError(f"Parent directory for log path '{log_path}' does not exist.")
+
+
+def reset_logger(level=INFO):
     """Re-initialize ALLA logger with one of the above options"""
     import logging
     # Create a custom logger
@@ -29,18 +39,12 @@ def reset_logger(level=INFO, log_file="out.log"):
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(level)  # Set the minimum level for the handler
 
-    # Add a FileHandler to the logger
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setLevel(level)  # Set the minimum level for the handler
-
-    # Add an optional formatter for better output
-    formatter = logging.Formatter('[%(name)s|%(levelname)s]\t%(message)s')
+    # Add formatter for better output
+    formatter = logging.Formatter('[ {name}:{levelname} ]\t{message}', style='{')
     stream_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
 
     # Add the handlers to the logger
     _logger.addHandler(stream_handler)
-    _logger.addHandler(file_handler)
 
     return _logger
 
@@ -53,9 +57,36 @@ def get_logger():
 
     # Check if the logger already has handlers attached
     if not _logger.hasHandlers():
+        # Init
         return reset_logger()
 
     return _logger
+
+
+def log_to_file(log_path: str | None = None, level: str = INFO):
+    """
+    Specify a log file to write to, or initialize the default.
+    Also specify a log level
+    """
+    import logging
+    # Create a custom logger
+    _logger = logging.getLogger("alla")
+
+    # Add a FileHandler to the logger
+    global _LOG_PATH
+    if not log_path:
+        # Use existing setting
+        log_path = _LOG_PATH
+
+    validate_log_path(log_path)
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(level)  # Set the minimum level for the handler
+
+    # Add formatter for better output
+    formatter = logging.Formatter('[ {name}:{levelname} ]\t{message}', style='{')
+    file_handler.setFormatter(formatter)
+    # Add the handlers to the logger
+    _logger.addHandler(file_handler)
 
 
 logger = get_logger()
