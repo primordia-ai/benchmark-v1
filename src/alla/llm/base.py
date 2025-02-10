@@ -17,7 +17,8 @@ from tenacity import Retrying, stop_after_attempt, wait_random, stop_after_delay
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import PROJECT_ROOT, BudgetMode
+from alla.utils import BudgetMode
+from alla.env import PROJECT_ROOT
 
 
 def get_retry_control(

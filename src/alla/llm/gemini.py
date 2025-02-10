@@ -5,7 +5,7 @@ import google.generativeai as genai
 import instructor
 
 from alla.llm.base import LLMBaseClass
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 
 
 def get_api_key():

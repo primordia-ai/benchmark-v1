@@ -1,7 +1,7 @@
 """
 Call this before other scripts to use the alla logger
 """
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 
 # From logging module
 CRITICAL = 50

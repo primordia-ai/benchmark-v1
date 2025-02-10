@@ -82,7 +82,7 @@ def main():
     seed = args.seed
     np.random.seed(seed)
 
-    results_dir = os.path.join(utils.PROJECT_ROOT, f"results/exp-1/{run_name}")
+    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
     os.makedirs(results_dir, exist_ok=True)
 
     categories = ["high_growth", "stable", "time_bomb"]
@@ -129,7 +129,7 @@ def main():
 
     # We can just compile asset names here
     # Only for assets that we have reports for
-    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports", llm.path_code)
+    report_dir = os.path.join(PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
@@ -197,7 +197,7 @@ def main():
                         # Load the pre-extracted indicators
                         # Technically you don't need to use the {llm.code} subset
                         extract_path = os.path.join(
-                            utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
+                            PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
                         )
                         # Result is list of {"value": .., "indicator": ..} items
                         extracted_colors = llm_utils.load_extracted_indicators(
@@ -271,7 +271,7 @@ def main():
                     indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
-                        utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
+                        PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
                     )
                     with open(indicator_file, 'r') as f:
                         indicators = json.load(f)
@@ -334,6 +334,7 @@ if __name__ == '__main__':
     from alla import synthetic as synth, utils, stats
     from alla.alla import ALLA
     from alla.utils import BudgetMode
+    from alla.env import PROJECT_ROOT
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
 

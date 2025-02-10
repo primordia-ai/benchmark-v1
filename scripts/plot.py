@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 
 
 def exp1(results_name: str):

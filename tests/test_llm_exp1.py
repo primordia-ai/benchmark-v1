@@ -16,7 +16,7 @@ if __name__ == '__main__':
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm import wrangling
-    from alla.utils import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT
 
     llm_cls = get_llm("llama-tiny")
     llm = llm_cls(temperature=0)
