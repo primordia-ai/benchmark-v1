@@ -5,3 +5,5 @@
 
 # Override others as
 # !important_models/
+
+!logs/.gitkeep
