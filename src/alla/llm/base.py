@@ -1,7 +1,6 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
-import time
 import os
 from abc import ABC
 from typing import Literal
@@ -9,16 +8,14 @@ from typing import Literal
 import instructor
 from instructor.exceptions import InstructorRetryException
 from pydantic import create_model, Field
+from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
 from tqdm import tqdm
-from instructor.exceptions import InstructorRetryException
-from tenacity import Retrying, stop_after_attempt, wait_random, stop_after_delay, wait_none
 
-
+from alla.env import PROJECT_ROOT
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import BudgetMode
-from alla.env import PROJECT_ROOT
 
 
 def get_retry_control(
@@ -50,6 +47,27 @@ def get_retry_control(
         )
 
 
+def init_llm_prompt_logger(log_path: str):
+    """Initialize a logger specifically for LLM prompts"""
+    import logging
+    # From the Instructor github, it looks like they use 'instructor' as logger name
+    logger = logging.getLogger("instructor")
+    logger.setLevel(logging.DEBUG)
+
+    # Create a file handler for logging prompts
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Add formatter for better output
+    formatter = logging.Formatter('[ {name}:{levelname} ]\t{message}', style='{')
+    file_handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(file_handler)
+
+    return logger
+
+
 class LLMBaseClass(ABC):
     """
     Base class for all LLM models
@@ -72,6 +90,8 @@ class LLMBaseClass(ABC):
         self.budget_mode = budget_mode
         self.path_code = self.path_code or self.code
         self._client = None
+        # Separate LLM prompt logger
+        self.logger = None
 
     def to_json(self):
         return {
@@ -83,6 +103,15 @@ class LLMBaseClass(ABC):
             "context_window": self.context_window,
             "temperature": self.temperature,
         }
+
+    def log_to_file(self, file_path: str):
+        """
+        Initialize a log file to record LLM-specific events (namely, prompts).
+        Instructor automatically logs at the DEBUG level:
+            https://python.useinstructor.com/concepts/logging/
+        """
+        if not self.logger:
+            self.logger = init_llm_prompt_logger(file_path)
 
     def init_client(self) -> None:
         raise NotImplementedError()
@@ -179,13 +208,15 @@ class LLMBaseClass(ABC):
                 seed=self.seed,
             )
         except InstructorRetryException as e:
-            response = e.last_completion #e.messages[-1]
+            response = e.last_completion  # e.messages[-1]
             py_response = response.model_dump()
             # Add the indicator value
             py_response["indicator"] = indicator_name
-            py_response["reason"] = "Failed to extract soft indicator from reports"
-            py_response["value"] = None
-            py_response["numeric"] = None
+            py_response["error"] = str(e)
+            py_response["last_completion"] = e.last_completion  # e.messages[-1]
+            # py_response["reason"] = "Failed to extract soft indicator from reports"
+            # py_response["value"] = None
+            # py_response["numeric"] = None
             return py_response, False
         else:
             # Success
@@ -224,7 +255,7 @@ class LLMBaseClass(ABC):
         except InstructorRetryException as e:
             result = {
                 "error": str(e),
-                "last_completion": e.last_completion, #e.messages[-1]
+                "last_completion": e.last_completion,  # e.messages[-1]
             }
             return result, False
         else:
