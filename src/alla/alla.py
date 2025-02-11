@@ -754,7 +754,7 @@ class ALLA:
             raise FileNotFoundError(f"Model directory '{model_dir}' not found")
 
         stocks_path = os.path.join(model_dir, "stocks.nc")
-        ind_path = os.path.join(model_dir, "indicator_likelihoods.nc")
+        ind_path = os.path.join(model_dir, "indicator_data.nc")
         model_path = os.path.join(model_dir, "alla.npz")
 
         stocks = xr.open_dataset(stocks_path)
