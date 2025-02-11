@@ -5,6 +5,7 @@ import copy
 import datetime
 import json
 import os
+import functools
 import random
 import sys
 import time
@@ -473,7 +474,7 @@ class ALLA:
                     # Get report for this indicator, returns cached if available
                     reports_text = self.get_report(asset_id)
                     extr_color, se_cost = self._call_soft_extractor(
-                        asset, selected_name, reports_text
+                        asset, selected_name, budget, reports_text
                     )
                     # Convert to one-hot distribution
                     extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
@@ -511,18 +512,24 @@ class ALLA:
         return True, ""
 
     def _call_soft_extractor(
-        self, asset: xr.Dataset, indicator_name: str, reports_text: str | None = None
+        self, asset: xr.Dataset, indicator_name: str, budget: float, reports_text: str | None = None
     ) -> tuple:
         """
         Call the Soft-Indicator Extractor to get color prediction from asset company booklet
 
         :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
+        :param budget:          Budget for this extraction
         """
         se_start = time.time()
-        result = self.llm.extract_indicator(
-            indicator_name, str(asset.asset), reports_text=reports_text
-        )["value"]
+        response, success = self.llm.extract_indicator(
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=budget,
+        )
+        if not success:
+            raise RuntimeError(f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
+                               f"{response['last_completion']}")
+
+        result = response["value"]
 
         if self.budget_mode == BudgetMode.SYNTH:
             _cost = self.indicators.cost.loc[indicator_name].item()

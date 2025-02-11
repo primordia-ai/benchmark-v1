@@ -85,6 +85,7 @@ def main():
     results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
     os.makedirs(results_dir, exist_ok=True)
     log_path = os.path.join(results_dir, "out.log")
+    llm_log_path = os.path.join(results_dir, "llm.log")
     # Set logging to file
     log_to_file(log_path, level=file_loglevel)
 
@@ -141,6 +142,9 @@ def main():
 
     # Initialize our LLM
     llm = get_llm(llm_code)(temperature=temp)
+    # Activate logging LLM
+    logger.info(f"Piping LLM logs to {llm_log_path}")
+    llm.log_to_file(llm_log_path)
 
     # We can just compile asset names here
     # Only for assets that we have reports for
@@ -196,7 +200,7 @@ def main():
         json.dump(truth_data, f, indent=4)
 
     for cat, ids in assets.items():
-        print(f"{len(ids)} reports found for '{cat}'")
+        logger.info(f"{len(ids)} reports found for '{cat}'")
 
     if mode in ["alla", "both"]:
         #####################
@@ -205,7 +209,7 @@ def main():
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
-                print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                logger.info(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     extracted_colors = None
                     if pre_extract:
@@ -281,7 +285,7 @@ def main():
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
-                print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                logger.info(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     indicators = None
                     # Load indicators
