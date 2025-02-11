@@ -61,6 +61,9 @@ def main():
     parser.add_argument(
         "--log-level", type=str, default="INFO", help="Logging level. Default 'INFO'."
     )
+    parser.add_argument(
+        "--no-input", action="store_true", help="Skip any input prompting"
+    )
 
     args = parser.parse_args()
 
@@ -85,9 +88,11 @@ def main():
     # Set logging to file
     log_to_file(log_path, level=file_loglevel)
 
-    # Prompt user for description
-    desc_path = os.path.join(results_dir, "description.txt")
-    capture_description(desc_path, logger)
+    no_input = args.no_input
+    if not no_input:
+        # Prompt user for description
+        desc_path = os.path.join(results_dir, "description.txt")
+        capture_description(desc_path, logger)
 
     llm_code = args.llm_code
     testing = args.test
