@@ -13,7 +13,8 @@ if __name__ == '__main__':
 
     from alla import synthetic as synth
     from alla.alla import ALLA
-    from alla.utils import PROJECT_ROOT, TESTS_OUT
+    from alla.utils import TESTS_OUT
+    from alla.env import PROJECT_ROOT
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
 

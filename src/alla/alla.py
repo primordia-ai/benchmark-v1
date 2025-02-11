@@ -22,7 +22,8 @@ from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import BudgetMode, PROJECT_ROOT
+from alla.utils import BudgetMode
+from alla.env import PROJECT_ROOT
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
