@@ -85,6 +85,10 @@ def main():
     # Set logging to file
     log_to_file(log_path, level=file_loglevel)
 
+    # Prompt user for description
+    desc_path = os.path.join(results_dir, "description.txt")
+    capture_description(desc_path, logger)
+
     llm_code = args.llm_code
     testing = args.test
     temp = args.temp
@@ -335,7 +339,7 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
 
-    from alla.logger import logger, reset_logger, log_to_file
+    from alla.logger import logger, reset_logger, log_to_file, capture_description
 
     from alla import synthetic as synth, stats
     from alla.alla import ALLA

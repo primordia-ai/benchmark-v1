@@ -89,4 +89,16 @@ def log_to_file(log_path: str | None = None, level: str = INFO):
     _logger.addHandler(file_handler)
 
 
+def capture_description(file_path: str, logger=None):
+    """Prompt user for description and write to file"""
+    description = input("Enter an optional description for this run: ")
+    if logger:
+        # Log to our file
+        logger.info(f"Description: {description}")
+    # Write to a description file
+    desc_path = os.path.join(file_path)
+    with open(desc_path, 'w') as f:
+        f.write(description)
+
+
 logger = get_logger()
