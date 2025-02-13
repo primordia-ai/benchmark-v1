@@ -13,7 +13,6 @@ if __name__ == '__main__':
 
     # =========
 
-    from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm import wrangling
     from alla.env import PROJECT_ROOT
@@ -34,8 +33,7 @@ if __name__ == '__main__':
     )
 
     # indicator text
-    indicator_llm_code = "llama3_8b"
-    indicator_file = os.path.join(PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset}.json")
+    indicator_file = os.path.join(PROJECT_ROOT, "tests/data/extracted_indicators", f"{asset}.json")
     with open(indicator_file, 'r') as f:
         indicators = json.load(f)
 
