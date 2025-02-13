@@ -170,3 +170,5 @@ outputs/
 tmp.*
 
 .secrets.json
+
+manuscript/
