@@ -56,12 +56,12 @@ class LlamaTiny(LlamaSmall):
     ]
 
 
-class LlamaMamma(LlamaSmall):
+class LlamaLarge(LlamaSmall):
     name = "Llama 3 70B"
     code = "llama3:70b"
     path_code = "llama3_70b"
     context_window = 128_000
     aliases = [
         "llama-70b",
-        "llama-mamma",
+        "llama-large",
     ]
