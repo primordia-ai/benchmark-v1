@@ -101,7 +101,8 @@ def main():
     summary_df.to_csv(summary_csv_path, index=False)    
 
     summary_tex_path = os.path.join(output_dir, 'summary.tex')
-    summary_tex = summary_df.to_latex(float_format="%.3f")
+    summary_tex = summary_df.to_latex(float_format="%.3f", index=False)
+    summary_tex = summary_tex.replace('_', ' ')
     with open(summary_tex_path, 'w') as f:
         f.write(summary_tex)
 
