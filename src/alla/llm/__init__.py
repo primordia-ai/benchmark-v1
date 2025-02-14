@@ -1,20 +1,23 @@
 from typing import Type
 
 from .base import LLMBaseClass
-from .llama import LlamaMamma, LlamaSmall, LlamaSmallAlt, LlamaTiny
+from .llama import LlamaLarge, LlamaSmall, LlamaSmallAlt, LlamaTiny
 from .deepseek import DeepseekSmall, DeepseekMedium, DeepseekLarge, DeepseekMini, Deepseek7b
+from .qwen import QwenCoder, QwenCoderTiny
 
 AVAILABLE_MODELS = {
     # Model codes to classes
     LlamaSmall.code: LlamaSmall,
     LlamaSmallAlt.code: LlamaSmallAlt,
     LlamaTiny.code: LlamaTiny,
-    LlamaMamma.code: LlamaMamma,
+    LlamaLarge.code: LlamaLarge,
     DeepseekSmall.code: DeepseekSmall,
     DeepseekMedium.code: DeepseekMedium,
     DeepseekLarge.code: DeepseekLarge,
     DeepseekMini.code: DeepseekMini,
     Deepseek7b.code: Deepseek7b,
+    QwenCoder.code: QwenCoder,
+    QwenCoderTiny.code: QwenCoderTiny,
 }
 
 

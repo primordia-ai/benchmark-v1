@@ -61,6 +61,9 @@ def main():
     parser.add_argument(
         "--log-level", type=str, default="INFO", help="Logging level. Default 'INFO'."
     )
+    parser.add_argument(
+        "--no-input", action="store_true", help="Skip any input prompting"
+    )
 
     args = parser.parse_args()
 
@@ -68,22 +71,35 @@ def main():
     if mode not in ["alla", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
 
+    # Seed rng
+    seed = args.seed
+    np.random.seed(seed)
+    # Log level
     loglevel = args.log_level
+    file_loglevel = "DEBUG" if loglevel == "DEBUG" else "INFO"
     if loglevel != "INFO":
         reset_logger(loglevel)
 
-    llm_code = args.llm_code
+    # Run dir
     run_name = args.name
+    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
+    os.makedirs(results_dir, exist_ok=True)
+    log_path = os.path.join(results_dir, "out.log")
+    llm_log_path = os.path.join(results_dir, "llm.log")
+    # Set logging to file
+    log_to_file(log_path, level=file_loglevel)
+
+    no_input = args.no_input
+    if not no_input:
+        # Prompt user for description
+        desc_path = os.path.join(results_dir, "description.txt")
+        capture_description(desc_path, logger)
+
+    llm_code = args.llm_code
     testing = args.test
     temp = args.temp
     strict = args.strict
     pre_extract = args.pre_extracted
-    # Seed rng
-    seed = args.seed
-    np.random.seed(seed)
-
-    results_dir = os.path.join(utils.PROJECT_ROOT, f"results/exp-1/{run_name}")
-    os.makedirs(results_dir, exist_ok=True)
 
     categories = ["high_growth", "stable", "time_bomb"]
     mixture_params = {
@@ -108,7 +124,8 @@ def main():
         n_asset_per = n_asset / 3
         budget_mode = BudgetMode.WALL
         total_budget = 1e5
-        budget_per_task = 4
+        budget_per_task = 10
+        max_retries = 3
         asset_memory_depth = 20
     else:
         # Otherwise, just run all assets
@@ -117,6 +134,7 @@ def main():
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
         budget_per_task = 30
+        max_retries = 10
         asset_memory_depth = 100
 
     if mode in ['llm', 'both'] and budget_mode != BudgetMode.WALL:
@@ -124,10 +142,13 @@ def main():
 
     # Initialize our LLM
     llm = get_llm(llm_code)(temperature=temp)
+    # Activate logging LLM
+    logger.info(f"Piping LLM logs to {llm_log_path}")
+    llm.log_to_file(llm_log_path)
 
     # We can just compile asset names here
     # Only for assets that we have reports for
-    report_dir = os.path.join(utils.PROJECT_ROOT, "data/reports", llm.path_code)
+    report_dir = os.path.join(PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
@@ -135,10 +156,6 @@ def main():
         category = stocks[asset_id]['category']
         if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
-            continue
-
-        # TODO -- REMOVE
-        if category != "time_bomb":
             continue
 
         # Add asset to category and record truth data
@@ -183,7 +200,7 @@ def main():
         json.dump(truth_data, f, indent=4)
 
     for cat, ids in assets.items():
-        print(f"{len(ids)} reports found for '{cat}'")
+        logger.info(f"{len(ids)} reports found for '{cat}'")
 
     if mode in ["alla", "both"]:
         #####################
@@ -192,14 +209,14 @@ def main():
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
-                print(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                logger.info(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     extracted_colors = None
                     if pre_extract:
                         # Load the pre-extracted indicators
                         # Technically you don't need to use the {llm.code} subset
                         extract_path = os.path.join(
-                            utils.PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
+                            PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
                         )
                         # Result is list of {"value": .., "indicator": ..} items
                         extracted_colors = llm_utils.load_extracted_indicators(
@@ -268,14 +285,12 @@ def main():
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
-                print(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                logger.info(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
-                    if asset_id != 'asset_7':
-                        continue
                     indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
-                        utils.PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
+                        PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
                     )
                     with open(indicator_file, 'r') as f:
                         indicators = json.load(f)
@@ -286,36 +301,31 @@ def main():
                     reports_text = read_reports(report_file)
 
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
-                    # Start the clock
-                    task_start = time.time()
-                    # TODO -- Implement the budget termination (through retry callbacks)
-                    while (time.time() - task_start) < budget_per_task:
-                        try:
-                            evaluation = llm.evaluate_asset(prompt, max_retries=3, budget=budget_per_task)
-                        except Exception as e:
-                            # Log the error and try again if there's budget
-                            logger.warning(f"Exception evaluating asset {asset_id}: {e}")
-                            if (time.time() - task_start) < budget_per_task:
-                                logger.warning("Retrying within remaining budget...")
-                            else:
-                                # Time's up
-                                logger.warning(f"Out of budget")
-                                llm_results[asset_id] = {
-                                    "error": str(e),
-                                    "truth": truth_data[asset_id]
-                                }
-                        else:
-                            # Successful eval
-                            result = evaluation.model_dump()
-                            # Compute growth quantiles
-                            mix_weights = [result['high_growth'], result['stable'], result['time_bomb']]
-                            quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
-                            llm_results[asset_id] = {
-                                "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
-                                "category": result,
-                                "truth": truth_data[asset_id],
-                            }
-                            break
+                    # For checking
+                    start = time.time()
+                    # We might wrap this in try-except, but the method itself does so for LLM request
+                    evaluation, success = llm.evaluate_asset(prompt, max_retries=max_retries, budget=budget_per_task)
+                    end = time.time()
+                    if end - start > budget_per_task:
+                        logger.warning(f"Asset '{asset_id}' eval exceeded budget: {end - start} > {budget_per_task}")
+
+                    if not success:
+                        error = evaluation['error']
+                        logger.warning(f"Failed to evaluate asset {asset_id}: {error}")
+                        llm_results[asset_id] = {
+                            "error": error,
+                            "truth": truth_data[asset_id]
+                        }
+                    else:
+                        # Successful eval
+                        # Compute growth quantiles
+                        mix_weights = [evaluation['high_growth'], evaluation['stable'], evaluation['time_bomb']]
+                        quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
+                        llm_results[asset_id] = {
+                            "growth": tuple([(q, p) for q, p in zip(quantiles, quantile_pred)]),
+                            "category": evaluation,
+                            "truth": truth_data[asset_id],
+                        }
 
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
@@ -338,10 +348,12 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
 
-    from alla.logger import logger, reset_logger
+    from alla.logger import logger, reset_logger, log_to_file, capture_description
 
-    from alla import synthetic as synth, utils, stats
-    from alla.alla import ALLA, BudgetMode
+    from alla import synthetic as synth, stats
+    from alla.alla import ALLA
+    from alla.utils import BudgetMode
+    from alla.env import PROJECT_ROOT
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
 

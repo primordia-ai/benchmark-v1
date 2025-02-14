@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from alla import synthetic as synth
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
 

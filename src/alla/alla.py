@@ -5,10 +5,10 @@ import copy
 import datetime
 import json
 import os
+import functools
 import random
 import sys
 import time
-from enum import Enum
 from typing import Dict, Optional, TYPE_CHECKING, Union
 
 import matplotlib.pyplot as plt
@@ -23,18 +23,13 @@ from alla import stats as alla_stats, synthetic as synth
 from alla.llm import AVAILABLE_MODELS
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import PROJECT_ROOT
+from alla.utils import BudgetMode
+from alla.env import PROJECT_ROOT
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
 Indicators = synth.Indicators
-
-
-class BudgetMode(Enum):
-    SYNTH = "synthetic"  # Uses the synthetic, unitless costs
-    WALL = "wall"
-    CPU_HR = "cpu_hr"
 
 
 class ALLA:
@@ -479,7 +474,7 @@ class ALLA:
                     # Get report for this indicator, returns cached if available
                     reports_text = self.get_report(asset_id)
                     extr_color, se_cost = self._call_soft_extractor(
-                        asset, selected_name, reports_text
+                        asset, selected_name, budget, reports_text
                     )
                     # Convert to one-hot distribution
                     extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
@@ -517,18 +512,24 @@ class ALLA:
         return True, ""
 
     def _call_soft_extractor(
-        self, asset: xr.Dataset, indicator_name: str, reports_text: str | None = None
+        self, asset: xr.Dataset, indicator_name: str, budget: float, reports_text: str | None = None
     ) -> tuple:
         """
         Call the Soft-Indicator Extractor to get color prediction from asset company booklet
 
         :param asset:           Selected asset
         :param indicator_name:  Soft indicator name
+        :param budget:          Budget for this extraction
         """
         se_start = time.time()
-        result = self.llm.extract_indicator(
-            indicator_name, str(asset.asset), reports_text=reports_text
-        )["value"]
+        response, success = self.llm.extract_indicator(
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=budget,
+        )
+        if not success:
+            raise RuntimeError(f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
+                               f"{response['last_completion']}")
+
+        result = response["value"]
 
         if self.budget_mode == BudgetMode.SYNTH:
             _cost = self.indicators.cost.loc[indicator_name].item()
@@ -760,7 +761,7 @@ class ALLA:
             raise FileNotFoundError(f"Model directory '{model_dir}' not found")
 
         stocks_path = os.path.join(model_dir, "stocks.nc")
-        ind_path = os.path.join(model_dir, "indicator_likelihoods.nc")
+        ind_path = os.path.join(model_dir, "indicator_data.nc")
         model_path = os.path.join(model_dir, "alla.npz")
 
         stocks = xr.open_dataset(stocks_path)

@@ -5,7 +5,7 @@ import instructor
 from anthropic import Anthropic
 
 from alla.llm.base import LLMBaseClass
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 
 
 def get_api_key() -> str:

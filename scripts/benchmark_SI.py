@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from alla.utils import PROJECT_ROOT
+from alla.env import PROJECT_ROOT
 import sys
 from sklearn.metrics import confusion_matrix, matthews_corrcoef
 import numpy as np

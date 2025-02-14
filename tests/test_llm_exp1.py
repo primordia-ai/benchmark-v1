@@ -13,17 +13,16 @@ if __name__ == '__main__':
 
     # =========
 
-    from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm import wrangling
-    from alla.utils import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT
 
     llm_cls = get_llm("llama-tiny")
     llm = llm_cls(temperature=0)
 
     # Load the report
     asset = "asset_0"
-    report_dir = os.path.join(PROJECT_ROOT, f"data/reports/{llm.path_code}/{asset}")
+    report_dir = os.path.join(PROJECT_ROOT, f"tests/data/reports/{asset}")
     report_txt = wrangling.read_reports(
         report_dir,
         # include=[
@@ -34,13 +33,12 @@ if __name__ == '__main__':
     )
 
     # indicator text
-    indicator_llm_code = "llama3_8b"
-    indicator_file = os.path.join(PROJECT_ROOT, "data/extracted_indicators", indicator_llm_code, f"{asset}.json")
+    indicator_file = os.path.join(PROJECT_ROOT, "tests/data/extracted_indicators", f"{asset}.json")
     with open(indicator_file, 'r') as f:
         indicators = json.load(f)
 
     prompt = llm_utils.prompt_exp1_task(report_txt, indicators)
     print(prompt)
-    result = llm.evaluate_asset(prompt, max_retries=5)
+    result, success = llm.evaluate_asset(prompt, max_retries=5)
     # NOTE: Llama-tiny truncates this prompt since it can't handle it...
-    print(f"\nTEST RESULT:\n{result.model_dump()}")
+    print(f"\nTEST RESULT:\n{result}")

@@ -11,7 +11,7 @@ if __name__ == '__main__':
     import logging
     from alla.llm import get_llm
     from alla.llm.wrangling import read_reports
-    from alla.utils import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT
     from alla.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
     from alla.logger import logger, reset_logger
 
