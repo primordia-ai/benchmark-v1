@@ -5,11 +5,10 @@ import copy
 import datetime
 import json
 import os
-import functools
 import random
 import sys
 import time
-from typing import Dict, Optional, TYPE_CHECKING, Union
+from typing import Dict, Optional, Union, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,32 +19,68 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
+from alla.env import PROJECT_ROOT
 from alla.llm import AVAILABLE_MODELS
+from alla.llm.base import LLMBaseClass
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import BudgetMode
-from alla.env import PROJECT_ROOT
-
-if TYPE_CHECKING:
-    from alla.llm.base import LLMBaseClass
 
 Indicators = synth.Indicators
-
 
 class ALLA:
     """
     Active Lifelong Learning Architecture
 
-    For our benchmarking experiment purposes.
-    Stores a belief model of stock classes and their indicator likelihoods, etc.
-    Stocks are one of High Growth, Stable, or Time Bomb.
+    Through statistical modeling of asset/company properties (i.e. their asset class, and growth),
+    ALLA refines its predictive abilities on these properties through active inference on
+    observed asset attributes, namely their 'indicators'.
+
+    Equipped with the ground-truth parameters that make up the growth distribution (mu_g, sigma_g), ALLA can
+    make an informed estimate of an asset's upcoming growth by its categorical likelihood (mixture weights).
+    The growth distribution follows a Gaussian Mixture Model, formed by the three asset classes:
+    High Growth, Stable, or Time-Bomb.
+
+    Attributes:
+        n_assets (int): Number of assets in the dataset.
+        classes (Dict[str, str]): Mapping of class codes to their titles.
+        class_idx (Dict[str, int]): Mapping of class codes to their indices.
+        n_classes (int): Number of classes.
+        mu_g (numpy.ndarray): Mean growth parameters.
+        sigma_g (numpy.ndarray): Standard deviation of growth parameters.
+        quantiles (List[float]): List of quantiles for growth predictions.
+        asset_memory_depth (int): Depth of memory in steps for inference model updates.
+        budget (float): Remaining budget for performing asset evaluations.
+        budget_mode (BudgetMode): What budget mode we are using.
+        llm (LLMBaseClass): Loaded LLM at ALLA's disposal for various tasks.
+        stocks (xarray.Dataset): Dataset for the assets/stocks. Also where ALLA's belief model parameters are stored.
+        indicators (xarray.Dataset): Indicator dataset of likelihoods of a color given class.
+        _cached_reports (Optional[Dict[str, str]]): Cached reports.
+        _version (str): Version.
     """
+
+    # Class-level annotations for introspection
+    n_assets: int
+    classes: Dict[str, str]
+    class_idx: Dict[str, int]
+    n_classes: int
+    mu_g: np.ndarray
+    sigma_g: np.ndarray
+    quantiles: List[float]
+    asset_memory_depth: int
+    budget: float
+    budget_mode: BudgetMode
+    llm: LLMBaseClass
+    stocks: xr.Dataset
+    indicators: xr.Dataset
+    _cached_reports: Optional[Dict[str, str]]
+
     _version: str = "0.1"
 
     def __init__(
         self,
         stocks_dataset: xr.Dataset,
-        llm: "LLMBaseClass",
+        llm: LLMBaseClass,
         asset_memory_depth: int = 20,
         budget: float = 100,
         budget_mode: BudgetMode = BudgetMode.SYNTH,
@@ -55,7 +90,7 @@ class ALLA:
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
         :param llm:                 Initialized LLM model
-        :param asset_memory_depth:  How many Bayesian updates to remember for each asset
+        :param asset_memory_depth:  How many inference updates to remember for each asset
         :param budget:              Budget for ALLA to spend on inference
         :param budget_mode:         Budget mode
         """
@@ -88,9 +123,7 @@ class ALLA:
         # Shorthand
         self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
 
-        # These are set in the reset method
-        self.indicators = None
-        self._cached_reports = None
+        # Also initializes a couple attributes
         self.reset()
 
     def to_json(self):
@@ -177,6 +210,7 @@ class ALLA:
 
     @property
     def ranking_idx(self) -> np.ndarray:
+        """Ranking indices based on utility"""
         return self.indicators.utility.argsort()[::-1].values
 
     @property
@@ -241,8 +275,6 @@ class ALLA:
     def get_report(self, asset_id: str) -> str:
         """
         Return the cached report for the selected asset
-
-        :return:
         """
         if asset_id in self._cached_reports:
             return self._cached_reports[asset_id]
@@ -526,8 +558,10 @@ class ALLA:
             indicator_name, str(asset.asset), reports_text=reports_text, budget=budget,
         )
         if not success:
-            raise RuntimeError(f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
-                               f"{response['last_completion']}")
+            raise RuntimeError(
+                f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
+                f"{response['last_completion']}"
+            )
 
         result = response["value"]
 
@@ -585,107 +619,6 @@ class ALLA:
             prior = self.stocks.prior.sel(asset=asset.asset).values[:, -1]
             quantile_values = synth.compute_growth_quantiles(prior, list(quantiles))
             self._update_quantile_pred(asset, quantile_values)
-
-    def select_next_indicator_with_budget_evolutionary(
-        self, prior, candidates, budget: int, population_size=2, generations=2, mutation_rate=0.1
-    ) -> tuple:
-        """
-        Select the next indicator to observe given a budget constraint using an evolutionary algorithm.
-        This method evaluates the utility of each candidate indicator and selects the one with the highest expected utility
-        that can be afforded within the given budget. The utility is computed based on the expected log Bayes factor, which
-        measures the information gain from observing the indicator.
-        Parameters:
-        -----------
-        prior : np.ndarray
-            The prior probabilities for each class.
-        candidates : list
-            A list of candidate indicators to consider.
-        budget : int
-            The available budget for selecting indicators.
-        population_size : int
-            The size of the population for the evolutionary algorithm.
-        generations : int
-            The number of generations to run the evolutionary algorithm.
-        mutation_rate : float
-            The mutation rate for the evolutionary algorithm.
-        Returns:
-        --------
-        tuple
-            A tuple containing the selected indicator and its associated utility.
-        """
-
-        def fitness(indicator):
-            utility = 0
-            p_k = prior / np.sum(prior)
-            for x_ij in [0, 1]:
-                p_xj = np.sum(
-                    p_k * (self.ind_likelihoods[indicator, :] ** x_ij * (1 - self.ind_likelihoods[indicator, :]) ** (
-                            1 - x_ij))
-                )
-                if p_xj > 0:
-                    likelihood = self.ind_likelihoods[indicator, :] ** x_ij * (
-                            1 - self.ind_likelihoods[indicator, :]) ** (1 - x_ij)
-                    gamma = p_k * likelihood
-                    gamma = gamma / np.sum(gamma)
-                    g_points = np.linspace(
-                        min(self.mu_g - 3 * max(self.sigma_g)),
-                        max(self.mu_g + 3 * max(self.sigma_g)),
-                        100
-                    )
-                    for g in g_points:
-                        post_prob = sum(
-                            gamma[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
-                        )
-                        prior_prob = sum(
-                            p_k[k] * stats.norm.pdf(g, self.mu_g[k], self.sigma_g[k])
-                                for k in range(self.n_classes)
-                        )
-                        if post_prob > 0 and prior_prob > 0:
-                            utility += p_xj * post_prob * (np.log(post_prob) - np.log(prior_prob)) * (
-                                    g_points[1] - g_points[0])
-            return utility
-
-        def mutate(indicator):
-            if random.random() < mutation_rate:
-                return random.choice(candidates)
-            return indicator
-
-        def crossover(parent1, parent2):
-            return random.choice([parent1, parent2])
-
-        # Initialize population
-        population = [random.choice(candidates) for _ in range(population_size)]
-        best_indicator = None
-        max_utility = -float('inf')
-
-        for generation in tqdm(range(generations)):
-            # Evaluate fitness
-            fitness_values = [fitness(ind) for ind in population]
-
-            # Select parents
-            parents = random.choices(population, weights=fitness_values, k=population_size)
-
-            # Generate new population
-            new_population = []
-            for i in range(0, population_size, 2):
-                parent1 = parents[i]
-                parent2 = parents[i + 1]
-                child1 = mutate(crossover(parent1, parent2))
-                child2 = mutate(crossover(parent1, parent2))
-                new_population.extend([child1, child2])
-
-            population = new_population
-
-            # Update best indicator
-            for ind in population:
-                if self.indicator_costs[ind] <= budget:
-                    ind_utility = fitness(ind)
-                    if ind_utility > max_utility:
-                        max_utility = ind_utility
-                        best_indicator = ind
-        print(f"Best indicator: {best_indicator} with utility: {max_utility}")
-        return best_indicator, max_utility
 
     def save_model(
         self,

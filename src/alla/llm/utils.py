@@ -413,6 +413,36 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     return prompt
 
 
+def prompt_exp1_prolog() -> str:
+    """
+    Text prolog describing the aim of the first experiment and other important details.
+    """
+
+
+def prompt_alla_briefing() -> str:
+    """
+    Provide ALLA with a description of what it has access to and how it might use it:
+    """
+    return """
+    You know that the growth value of an asset is sampled from a Gaussian Mixture Model distribution with 3 modes, 
+    one for each category. You have access to the three means and three scale parameters that define this distribution,
+    which you can reference as the attributes:
+        self.mu_g: np.ndarray = [<mu_high_growth>, <mu_stable>, <mu_time_bomb>]
+        self.scale_g: np.ndarray = [<scale_high_growth>, <scale_stable>, <scale_time_bomb>]
+        
+    Further, you have access to a few xarray.Datasets at your disposal:
+        1. self.stocks: 
+    """
+
+
+
+def prompt_codegen_inference_with_measurement() -> str:
+    """
+    Prompt an LLM to generate an inference algorithm
+    :return:
+    """
+
+
 def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:
     """
     Load the extracted indicators from the JSON file.
