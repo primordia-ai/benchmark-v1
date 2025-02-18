@@ -8,8 +8,6 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from alla import synthetic as synth
-from alla.utils import describe_class
-from alla.alla import ALLA
 from alla.env import PROJECT_ROOT
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
@@ -59,6 +57,18 @@ class CategoryDistribution(BaseModel):
         self.stable /= total
         self.time_bomb /= total
         return self
+
+
+class ExtractedIndicator(BaseModel):
+    value: Literal['red', 'yellow', 'green'] = Field(
+        ..., title="Value", description="The value of the indicator, represented by the colors red, yellow, and green."
+    )
+    # indicator: str = Field(
+    #     ..., title="Indicator", description="The name of the extracted indicator."
+    # )
+    reason: str = Field(
+        ..., title="Reason", description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
+    )
 
 
 class AssetEvaluationV1(BaseModel):
@@ -419,22 +429,6 @@ def prompt_exp1_prolog() -> str:
     """
     Text prolog describing the aim of the first experiment and other important details.
     """
-
-
-def prompt_alla_briefing() -> str:
-    """
-    Provide ALLA with a description of what it has access to and how it might use it:
-    Make use of utils.describe_class.
-    """
-    prompt = """
-    You will be prompted to write some code, e.g. statistical algorithms, to achieve various tasks.
-    These snippets will be used by the ALLA class as part of its asset evaluation.
-    Thus, you should make references to `self` when appropriate (you are the ALLA class).
-    Below is a description of the ALLA class and its methods:\n\n
-    """
-    prompt += describe_class(ALLA)
-
-    return prompt
 
 
 def prompt_codegen_inference_with_measurement() -> str:

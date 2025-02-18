@@ -839,3 +839,20 @@ class ALLA:
             print(f"Saving plot to {save_path}")
 
         plt.show()
+
+
+def prompt_alla_briefing() -> str:
+    """
+    Provide ALLA with a description of what it has access to and how it might use it:
+    Make use of utils.describe_class.
+    """
+    prompt = """
+    You will be prompted to write some code, e.g. statistical algorithms, to achieve various tasks.
+    These snippets will be used by the ALLA class as part of its asset evaluation.
+    Thus, you should make references to `self` when appropriate (you are the ALLA class).
+    Below is a description of the ALLA class and its methods:\n\n
+    """
+    prompt += describe_class(ALLA)
+
+    return prompt
+
