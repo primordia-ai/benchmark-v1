@@ -8,6 +8,8 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from alla import synthetic as synth
+from alla.utils import describe_class
+from alla.alla import ALLA
 from alla.env import PROJECT_ROOT
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
@@ -422,24 +424,22 @@ def prompt_exp1_prolog() -> str:
 def prompt_alla_briefing() -> str:
     """
     Provide ALLA with a description of what it has access to and how it might use it:
+    Make use of utils.describe_class.
     """
-    return """
-    You know that the growth value of an asset is sampled from a Gaussian Mixture Model distribution with 3 modes, 
-    one for each category. You have access to the three means and three scale parameters that define this distribution,
-    which you can reference as the attributes:
-        self.mu_g: np.ndarray = [<mu_high_growth>, <mu_stable>, <mu_time_bomb>]
-        self.scale_g: np.ndarray = [<scale_high_growth>, <scale_stable>, <scale_time_bomb>]
-        
-    Further, you have access to a few xarray.Datasets at your disposal:
-        1. self.stocks: 
+    prompt = """
+    You will be prompted to write some code, e.g. statistical algorithms, to achieve various tasks.
+    These snippets will be used by the ALLA class as part of its asset evaluation.
+    Thus, you should make references to `self` when appropriate (you are the ALLA class).
+    Below is a description of the ALLA class and its methods:\n\n
     """
+    prompt += describe_class(ALLA)
 
+    return prompt
 
 
 def prompt_codegen_inference_with_measurement() -> str:
     """
     Prompt an LLM to generate an inference algorithm
-    :return:
     """
 
 
