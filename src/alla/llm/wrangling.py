@@ -21,8 +21,9 @@ if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
 
-SUMMARY_TARGET_LEN = 400
-MIN_SUMMARY_TOKENS = 100
+SUMMARY_TARGET_LEN = 256
+MIN_SUMMARY_TOKENS = 64
+MAX_SUMMARY_TOKENS = 1024
 
 forbidden_terms = [
     "JSON",
@@ -63,13 +64,13 @@ class SummaryInit(BaseModel):
 
     @field_validator("summary")
     @classmethod
-    def min_length(cls, v: str):
+    def check_size(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < MIN_SUMMARY_TOKENS:
+        if not MIN_SUMMARY_TOKENS <= num_tokens <= MAX_SUMMARY_TOKENS:
             raise ValueError(
-                f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
-                f"that is at least {MIN_SUMMARY_TOKENS} tokens long."
+                f"Summary size is outside required parameters: [{MIN_SUMMARY_TOKENS}, {MAX_SUMMARY_TOKENS}]. "
+                f"Received {num_tokens}."
             )
         return v
 
@@ -121,13 +122,14 @@ class RewrittenSummary(BaseModel):
     )
 
     @field_validator("summary")
+    @classmethod
     def length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < MIN_SUMMARY_TOKENS:
+        if not MIN_SUMMARY_TOKENS <= num_tokens <= MAX_SUMMARY_TOKENS:
             raise ValueError(
-                f"The current summary is too short ({num_tokens}). "
-                f"Please make sure that you generate a new summary that is at least {MIN_SUMMARY_TOKENS} tokens long."
+                f"Summary size is outside required parameters: [{MIN_SUMMARY_TOKENS}, {MAX_SUMMARY_TOKENS}]. "
+                f"Received {num_tokens}."
             )
         return v
 
@@ -151,6 +153,7 @@ class RewrittenSummary(BaseModel):
     #     return absent_entities
 
     @field_validator("summary")
+    @classmethod
     def proper_focus(cls, v: str):
         """
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
