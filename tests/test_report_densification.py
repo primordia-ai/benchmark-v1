@@ -14,9 +14,12 @@ if __name__ == '__main__':
 
     from alla.llm import get_llm
     from alla.llm import wrangling
-    from alla.env import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT, SYSTEM_USER
 
-    llm_cls = get_llm("llama-tiny")
+    if SYSTEM_USER == "dsfhswf":
+        llm_cls = get_llm("llama-large")
+    else:
+        llm_cls = get_llm("llama-tiny")
     llm = llm_cls(temperature=0)
 
     # Load the report
