@@ -1,5 +1,5 @@
 """
-Test the report densification utilities in llm.wrangling
+Test the main LLM prompt created for Exp 1
 """
 
 if __name__ == '__main__':

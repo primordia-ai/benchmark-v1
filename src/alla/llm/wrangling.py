@@ -20,6 +20,9 @@ from alla.logger import logger
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
+
+SUMMARY_TARGET_LEN = 400
+
 forbidden_terms = [
     "JSON",
     "json",
@@ -32,13 +35,12 @@ forbidden_terms = [
     " my",
     "The task",
     "the task",
-    "~200 words"
+    f"{SUMMARY_TARGET_LEN} words",
+    f"{SUMMARY_TARGET_LEN} tokens",
 ]
 # Replace each entry with two entries that either have a space, period, or bracket appended to them
 forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
     term in forbidden_terms]
-
-SUMMARY_TARGET_LEN = 200
 
 """
 TODO -- Use the llm_validator to ensure the model isn't doing the annoying meta self-referential stuff
@@ -48,28 +50,30 @@ https://python.useinstructor.com/concepts/reask_validation/#llm-based-validation
 
 class SummaryInit(BaseModel):
     """
-    This is an initial summary about a source document which should be long (several sentences, ~200 words)
+    This is an initial summary about a source document which should be long (several sentences)
     and try to cover a breadth of the content within.
     """
 
     summary: str = Field(
         ...,
         description="This is an initial summary about a source document which should be long "
-                    "(several sentences, ~200 words) and try to cover a breadth of the content within.",
+                    "(several sentences) and try to cover a breadth of the content within.",
     )
 
     @field_validator("summary")
+    @classmethod
     def min_length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
         if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
-                "that is around 200 words long."
+                f"that is around {SUMMARY_TARGET_LEN} words long."
             )
         return v
 
     @field_validator("summary")
+    @classmethod
     def proper_focus(cls, v: str):
         """
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
@@ -98,8 +102,8 @@ class RewrittenSummary(BaseModel):
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    "summary plus the new Missing Entities. It should have the same length (~200 words) as the "
-                    "previous summary and should be easily understood without the Document",
+                    f"summary plus the new Missing Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
+                    f"tokens) as the previous summary and should be easily understood without the Document",
     )
     absent: list[str] = Field(
         ...,
@@ -122,7 +126,7 @@ class RewrittenSummary(BaseModel):
         if num_tokens < SUMMARY_TARGET_LEN * 0.8:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). "
-                "Please make sure that you generate a new summary that is around 200 words long."
+                f"Please make sure that you generate a new summary that is around {SUMMARY_TARGET_LEN} tokens long."
             )
         return v
 
@@ -161,6 +165,15 @@ class RewrittenSummary(BaseModel):
 def summarize_document(
     llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3
 ) -> list[str]:
+    """
+    Generate a chain of summaries for a given document using the provided language model.
+
+    :param llm:             The language model to use for generating summaries
+    :param document:        The document to summarize
+    :param summary_steps:   The number of summary steps to generate
+    :param max_retries:     The maximum number of retries to attempt for each completion
+    :return:                A list of summaries generated for the document
+    """
 
     client = instructor.from_openai(
         OpenAI(
@@ -184,20 +197,20 @@ def summarize_document(
         max_retries=max_retries,
         messages=[
             {
-                "role": "system",
-                "content": "Write an initial summary about the document provided. It should be ~200 words and should"
-                           "try to capture the breadth of the content within.",
+                "role": "developer",
+                "content":f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
+                          "tokens, and should try to capture the breadth of the content within.",
             },
             # Jesus
             {
-                "role": "system", "content": "Remember, your summary is about the document content, "
-                                             "avoid self-referential language about yourself and this task, etc."
+                "role": "developer", "content": "Remember, your summary is about the document content. "
+                                             "Avoid self-referential language about yourself and this task, etc."
             },
             {
                 "role": "user", "content": f"Here is the Document: {document}"
             },
             {
-                "role": "user", "content": "The generated summary should be about 200 words. "
+                "role": "user", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
                                            "Return in JSON format with key 'summary'"
             },
         ]
@@ -216,7 +229,7 @@ def summarize_document(
             response_model=RewrittenSummary,
             messages=[
                 {
-                    "role": "system",
+                    "role": "developer",
                     "content": """
                     You are going to generate an increasingly concise, entity-dense summary of the following document. 
                     Perform the following two tasks - Identify 1-3 informative entities from the following document 
@@ -235,7 +248,7 @@ def summarize_document(
                 },
                 # Jesus
                 {
-                    "role": "system", "content": "Remember, your summary is about the document content, "
+                    "role": "developer", "content": "Remember, your summary is about the document content, "
                                                  "avoid self-referential language about yourself and this task, etc."
                 },
                 {

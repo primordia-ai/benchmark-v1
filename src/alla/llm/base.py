@@ -88,7 +88,7 @@ class LLMBaseClass(ABC):
         You are ALLA, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.
-        """ # Inserting the alla.utils.describe_class(ALLA) would be a circular import
+        """, # Inserting the alla.utils.describe_class(ALLA) would be a circular import
     }
 
 
@@ -195,10 +195,15 @@ class LLMBaseClass(ABC):
                 temperature=self.temperature,
                 messages=[
                     {
-                        "role": "system",
+                        # "role": "system",
+                        "role": "developer", # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        # back-compatible
                         "content": self.system_roles["financial_analyst"],
                     },
-                    {"role": "user", "content": prompt},
+                    {
+                        "role": "user",
+                        "content": prompt
+                    },
                 ],
                 response_model=llm_utils.ExtractedIndicator,
                 max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),

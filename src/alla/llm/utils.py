@@ -239,7 +239,6 @@ def prompt_se_context(indicator, report_text: str):
     """
 
     prompt_template = f'''
-        You are a financial analyst reading a report on a company's financial performance. 
         You have been given the following information:
         There are so called soft indicators that are used to evaluate the company's performance.
         The values of the indicator are represented by the colors red, yellow, and green,
