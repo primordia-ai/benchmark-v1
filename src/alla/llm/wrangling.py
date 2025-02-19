@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 
 SUMMARY_TARGET_LEN = 400
+MIN_SUMMARY_TOKENS = 100
 
 forbidden_terms = [
     "JSON",
@@ -65,10 +66,10 @@ class SummaryInit(BaseModel):
     def min_length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
+        if num_tokens < MIN_SUMMARY_TOKENS:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
-                f"that is around {SUMMARY_TARGET_LEN} words long."
+                f"that is at least {MIN_SUMMARY_TOKENS} tokens long."
             )
         return v
 
@@ -123,10 +124,10 @@ class RewrittenSummary(BaseModel):
     def length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
+        if num_tokens < MIN_SUMMARY_TOKENS:
             raise ValueError(
                 f"The current summary is too short ({num_tokens}). "
-                f"Please make sure that you generate a new summary that is around {SUMMARY_TARGET_LEN} tokens long."
+                f"Please make sure that you generate a new summary that is at least {MIN_SUMMARY_TOKENS} tokens long."
             )
         return v
 
