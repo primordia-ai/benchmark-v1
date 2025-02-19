@@ -20,7 +20,7 @@ if __name__ == '__main__':
         llm_cls = get_llm("llama-large")
     else:
         llm_cls = get_llm("llama-tiny")
-    llm = llm_cls(temperature=0)
+    llm = llm_cls(temperature=0, seed=SEED)
 
     # Load the report
     asset = "asset_0"

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # Create ALLA model
     print("Initializing ALLA")
     # Initialize our LLM
-    llm = get_llm('llama-tiny')(temperature=0)
+    llm = get_llm('llama-tiny')(temperature=0, seed=SEED)
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=20, budget=8,

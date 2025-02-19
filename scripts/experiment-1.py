@@ -141,7 +141,7 @@ def main():
         raise ValueError("LLM mode only available for WALL budget")
 
     # Initialize our LLM
-    llm = get_llm(llm_code)(temperature=temp)
+    llm = get_llm(llm_code)(temperature=temp, seed=seed)
     # Activate logging LLM
     logger.info(f"Piping LLM logs to {llm_log_path}")
     llm.log_to_file(llm_log_path)

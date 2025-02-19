@@ -28,7 +28,7 @@ if __name__ == '__main__':
     generator_code = sys.argv[1]
     extractor_code = sys.argv[2]
     llm_cls = get_llm(extractor_code)
-    llm = llm_cls(temperature=0)
+    llm = llm_cls(temperature=0, seed=SEED)
     #cleanup the generator and extractor codes since : does not works as pathname and filename in windows
     generator_code_name = generator_code.replace(':', '_')
     extractor_code_name = extractor_code.replace(':', '_')
