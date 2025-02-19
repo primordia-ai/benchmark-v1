@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # Load the report
     asset = "asset_0"
-    report_dir = os.path.join(PROJECT_ROOT, f"data/reports/{llm.path_code}/{asset}")
+    report_dir = os.path.join(PROJECT_ROOT, f"tests/data/reports/{asset}")
     report_txt = wrangling.read_reports(
         report_dir,
         include=[
