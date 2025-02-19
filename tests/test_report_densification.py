@@ -7,7 +7,7 @@ if __name__ == '__main__':
     import numpy as np
 
     # Set seed
-    SEED = 10
+    SEED = 111
     np.random.seed(SEED)
 
     # =========
