@@ -94,7 +94,7 @@ class SummaryInit(BaseModel):
 class RewrittenSummary(BaseModel):
     """
     This is a new, denser summary of identical length which covers every entity and detail 
-    from the previous summary plus new Missing Entities.
+    from the previous summary plus new Desired Entities.
     An Entity is a real-world object that's assigned a name. For example, a person, country, a product, etc.
     Guidelines
         - Make every word count: Rewrite the previous summary to improve flow and make space for additional entities 
@@ -102,12 +102,12 @@ class RewrittenSummary(BaseModel):
         - The new summary should be highly dense and concise yet self-contained, 
             eg., easily understood without the Document.
         - Make space with fusion, compression, and removal of uninformative phrases like "the document discusses"
-        - Missing entities can appear anywhere in the new summary 
+        - Desired entities can appear anywhere in the new summary
     """
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    f"summary plus the new Missing Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
+                    f"summary plus the new Desired Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
                     f"tokens) as the previous summary and should be easily understood without the Document",
     )
     absent: list[str] = Field(
@@ -116,7 +116,7 @@ class RewrittenSummary(BaseModel):
         description="This is a list of Entities absent from the new summary, but present in the previous summary. "
                     "This should be minimized to prevent information loss."
     )
-    missing: list[str] = Field(
+    desired_entities: list[str] = Field(
         # default_factory=list,
         description="This is a list of some Entities from the main Document that could not be fit into "
                     "the new summary due to space, flow, or because sufficient new entities have already been found. "
@@ -136,7 +136,7 @@ class RewrittenSummary(BaseModel):
             )
         return v
 
-    # @field_validator("missing")
+    # @field_validator("desired_entities")
     # def has_missing_entities(cls, missing_entities: list[str]):
     #     if len(missing_entities) == 0:
     #         raise ValueError(
@@ -205,7 +205,7 @@ def summarize_document(
         messages=[
             {
                 "role": "developer",
-                "content": "You are a financial analyst"
+                "content": "You are a financial analyst, trying to summarize some text."
             },
             {
                 "role": "developer",
@@ -229,7 +229,7 @@ def summarize_document(
     )
 
     summary_chain.append(summary_init.summary)
-    missing_entity_messages = ([])
+    desired_entity_messages = ([])
     prev_summary = None
 
     print(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
@@ -242,7 +242,8 @@ def summarize_document(
             messages=[
                 {
                     "role": "developer",
-                    "content": "You are a helpful analyst, that carefully summarizes content."
+                    "content": "You are a helpful analyst that carefully summarizes content."
+                               " Return your responses in JSON format with keys 'summary', 'absent', and 'desired_entities'."
                 },
                 {
                     "role": "user",
@@ -251,17 +252,17 @@ def summarize_document(
                     The subject text will be enclosed in the special wrappers <TEXT START> and <TEXT END>.
                     You will also be provided a previous summary of the text for use.
                     To create the current summary you will perform the following tasks:
-                        - Identify 1-3 informative entities from the subject text which are missing from the previous 
-                        summary
+                        - Identify 1-3 informative entities from the subject text which are missing from 
+                        the previous summary, but desirable to include.
                         - Write a new denser summary with target length of ~{SUMMARY_TARGET_LEN} tokens/words which 
-                        covers every entity and detail from the previous summary plus the Missing Entities Guidelines. 
+                        covers every entity and detail from the previous summary plus the Desired Entities Guidelines. 
                         - Make every word count: re-write the previous summary to improve flow and make space for 
                         additional entities. 
                         - Make space with fusion, compression, and removal of uninformative phrases 
                         like "the document discusses". 
                         - The summaries should become highly dense and concise yet self-contained, 
                         e.g., easily understood on their own. 
-                        - Missing entities can appear anywhere in the new summary. 
+                        - Desired entities can appear anywhere in the new summary. 
                         - Never drop entities from the previous summary. If space cannot be made, add fewer new entities. 
                     """,
                 },
@@ -276,15 +277,20 @@ def summarize_document(
                 {
                     "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
                 },
-                *missing_entity_messages,
+                *desired_entity_messages,
+                {
+                    "role": "user", "content": "Please format your response in JSON with keys 'summary', 'absent', "
+                                               "and 'desired_entities'."
+                }
             ],
         )
         summary_chain.append(new_summary.summary)
         # For next iter
-        missing_entity_messages = ([
+        desired_entity_messages = ([
             {
                 "role": "user",
-                "content": f"Please include these Missing Entities in your summary: {','.join(new_summary.missing)}",
+                "content": f"Please include these Desired Entities in your summary: "
+                           f"{','.join(new_summary.desired_entities)}",
             },
         ])
         prev_summary = new_summary
