@@ -36,7 +36,7 @@ if __name__ == '__main__':
     print(report_txt)
     print("\n===============\n\nSUMMARIZING\n\n")
 
-    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=3, max_retries=2)
+    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=1, max_retries=1)
     for i, summ in enumerate(summaries):
         # print(f"<><><>< Summary {i} ><><><>\n")
         print(summ)
