@@ -39,6 +39,9 @@ forbidden_terms = [
     "the task",
     f"{SUMMARY_TARGET_LEN} words",
     f"{SUMMARY_TARGET_LEN} tokens",
+    # Special wrappers
+    "TEXT START",
+    "TEXT END",
 ]
 # Replace each entry with two entries that either have a space, period, or bracket appended to them
 forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
@@ -202,6 +205,10 @@ def summarize_document(
         messages=[
             {
                 "role": "developer",
+                "content": "You are a financial analyst"
+            },
+            {
+                "role": "developer",
                 "content":f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
                           "tokens, and should try to capture the breadth of the content within.",
             },
@@ -211,16 +218,17 @@ def summarize_document(
                                              "Avoid self-referential language about yourself and this task, etc."
             },
             {
-                "role": "user", "content": f"Here is the Document: {document}"
+                "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
+                                           "Return in JSON format with key 'summary'"
             },
             {
-                "role": "user", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
-                                           "Return in JSON format with key 'summary'"
+                "role": "user", "content": f"Please summarize the following content in about {SUMMARY_TARGET_LEN} "
+                                           f"tokens:\n\n{document}"
             },
         ]
     )
 
-    summary_chain.append(summary_init)
+    summary_chain.append(summary_init.summary)
     missing_entity_messages = ([])
     prev_summary = None
 
@@ -234,32 +242,39 @@ def summarize_document(
             messages=[
                 {
                     "role": "developer",
-                    "content": """
-                    You are going to generate an increasingly concise, entity-dense summary of the following document. 
-                    Perform the following two tasks - Identify 1-3 informative entities from the following document 
-                    which is missing from the previous summary 
-                        - Write a new denser summary of identical length which covers every entity and detail from 
-                        the previous summary plus the Missing Entities Guidelines. 
+                    "content": "You are a helpful analyst, that carefully summarizes content."
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+                    Please generate an increasingly concise, entity-dense summary of some text.
+                    The subject text will be enclosed in the special wrappers <TEXT START> and <TEXT END>.
+                    You will also be provided a previous summary of the text for use.
+                    To create the current summary you will perform the following tasks:
+                        - Identify 1-3 informative entities from the subject text which are missing from the previous 
+                        summary
+                        - Write a new denser summary with target length of ~{SUMMARY_TARGET_LEN} tokens/words which 
+                        covers every entity and detail from the previous summary plus the Missing Entities Guidelines. 
                         - Make every word count: re-write the previous summary to improve flow and make space for 
                         additional entities. 
                         - Make space with fusion, compression, and removal of uninformative phrases 
                         like "the document discusses". 
                         - The summaries should become highly dense and concise yet self-contained, 
-                        e.g., easily understood without the Document. 
+                        e.g., easily understood on their own. 
                         - Missing entities can appear anywhere in the new summary. 
                         - Never drop entities from the previous summary. If space cannot be made, add fewer new entities. 
                     """,
                 },
                 # Jesus
+                # {
+                #     "role": "developer", "content": "Remember, your summary is about the document content, "
+                #                                  "avoid self-referential language about yourself and this task, etc."
+                # },
                 {
-                    "role": "developer", "content": "Remember, your summary is about the document content, "
-                                                 "avoid self-referential language about yourself and this task, etc."
+                    "role": "user", "content": f"Here is the subject text: \n<TEXT START>\n{document}\n<TEXT END>"
                 },
                 {
-                    "role": "user", "content": f"Here is the Document: {document}"
-                },
-                {
-                    "role": "user", "content": f"Here is the previous summary: {prev_summary}",
+                    "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
                 },
                 *missing_entity_messages,
             ],
@@ -269,7 +284,7 @@ def summarize_document(
         missing_entity_messages = ([
             {
                 "role": "user",
-                "content": f"Please include these Missing Entities: {','.join(new_summary.missing)}",
+                "content": f"Please include these Missing Entities in your summary: {','.join(new_summary.missing)}",
             },
         ])
         prev_summary = new_summary
@@ -297,6 +312,6 @@ def read_reports(
         file_path = os.path.join(report_dir, filename)
         logger.debug(f"Reading file {file_path}")
         with open(file_path, 'r') as file:
-            reports += "\n<START DOCUMENT>\n" + file.read() + "\n<END DOCUMENT>\n"
+            reports += "\n<START REPORT>\n" + file.read() + "\n<END REPORT>\n"
 
     return reports

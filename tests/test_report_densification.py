@@ -20,7 +20,7 @@ if __name__ == '__main__':
         llm_cls = get_llm("llama-large")
         includes = None
     else:
-        llm_cls = get_llm("llama-tiny")
+        llm_cls = get_llm("deepseek-r1:7b")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
