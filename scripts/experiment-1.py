@@ -152,12 +152,9 @@ def main():
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
-        # Check category
-        try:
-            category = stocks[asset_id]['category']
-        except KeyError:
-            logger.warning(f"Asset {asset_id} not found in stocks")
-            continue
+
+        category = stocks[asset_id]['category']
+
         if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
             continue
