@@ -217,7 +217,7 @@ def main():
                         # Load the pre-extracted indicators
                         # Technically you don't need to use the {llm.code} subset
                         extract_path = os.path.join(
-                            PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}/{asset_id}.json"
+                            PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}","llama3.1_8b",f"{asset_id}.json"
                         )
                         # Result is list of {"value": .., "indicator": ..} items
                         extracted_colors = llm_utils.load_extracted_indicators(
@@ -284,7 +284,7 @@ def main():
 
         # The llm that generated the indicators doesn't necessarily have to be the subject model
         # (At least for this experiment)
-        indicator_llm_path_code = "llama3_8b"
+        indicator_llm_path_code = "llama3.1_8b"
         llm_results = {}
 
         with logging_redirect_tqdm(loggers=[logger]):
@@ -294,7 +294,7 @@ def main():
                     indicators = None
                     # Load indicators
                     indicator_file = os.path.join(
-                        PROJECT_ROOT, "data/extracted_indicators", indicator_llm_path_code, f"{asset_id}.json"
+                        PROJECT_ROOT, "data/extracted_indicators","deepseek-r1_70b", indicator_llm_path_code, f"{asset_id}.json"
                     )
                     with open(indicator_file, 'r') as f:
                         indicators = json.load(f)
@@ -334,6 +334,7 @@ def main():
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
+        stats.make_classification_eval(llm_results, os.path.join(results_dir, "llm_results.png"))
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
         with open(llm_results_path, 'w') as f:
