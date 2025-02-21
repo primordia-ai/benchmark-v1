@@ -151,7 +151,6 @@ def main():
     report_dir = os.path.join(PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
-    print(os.listdir(report_dir))
     for asset_id in os.listdir(report_dir):
         # Check category
         try:
