@@ -152,7 +152,6 @@ def main():
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
-
         category = stocks[asset_id]['category']
 
         if n_asset_per and len(assets[category]) >= n_asset_per:
@@ -260,9 +259,6 @@ def main():
 
         # Add in-place performance evaluation
         stats.evaluate_performance(alla_results, mixture_params, in_place=True)
-    	# add confusion matrix calculation and saving
-        confusion_matrix_path = os.path.join(results_dir, "alla_results.png")
-        stats.make_classification_eval(alla_results, confusion_matrix_path)
 
         # Save ALLA results
         alla_results_path = os.path.join(results_dir, "alla_results.json")
