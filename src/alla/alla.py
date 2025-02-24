@@ -364,34 +364,6 @@ class ALLA:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-    def _bayesian_update(
-        self, indicator_name: str, color_pred: str, p_k: np.ndarray, alphas: np.ndarray
-    ) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Bayesian update of the asset's class prediction.
-        Does not modify p_k and alphas in place, returns updated versions.
-
-        :param indicator_name:  Indicator name
-        :param color_pred:      Color prediction
-        :param p_k:             Class predictions
-        :param alphas:          Dirichlet prior alpha parameters
-        :return:                Updated class prediction posterior, and alphas
-        """
-        likelihood = self.ind_likelihood(indicator_name) @ color_pred.reshape(-1, 1)
-        likelihood = likelihood.reshape(3, )
-
-        ###
-        # MAP method.
-        # From some brief experimenting, is essentially same outcome but very slightly worse variance
-        # alphas_star = alphas + posterior - 1
-        # alphas += alphas_star / np.sum(alphas_star)
-        ###
-        posterior = p_k * likelihood
-        posterior /= np.sum(posterior)
-        # Avoiding modifying in place, just in case
-        _alphas = alphas + posterior
-        return posterior, _alphas
-
     def process_asset(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
     ) -> tuple[bool, Optional[str]]:
@@ -479,7 +451,9 @@ class ALLA:
                         continue
                     color = quant_indicators[ind['name']]
                     color_pred = np.eye(3)[color_to_ind[color]]
-                    p_k, alphas = self._bayesian_update(ind['name'], color_pred, p_k, alphas)
+                    likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
+                    likelihood = likelihood.reshape(3, )
+                    p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
                     # Update
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
@@ -525,7 +499,9 @@ class ALLA:
                     # TODO -- Could be improved with an expected cost (same approach as for 'utility')
                     self.indicators.cost.loc[selected_name] = se_cost
 
-                p_k, alphas = self._bayesian_update(selected_name, extracted_color_pred, p_k, alphas)
+                likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
+                likelihood = likelihood.reshape(3, )
+                p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
                 # Update
                 self._update_alphas(asset, alphas)
                 self._update_prior(asset, p_k)
