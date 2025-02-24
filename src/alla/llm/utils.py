@@ -1,6 +1,7 @@
 """
 LLM Utils. In particular, those for retrieving and constructing prompts
 """
+import ast
 import json
 import os
 from typing import Literal
@@ -67,7 +68,8 @@ class ExtractedIndicator(BaseModel):
     #     ..., title="Indicator", description="The name of the extracted indicator."
     # )
     reason: str = Field(
-        ..., title="Reason", description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
+        ..., title="Reason",
+        description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
     )
 
 
@@ -82,6 +84,89 @@ class AssetEvaluationV1(BaseModel):
 
 class AssetEvaluationV2(CategoryDistribution):
     pass
+
+
+INSECURE_METHODS = {
+    "exec", "eval", "compile", "globals", "locals",
+    "open", "input", "file", "os", "sys", "subprocess",
+    "shutil", "ctypes", "getattr", "setattr", "delattr",
+    "vars", "socket", "requests", "http.client", "urllib",
+    "pathlib"
+}
+
+GREEN_IMPORTS = {
+    # Imports that we trust
+    # Built-ins
+    "functools", "itertools", "math", "copy", "datetime", "random", "json",
+    # Science
+    "alla", "numpy", "pandas", "scipy", "sklearn", "pymc", "xarray", "jax",
+}
+
+
+class LLMCodeGen(BaseModel):
+    """
+    Base validator for LLM-generated code
+    """
+    code: str
+
+    @field_validator("code", mode="after")
+    @classmethod
+    def base_code_validator(cls, code: str):
+        """
+        A base code validator that covers some desirable defaults
+        """
+        tree = ast.parse(code)
+
+        # Check imports if any
+        for node in tree.body:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                for alias in node.names:
+                    if alias.name.split(".")[0] not in GREEN_IMPORTS:
+                        raise ValueError(f"Import '{alias.name}' is not allowed.")
+
+        # Prevent unsafe operations
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id in INSECURE_METHODS:
+                    raise ValueError(f"Usage of '{node.func.id}' is not allowed.")
+
+        return code
+
+
+class BayesianUpdateFunction(LLMCodeGen):
+    """
+    Validator for the bayesian update function codegen
+    """
+
+    @field_validator("code", mode="after")
+    @classmethod
+    def validate_function(cls, code: str):
+        """
+        Uses AST to validate:
+        - Function name must be '_bayesian_update'
+        - Correct function signature
+        """
+        tree = ast.parse(code)
+
+        # Ensure there's only one function definition
+        functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+        if len(functions) != 1:
+            raise ValueError("There must be exactly one function definition.")
+
+        func = functions[0]
+
+        # Validate function name
+        if func.name != "_bayesian_update":
+            raise ValueError("Function name must be '_bayesian_update'.")
+
+        # Validate argument names
+        expected_args = ["self", "indicator_name", "color_pred", "p_k", "alphas"]
+        actual_args = [arg.arg for arg in func.args.args]
+
+        if actual_args != expected_args:
+            raise ValueError(f"Expected arguments {expected_args}, got {actual_args}.")
+
+        return code
 
 
 SOFT_INDICATOR_DESC = {

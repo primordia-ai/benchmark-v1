@@ -3,11 +3,9 @@ Consolidate LLM models, and LLM utils etc.
 """
 import os
 from abc import ABC
-from typing import Literal
 
 import instructor
 from instructor.exceptions import InstructorRetryException
-from pydantic import create_model, Field
 from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
 from tqdm import tqdm
 
@@ -88,9 +86,8 @@ class LLMBaseClass(ABC):
         You are ALLA, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.
-        """, # Inserting the alla.utils.describe_class(ALLA) would be a circular import
+        """,  # Inserting the alla.utils.describe_class(ALLA) would be a circular import
     }
-
 
     def __init__(
         self,
@@ -196,7 +193,7 @@ class LLMBaseClass(ABC):
                 messages=[
                     {
                         # "role": "system",
-                        "role": "developer", # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
                         # back-compatible
                         "content": self.system_roles["financial_analyst"],
                     },
