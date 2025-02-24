@@ -1,6 +1,7 @@
 """
 Validators and formatting models for LLM codegen
 """
+from typing import Optional, ClassVar
 import ast
 
 from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError
@@ -9,6 +10,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator, Validat
 class LLMCodeGenException(ValidationError):
     """
     Custom error for LLM codegen
+    TODO -- Doesn't work atm...
     """
 
     def __init__(self, message: str, exception: Exception):
@@ -43,17 +45,19 @@ class LLMCodeGen(BaseModel):
         ..., title="Code",
         description="Python code for execution."
     )
+    # Self-referencing other methods in multimethod scenarios
+    sibling: 'Optional[LLMCodeGen]' = None
 
     # Private attributes that avoid regular validation stream
-    _is_function = None  # Must be set to specified to declare if returned code is a function or not
-    _function_name = None
-    _required_args = None  # Tuple
+    is_function: ClassVar[bool | None] = None  # Must be set to specified to declare if returned code is a function or
+    # not
+    function_name: ClassVar[str | None] = None
+    required_args: ClassVar[tuple | None] = None  # Tuple
 
-    @model_validator("before")
-    @classmethod
-    def model_validate(cls):
-        if cls._is_function is None:
-            raise ValueError(f"Class {cls} must set _is_function to True or False.")
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.is_function is None:
+            raise ValueError(f"{self} must set 'is_function' to True or False.")
 
     @field_validator("code", mode="after")
     @classmethod
@@ -86,7 +90,7 @@ class LLMCodeGen(BaseModel):
         - Correct function name
         - Correct function signature
         """
-        if not cls._is_function:
+        if not cls.is_function:
             return code
 
         tree = ast.parse(code)
@@ -99,13 +103,13 @@ class LLMCodeGen(BaseModel):
         func = functions[0]
 
         # Validate function name
-        if func.name != cls._function_name:
-            raise ValueError(f"Function name must be '{cls._function_name}'.")
+        if func.name != cls.function_name:
+            raise ValueError(f"Function name must be '{cls.function_name}'.")
 
         # Validate required argument names
-        actual_args = [arg.arg for arg in func.args.args]
+        actual_args = tuple([arg.arg for arg in func.args.args])
 
-        if actual_args != cls._required_args:
-            raise ValueError(f"Expected arguments {cls._required_args}, got {actual_args}.")
+        if actual_args != cls.required_args:
+            raise ValueError(f"Expected arguments {cls.required_args}, got {actual_args}.")
 
         return code

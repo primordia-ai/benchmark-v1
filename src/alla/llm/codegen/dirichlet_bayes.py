@@ -1,25 +1,49 @@
+import ast
 import numpy as np
 from pydantic import model_validator, ValidationError
 
-from alla.llm.codegen.base import LLMCodeGen, LLMCodeGenException
+from alla.llm.codegen.base import LLMCodeGen, GREEN_IMPORTS
 
 
 class DirichletBayesFunction(LLMCodeGen):
     """
     Validator for the Dirichlet bayesian update function codegen
     """
-    _is_function = True
-    _function_name = "dirichlet_bayes"
-    _required_args = tuple(["likelihood", "p_k", "alphas"])
+    is_function = True
+    function_name = "tester"
+    required_args = tuple(["likelihood", "p_k", "alphas"])
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    # "after"-model validators have 'self' argument and act on the instance object
     @model_validator(mode="after")
     def test_array_shapes(self):
         """
         Validate that the shapes of the arrays are correct
         """
-        # Get the function
-        exec(self.code)
-        dirichlet_bayes = locals()[self._function_name]
+        tree = ast.parse(self.code)
+
+        # Check for green imports and add them to the namespace
+        # Also provide some standards
+        namespace = {}
+        # The following is to try and import green libs on the fly,
+        # but it seems to be a bit buggy and the internal function fails to use them
+        for node in tree.body:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                for alias in node.names:
+                    if alias.name.split(".")[0] in GREEN_IMPORTS:
+                        # Add the import to the namespace
+                        # namespace[alias.name.split(".")[0]] = __import__(alias.name)
+                        continue
+
+        # Create local namespace for this function
+        exec(self.code, {}, namespace)
+        dirichlet_bayes = namespace[DirichletBayesFunction.function_name]
+        # Import any green modules the code requires, and inject them into the function's globals
+        for name, module in namespace.items():
+            if name in GREEN_IMPORTS:
+                dirichlet_bayes.__globals__[name] = module  # Inject into function's globals
 
         color_pred = np.eye(3)[0]
         # Test the function -- likelihood rows add to 1
@@ -42,24 +66,30 @@ class DirichletBayesFunction(LLMCodeGen):
         try:
             new_pk, new_alphas = dirichlet_bayes(likelihood, p_k, alphas)
         except Exception as e:
-            raise LLMCodeGenException(
-                "Exception occurred while testing method for test_array_shapes",
-                exception=e,
-            )
+            raise e
+            # raise (
+            #     "Exception occurred while testing method for test_array_shapes",
+            #     exception=e,
+            # )
         else:
             # Check we are within error
-            if not np.allclose(new_pk, soln_pk, atol=eps):
-                raise LLMCodeGenException(
-                    "Failed test_array_shapes: new_pk not within tolerance",
-                    exception=ValidationError(),
+            if np.allclose(new_pk, soln_pk, atol=eps) and np.allclose(new_alphas, soln_alphas, atol=eps):
+                # Good
+                ...
+            else:
+                raise ValidationError(
+                    "Failed test_array_shapes: returned values are outside tolerance",
+                    # exception=ValidationError(),
                 )
 
-        return self.code
+        return self
 
 
 # For testing
-_solution_string = '''
-def dirichlet_bayes(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+solution_string = '''
+import numpy
+
+def tester(likelihood: numpy.ndarray, p_k: numpy.ndarray, alphas: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
     """
     Bayesian update of the asset's class prediction.
     Does not modify p_k and alphas in place, returns updated versions.
@@ -73,10 +103,10 @@ def dirichlet_bayes(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray)
     # MAP method.
     # From some brief experimenting, is essentially same outcome but very slightly worse variance
     # alphas_star = alphas + posterior - 1
-    # alphas += alphas_star / np.sum(alphas_star)
+    # alphas += alphas_star / numpy.sum(alphas_star)
     ###
     posterior = p_k * likelihood
-    posterior /= np.sum(posterior)
+    posterior /= numpy.sum(posterior)
     # Avoiding modifying in place, just in case
     _alphas = alphas + posterior
     return posterior, _alphas
