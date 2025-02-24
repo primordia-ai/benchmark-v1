@@ -438,7 +438,7 @@ class ALLA:
             # alphas += alphas_star / np.sum(alphas_star)
             ###
 
-            self._update_alphas(asset, alphas)
+            self._update_alphas(asset, _alphas)
             self._update_prior(asset, posterior)
             # TODO -- Maybe move this out for performance
             self.compute_growth_quantiles(asset=asset)
