@@ -193,7 +193,7 @@ class LLMBaseClass(ABC):
                 messages=[
                     {
                         # "role": "system",
-                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        "role": "system",  # OpenAI docs say this over 'system' for newer models. Hopefully is
                         # back-compatible
                         "content": self.system_roles["financial_analyst"],
                     },
