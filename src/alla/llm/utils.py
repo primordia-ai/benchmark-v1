@@ -60,12 +60,12 @@ class CategoryDistribution(BaseModel):
 
 
 class ExtractedIndicator(BaseModel):
+    """
+    Indicator color prediction based on company reports. Includes a reason why color was selected
+    """
     value: Literal['red', 'yellow', 'green'] = Field(
         ..., title="Value", description="The value of the indicator, represented by the colors red, yellow, and green."
     )
-    # indicator: str = Field(
-    #     ..., title="Indicator", description="The name of the extracted indicator."
-    # )
     reason: str = Field(
         ..., title="Reason",
         description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
@@ -254,7 +254,10 @@ def prompt_se_context(indicator, report_text: str):
     indicator_desc = SOFT_INDICATOR_DESC[indicator]
     indicator_desc += "\n=================\nREPORTS BEGIN\n=================\n\n"
 
-    return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
+    prompt = prompt_template + indicator_desc + report_text
+    prompt += "\n=================\nREPORTS END\n=================\n\n"
+    prompt += f"\nThe indicator name to evaluate is: {indicator}"
+    return prompt
 
 
 def prompt_indicator_likelihoods(select_indicator: str | None = None) -> str:

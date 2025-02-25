@@ -9,7 +9,7 @@ if __name__ == '__main__':
     import argparse
 
     # Set seed
-    SEED = 10
+    SEED = 101010
     np.random.seed(SEED)
 
     from alla import synthetic as synth
@@ -31,9 +31,9 @@ if __name__ == '__main__':
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("deepseek-r1:70b")
     else:
-        llm_cls = get_llm("deepseek-r1:7b")
+        llm_cls = get_llm("llama-tiny")
 
-    llm = llm_cls(temperature=0, seed=SEED)
+    llm = llm_cls(temperature=1, seed=SEED)
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=5, budget=30,
