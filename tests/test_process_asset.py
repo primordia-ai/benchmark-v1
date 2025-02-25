@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     from alla import synthetic as synth
     from alla.alla import ALLA
-    from alla.env import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT, SYSTEM_USER
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
 
@@ -24,10 +24,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     stocks = synth.load_stocks(as_dataset=True)
+
     # Create ALLA model
     print("Initializing ALLA")
     # Initialize our LLM
-    llm = get_llm('llama-tiny')(temperature=0, seed=SEED)
+    if SYSTEM_USER == "dsfhswf":
+        llm_cls = get_llm("deepseek-r1:70b")
+    else:
+        llm_cls = get_llm("deepseek-r1:7b")
+
+    llm = llm_cls(temperature=0, seed=SEED)
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=5, budget=30,
