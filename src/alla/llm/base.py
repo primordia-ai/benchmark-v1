@@ -136,7 +136,7 @@ class LLMBaseClass(ABC):
         self,
         indicator_name: str,
         asset_id: str,
-        report_dir: str = os.path.join(PROJECT_ROOT, "data/reports"),  # TODO -- should end with path_code
+        report_dir: str | None = None,  # TODO -- should end with path_code
         include: list[str] | None = None,
         exclude: list[str] | None = None,
         reports_text: str | None = None,

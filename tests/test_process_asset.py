@@ -6,6 +6,7 @@ if __name__ == '__main__':
 
     import numpy as np
     import os
+    import argparse
 
     # Set seed
     SEED = 10
@@ -16,6 +17,11 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Process the first asset with ALLA")
+    parser.add_argument('--pre-extracted', action='store_true', help="Use pre-extracted indicators")
+    args = parser.parse_args()
 
     stocks = synth.load_stocks(as_dataset=True)
     # Create ALLA model
@@ -28,13 +34,16 @@ if __name__ == '__main__':
     )
 
     asset_name = "asset_0"
-    extract_path = os.path.join(
-        PROJECT_ROOT, f"tests/data/extracted_indicators/{asset_name}.json"
-    )
-    # Result is list of {"value": .., "indicator": ..} items
-    extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
-    # Convert to dict of values
-    extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
+    if args.pre_extracted:
+        extract_path = os.path.join(
+            PROJECT_ROOT, f"tests/data/extracted_indicators/{asset_name}.json"
+        )
+        # Result is list of {"value": .., "indicator": ..} items
+        extracted_colors = llm_utils.load_extracted_indicators(extract_path, keys=["value", "indicator"])
+        # Convert to dict of values
+        extracted_colors = {item['indicator']: item['value'] for item in extracted_colors}
+    else:
+        extracted_colors = None
 
     # Process the first stock
     # print(f"Processing '{category_select}' stock '{asset_name}'")
