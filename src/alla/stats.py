@@ -8,9 +8,6 @@ from scipy import stats
 from scipy.optimize import root_scalar
 
 from alla.logger import logger
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 
 def mixture_entropy(weights, means, stds):
@@ -307,7 +304,6 @@ def evaluate_performance(
                     'non_parametric_loss': non_parametric_loss
                 }
             )
-
 
     if not in_place:
         return pd.DataFrame(scores)
