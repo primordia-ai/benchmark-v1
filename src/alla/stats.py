@@ -201,7 +201,7 @@ def make_classification_eval(predictions: dict[str, PredictionResult], output_fi
     f1 = f1_score(true_labels, pred_labels, average='weighted')
     mcc = matthews_corrcoef(true_labels, pred_labels)
 
-    plt.figure(figsize=(10, 7))
+    plt.figure(figsize=(3, 4))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                  xticklabels=list(set(true_labels)),
                  yticklabels=list(set(true_labels)))
