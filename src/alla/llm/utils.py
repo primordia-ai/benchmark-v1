@@ -59,6 +59,19 @@ class CategoryDistribution(BaseModel):
         return self
 
 
+class ExtractedIndicator(BaseModel):
+    """
+    Indicator color prediction based on company reports. Includes a reason why color was selected
+    """
+    value: Literal['red', 'yellow', 'green'] = Field(
+        ..., title="Value", description="The value of the indicator, represented by the colors red, yellow, and green."
+    )
+    reason: str = Field(
+        ..., title="Reason",
+        description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
+    )
+
+
 class AssetEvaluationV1(BaseModel):
     category: Literal['high_growth', 'stable', 'time_bomb'] = Field(
         ..., title="Category", description="The category of the asset/company indicating its growth potential."
@@ -225,24 +238,27 @@ def prompt_se_context(indicator, report_text: str):
     Returns:
         str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
     """
-
     prompt_template = f'''
-        You are a financial analyst reading a report on a company's financial performance. 
-        You have been given the following information:
-        There are so called soft indicators that are used to evaluate the company's performance.
-        The values of the indicator are represented by the colors red, yellow, and green,
-        where red indicates a negative performance, yellow indicates a neutral performance, and green indicates a positive performance.
-        The indicator you are evaluating is: '{indicator}'
-        Your task is to read the business reports and infer the value of the indicator. 
-        Your output should include your color estimate (red, yellow, or green) for the given indicator.
-        Also give an explanation of why you chose that value.
-        The description of the indicator and the company reports are given below:
-        '''
+    Below is a collection of financial reports and analyses for a certain company.
+    We evaluate companies across a variety of dimensions, which we call 'indicators'.
+    For each indicator, a company can have a value of 'red', 'yellow', or 'green', describing their
+    performance according to the indicator.
+    Your task is to consider these reports and respond with the 'value' (color) and 'reason' for choosing that color
+    based on the content of the provided reports. 
 
-    indicator_desc = SOFT_INDICATOR_DESC[indicator]
-    indicator_desc += "\n=================\nREPORTS BEGIN\n=================\n\n"
+    You are considering only one indicator right now, with the following description:
 
-    return prompt_template + indicator_desc + report_text + f"\nThe indicator name to evaluate is: {indicator}"
+    Indicator: '{indicator}'
+    Description: {SOFT_INDICATOR_DESC[indicator]}
+    
+    \n=================\nREPORTS BEGIN\n=================\n\n
+    '''
+
+    prompt = prompt_template + report_text
+    prompt += "\n=================\nREPORTS END\n=================\n\n"
+    prompt += ("\nPlease return your evaluation in JSON format with keys 'value' (one of red, yellow, or green) "
+               "and 'reason', the reason for that choice.")
+    return prompt
 
 
 def prompt_indicator_likelihoods(select_indicator: str | None = None) -> str:
@@ -411,6 +427,18 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     """
 
     return prompt
+
+
+def prompt_exp1_prolog() -> str:
+    """
+    Text prolog describing the aim of the first experiment and other important details.
+    """
+
+
+def prompt_codegen_inference_with_measurement() -> str:
+    """
+    Prompt an LLM to generate an inference algorithm
+    """
 
 
 def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:

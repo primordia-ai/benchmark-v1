@@ -1,5 +1,5 @@
 """
-Test the report densification utilities in llm.wrangling
+Test the main LLM prompt created for Exp 1
 """
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT
 
     llm_cls = get_llm("llama-tiny")
-    llm = llm_cls(temperature=0)
+    llm = llm_cls(temperature=0, seed=SEED)
 
     # Load the report
     asset = "asset_0"

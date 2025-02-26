@@ -20,6 +20,11 @@ from alla.logger import logger
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
+
+SUMMARY_TARGET_LEN = 256
+MIN_SUMMARY_TOKENS = 64
+MAX_SUMMARY_TOKENS = 1024
+
 forbidden_terms = [
     "JSON",
     "json",
@@ -32,13 +37,15 @@ forbidden_terms = [
     " my",
     "The task",
     "the task",
-    "~200 words"
+    f"{SUMMARY_TARGET_LEN} words",
+    f"{SUMMARY_TARGET_LEN} tokens",
+    # Special wrappers
+    "TEXT START",
+    "TEXT END",
 ]
 # Replace each entry with two entries that either have a space, period, or bracket appended to them
 forbidden_terms = [term + " " for term in forbidden_terms] + [term + "." for term in forbidden_terms] + [term + ")" for
     term in forbidden_terms]
-
-SUMMARY_TARGET_LEN = 200
 
 """
 TODO -- Use the llm_validator to ensure the model isn't doing the annoying meta self-referential stuff
@@ -48,28 +55,30 @@ https://python.useinstructor.com/concepts/reask_validation/#llm-based-validation
 
 class SummaryInit(BaseModel):
     """
-    This is an initial summary about a source document which should be long (several sentences, ~200 words)
+    This is an initial summary about a source document which should be long (several sentences)
     and try to cover a breadth of the content within.
     """
 
     summary: str = Field(
         ...,
         description="This is an initial summary about a source document which should be long "
-                    "(several sentences, ~200 words) and try to cover a breadth of the content within.",
+                    "(several sentences) and try to cover a breadth of the content within.",
     )
 
     @field_validator("summary")
-    def min_length(cls, v: str):
+    @classmethod
+    def check_size(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
+        if not MIN_SUMMARY_TOKENS <= num_tokens <= MAX_SUMMARY_TOKENS:
             raise ValueError(
-                f"The current summary is too short ({num_tokens}). Please make sure that you generate a new summary "
-                "that is around 200 words long."
+                f"Summary size is outside required parameters: [{MIN_SUMMARY_TOKENS}, {MAX_SUMMARY_TOKENS}]. "
+                f"Received {num_tokens}."
             )
         return v
 
     @field_validator("summary")
+    @classmethod
     def proper_focus(cls, v: str):
         """
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
@@ -85,7 +94,7 @@ class SummaryInit(BaseModel):
 class RewrittenSummary(BaseModel):
     """
     This is a new, denser summary of identical length which covers every entity and detail 
-    from the previous summary plus new Missing Entities.
+    from the previous summary plus new Desired Entities.
     An Entity is a real-world object that's assigned a name. For example, a person, country, a product, etc.
     Guidelines
         - Make every word count: Rewrite the previous summary to improve flow and make space for additional entities 
@@ -93,13 +102,13 @@ class RewrittenSummary(BaseModel):
         - The new summary should be highly dense and concise yet self-contained, 
             eg., easily understood without the Document.
         - Make space with fusion, compression, and removal of uninformative phrases like "the document discusses"
-        - Missing entities can appear anywhere in the new summary 
+        - Desired entities can appear anywhere in the new summary
     """
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    "summary plus the new Missing Entities. It should have the same length (~200 words) as the "
-                    "previous summary and should be easily understood without the Document",
+                    f"summary plus the new Desired Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
+                    f"tokens) as the previous summary and should be easily understood without the Document",
     )
     absent: list[str] = Field(
         ...,
@@ -107,7 +116,7 @@ class RewrittenSummary(BaseModel):
         description="This is a list of Entities absent from the new summary, but present in the previous summary. "
                     "This should be minimized to prevent information loss."
     )
-    missing: list[str] = Field(
+    desired_entities: list[str] = Field(
         # default_factory=list,
         description="This is a list of some Entities from the main Document that could not be fit into "
                     "the new summary due to space, flow, or because sufficient new entities have already been found. "
@@ -116,17 +125,18 @@ class RewrittenSummary(BaseModel):
     )
 
     @field_validator("summary")
+    @classmethod
     def length(cls, v: str):
         tokens = nltk.word_tokenize(v)
         num_tokens = len(tokens)
-        if num_tokens < SUMMARY_TARGET_LEN * 0.8:
+        if not MIN_SUMMARY_TOKENS <= num_tokens <= MAX_SUMMARY_TOKENS:
             raise ValueError(
-                f"The current summary is too short ({num_tokens}). "
-                "Please make sure that you generate a new summary that is around 200 words long."
+                f"Summary size is outside required parameters: [{MIN_SUMMARY_TOKENS}, {MAX_SUMMARY_TOKENS}]. "
+                f"Received {num_tokens}."
             )
         return v
 
-    # @field_validator("missing")
+    # @field_validator("desired_entities")
     # def has_missing_entities(cls, missing_entities: list[str]):
     #     if len(missing_entities) == 0:
     #         raise ValueError(
@@ -146,6 +156,7 @@ class RewrittenSummary(BaseModel):
     #     return absent_entities
 
     @field_validator("summary")
+    @classmethod
     def proper_focus(cls, v: str):
         """
         Sometimes the LLM gets very self-referential and meta about the task, and goes on about
@@ -161,6 +172,15 @@ class RewrittenSummary(BaseModel):
 def summarize_document(
     llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3
 ) -> list[str]:
+    """
+    Generate a chain of summaries for a given document using the provided language model.
+
+    :param llm:             The language model to use for generating summaries
+    :param document:        The document to summarize
+    :param summary_steps:   The number of summary steps to generate
+    :param max_retries:     The maximum number of retries to attempt for each completion
+    :return:                A list of summaries generated for the document
+    """
 
     client = instructor.from_openai(
         OpenAI(
@@ -184,27 +204,32 @@ def summarize_document(
         max_retries=max_retries,
         messages=[
             {
-                "role": "system",
-                "content": "Write an initial summary about the document provided. It should be ~200 words and should"
-                           "try to capture the breadth of the content within.",
+                "role": "developer",
+                "content": "You are a financial analyst, trying to summarize some text."
+            },
+            {
+                "role": "developer",
+                "content":f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
+                          "tokens, and should try to capture the breadth of the content within.",
             },
             # Jesus
             {
-                "role": "system", "content": "Remember, your summary is about the document content, "
-                                             "avoid self-referential language about yourself and this task, etc."
+                "role": "developer", "content": "Remember, your summary is about the document content. "
+                                             "Avoid self-referential language about yourself and this task, etc."
             },
             {
-                "role": "user", "content": f"Here is the Document: {document}"
-            },
-            {
-                "role": "user", "content": "The generated summary should be about 200 words. "
+                "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
                                            "Return in JSON format with key 'summary'"
+            },
+            {
+                "role": "user", "content": f"Please summarize the following content in about {SUMMARY_TARGET_LEN} "
+                                           f"tokens:\n\n{document}"
             },
         ]
     )
 
-    summary_chain.append(summary_init)
-    missing_entity_messages = ([])
+    summary_chain.append(summary_init.summary)
+    desired_entity_messages = ([])
     prev_summary = None
 
     print(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
@@ -216,43 +241,56 @@ def summarize_document(
             response_model=RewrittenSummary,
             messages=[
                 {
-                    "role": "system",
-                    "content": """
-                    You are going to generate an increasingly concise, entity-dense summary of the following document. 
-                    Perform the following two tasks - Identify 1-3 informative entities from the following document 
-                    which is missing from the previous summary 
-                        - Write a new denser summary of identical length which covers every entity and detail from 
-                        the previous summary plus the Missing Entities Guidelines. 
+                    "role": "developer",
+                    "content": "You are a helpful analyst that carefully summarizes content."
+                               " Return your responses in JSON format with keys 'summary', 'absent', and 'desired_entities'."
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+                    Please generate an increasingly concise, entity-dense summary of some text.
+                    The subject text will be enclosed in the special wrappers <TEXT START> and <TEXT END>.
+                    You will also be provided a previous summary of the text for use.
+                    To create the current summary you will perform the following tasks:
+                        - Identify 1-3 informative entities from the subject text which are missing from 
+                        the previous summary, but desirable to include.
+                        - Write a new denser summary with target length of ~{SUMMARY_TARGET_LEN} tokens/words which 
+                        covers every entity and detail from the previous summary plus the Desired Entities Guidelines. 
                         - Make every word count: re-write the previous summary to improve flow and make space for 
                         additional entities. 
                         - Make space with fusion, compression, and removal of uninformative phrases 
                         like "the document discusses". 
                         - The summaries should become highly dense and concise yet self-contained, 
-                        e.g., easily understood without the Document. 
-                        - Missing entities can appear anywhere in the new summary. 
+                        e.g., easily understood on their own. 
+                        - Desired entities can appear anywhere in the new summary. 
                         - Never drop entities from the previous summary. If space cannot be made, add fewer new entities. 
                     """,
                 },
                 # Jesus
+                # {
+                #     "role": "developer", "content": "Remember, your summary is about the document content, "
+                #                                  "avoid self-referential language about yourself and this task, etc."
+                # },
                 {
-                    "role": "system", "content": "Remember, your summary is about the document content, "
-                                                 "avoid self-referential language about yourself and this task, etc."
+                    "role": "user", "content": f"Here is the subject text: \n<TEXT START>\n{document}\n<TEXT END>"
                 },
                 {
-                    "role": "user", "content": f"Here is the Document: {document}"
+                    "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
                 },
+                *desired_entity_messages,
                 {
-                    "role": "user", "content": f"Here is the previous summary: {prev_summary}",
-                },
-                *missing_entity_messages,
+                    "role": "user", "content": "Please format your response in JSON with keys 'summary', 'absent', "
+                                               "and 'desired_entities'."
+                }
             ],
         )
         summary_chain.append(new_summary.summary)
         # For next iter
-        missing_entity_messages = ([
+        desired_entity_messages = ([
             {
                 "role": "user",
-                "content": f"Please include these Missing Entities: {','.join(new_summary.missing)}",
+                "content": f"Please include these Desired Entities in your summary: "
+                           f"{','.join(new_summary.desired_entities)}",
             },
         ])
         prev_summary = new_summary
@@ -280,6 +318,6 @@ def read_reports(
         file_path = os.path.join(report_dir, filename)
         logger.debug(f"Reading file {file_path}")
         with open(file_path, 'r') as file:
-            reports += "\n<START DOCUMENT>\n" + file.read() + "\n<END DOCUMENT>\n"
+            reports += "\n<START REPORT>\n" + file.read() + "\n<END REPORT>\n"
 
     return reports

@@ -1,0 +1,113 @@
+import ast
+import numpy as np
+from pydantic import model_validator, ValidationError
+
+from alla.llm.codegen.base import LLMCodeGen, GREEN_IMPORTS
+
+
+class DirichletBayesFunction(LLMCodeGen):
+    """
+    Validator for the Dirichlet bayesian update function codegen
+    """
+    is_function = True
+    function_name = "tester"
+    required_args = tuple(["likelihood", "p_k", "alphas"])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    # "after"-model validators have 'self' argument and act on the instance object
+    @model_validator(mode="after")
+    def test_array_shapes(self):
+        """
+        Validate that the shapes of the arrays are correct
+        """
+        tree = ast.parse(self.code)
+
+        # Check for green imports and add them to the namespace
+        # Also provide some standards
+        namespace = {}
+        # The following is to try and import green libs on the fly,
+        # but it seems to be a bit buggy and the internal function fails to use them
+        for node in tree.body:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                for alias in node.names:
+                    if alias.name.split(".")[0] in GREEN_IMPORTS:
+                        # Add the import to the namespace
+                        # namespace[alias.name.split(".")[0]] = __import__(alias.name)
+                        continue
+
+        # Create local namespace for this function
+        exec(self.code, {}, namespace)
+        dirichlet_bayes = namespace[DirichletBayesFunction.function_name]
+        # Import any green modules the code requires, and inject them into the function's globals
+        for name, module in namespace.items():
+            if name in GREEN_IMPORTS:
+                dirichlet_bayes.__globals__[name] = module  # Inject into function's globals
+
+        color_pred = np.eye(3)[0]
+        # Test the function -- likelihood rows add to 1
+        likelihood = np.asarray(
+            [
+                [0.1, 0.1, 0.8],
+                [0.1, 0.6, 0.3],
+                [0.5, 0.4, 0.01],
+            ]
+        )
+        likelihood = likelihood @ color_pred.reshape(-1, 1)
+        likelihood = likelihood.reshape(3, )
+        p_k = np.array([0.2, 0.2, 0.6])
+        alphas = np.array([1, 1, 1])
+
+        soln_pk = np.asarray([0.05882353, 0.05882353, 0.88235294])
+        soln_alphas = np.asarray([1.05882353, 1.05882353, 1.88235294])
+        eps = 1e-6
+
+        try:
+            new_pk, new_alphas = dirichlet_bayes(likelihood, p_k, alphas)
+        except Exception as e:
+            raise e
+            # raise (
+            #     "Exception occurred while testing method for test_array_shapes",
+            #     exception=e,
+            # )
+        else:
+            # Check we are within error
+            if np.allclose(new_pk, soln_pk, atol=eps) and np.allclose(new_alphas, soln_alphas, atol=eps):
+                # Good
+                ...
+            else:
+                raise ValidationError(
+                    "Failed test_array_shapes: returned values are outside tolerance",
+                    # exception=ValidationError(),
+                )
+
+        return self
+
+
+# For testing
+solution_string = '''
+import numpy
+
+def tester(likelihood: numpy.ndarray, p_k: numpy.ndarray, alphas: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """
+    Bayesian update of the asset's class prediction.
+    Does not modify p_k and alphas in place, returns updated versions.
+
+    :param likelihood:      Likelihood matrix for the indicator
+    :param p_k:             Class predictions
+    :param alphas:          Dirichlet prior alpha parameters
+    :return:                Updated class prediction posterior, and alphas
+    """
+    ###
+    # MAP method.
+    # From some brief experimenting, is essentially same outcome but very slightly worse variance
+    # alphas_star = alphas + posterior - 1
+    # alphas += alphas_star / numpy.sum(alphas_star)
+    ###
+    posterior = p_k * likelihood
+    posterior /= numpy.sum(posterior)
+    # Avoiding modifying in place, just in case
+    _alphas = alphas + posterior
+    return posterior, _alphas
+'''

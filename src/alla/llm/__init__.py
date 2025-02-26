@@ -42,4 +42,5 @@ def get_llm(identifier: str) -> "Type[LLMBaseClass]":
             return model
 
     # If we get here, we've failed
-    raise ValueError(f"Model with identifier '{identifier}' not found. Available models are {AVAILABLE_MODELS.keys()}")
+    raise ValueError(f"Model with identifier '{identifier}' not found. Available models are "
+                     f"{list(AVAILABLE_MODELS.keys())}")

@@ -3,11 +3,9 @@ Consolidate LLM models, and LLM utils etc.
 """
 import os
 from abc import ABC
-from typing import Literal
 
 import instructor
 from instructor.exceptions import InstructorRetryException
-from pydantic import create_model, Field
 from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
 from tqdm import tqdm
 
@@ -79,6 +77,18 @@ class LLMBaseClass(ABC):
     context_window = None
     aliases = []
 
+    system_roles = {
+        "financial_analyst": """
+        You are a financial analyst tasked with evaluating companies, or 'assets', based on their financials.
+        The financials may come in the form of quantitative figures, or qualitative reports. 
+        """,
+        "alla": f"""
+        You are ALLA, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
+        The financials may come in the form of quantitative figures, or qualitative reports.
+        You are a Python class with access to a variety of methods and attributes to help you with your tasks.
+        """,  # Inserting the alla.utils.describe_class(ALLA) would be a circular import
+    }
+
     def __init__(
         self,
         temperature: float = 0.0,
@@ -122,31 +132,11 @@ class LLMBaseClass(ABC):
             self.init_client()
         return self._client
 
-    @staticmethod
-    def _create_indicator_class():
-        """
-        Creates a Pydantic model for sending over OpenAI API.
-        :return:                A Pydantic model for the indicator.
-        """
-        return create_model(
-            'LLMIndicator',
-            value=(Literal['red', 'yellow', 'green'], Field(
-                ...,
-                title="Indicator value",
-                description="The value of the indicator, represented by the colors red, yellow, and green."
-            )),
-            reason=(str, Field(
-                ...,
-                title="Value reason",
-                description="The reason behind the indicator's value based on the company reports. This text can be long and detailed."
-            ))
-        )
-
     def extract_indicator(
         self,
         indicator_name: str,
         asset_id: str,
-        report_dir: str = os.path.join(PROJECT_ROOT, "data/reports"),  # TODO -- should end with path_code
+        report_dir: str | None = None,  # TODO -- should end with path_code
         include: list[str] | None = None,
         exclude: list[str] | None = None,
         reports_text: str | None = None,
@@ -201,9 +191,17 @@ class LLMBaseClass(ABC):
                 model=self.code,
                 temperature=self.temperature,
                 messages=[
-                    {"role": "user", "content": prompt},
+                    {
+                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        # back-compatible
+                        "content": self.system_roles["financial_analyst"],
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    },
                 ],
-                response_model=self._create_indicator_class(),
+                response_model=llm_utils.ExtractedIndicator,
                 max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
                 seed=self.seed,
             )
