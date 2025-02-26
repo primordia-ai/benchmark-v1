@@ -33,7 +33,7 @@ if __name__ == '__main__':
     else:
         llm_cls = get_llm("llama-tiny")
 
-    llm = llm_cls(temperature=1, seed=SEED)
+    llm = llm_cls(temperature=0, seed=SEED)
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=5, budget=30,

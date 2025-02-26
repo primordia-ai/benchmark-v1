@@ -547,7 +547,7 @@ class ALLA:
         """
         se_start = time.time()
         response, success = self.llm.extract_indicator(
-            indicator_name, str(asset.asset), reports_text=reports_text, budget=budget, max_retries=3
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
         )
         if not success:
             raise RuntimeError(

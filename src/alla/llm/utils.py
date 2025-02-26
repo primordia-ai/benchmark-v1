@@ -433,12 +433,14 @@ def prompt_exp1_prolog() -> str:
     """
     Text prolog describing the aim of the first experiment and other important details.
     """
+    pass
 
 
 def prompt_codegen_inference_with_measurement() -> str:
     """
     Prompt an LLM to generate an inference algorithm
     """
+    pass
 
 
 def load_extracted_indicators(json_path, keys: list[str] | None = None) -> list[dict]:
