@@ -174,6 +174,53 @@ class PredictionResult(TypedDict):
     truth: dict[str, float | str]  # {"category": <str>, "growth": <float>}
 
 
+    
+def make_classification_eval(predictions: dict[str, PredictionResult], output_file: str):
+    """
+    Save the confusion matrix and performance metrics to a file.
+    Args:
+        predictions (dict): A dictionary where each key is an asset and the value is a prediction PredictionResult
+        output_file (str): The file path to save the confusion matrix and metrics.
+    """
+    true_labels = []
+    pred_labels = []
+    for asset, data in predictions.items():
+        if "error" in data:
+            continue
+        true_labels.append(data['truth']['category'])
+        pred_labels.append(max(data['category'], key=data['category'].get))
+    print(true_labels)
+    print(pred_labels)
+    cm = confusion_matrix(true_labels, pred_labels)
+    accuracy = accuracy_score(true_labels, pred_labels)
+    precision = precision_score(true_labels, pred_labels, average='weighted')
+    recall = recall_score(true_labels, pred_labels, average='weighted')
+    f1 = f1_score(true_labels, pred_labels, average='weighted')
+    mcc = matthews_corrcoef(true_labels, pred_labels)
+
+    plt.figure(figsize=(3, 4))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                 xticklabels=list(set(true_labels)),
+                 yticklabels=list(set(true_labels)))
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix')
+    plt.savefig(output_file)
+    # Write metrics to a CSV file
+    metrics_df = pd.DataFrame({
+        'Metric': ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'MCC'],
+        'Value': [accuracy, precision, recall, f1, mcc]
+    })
+    metrics_df.to_csv(output_file.replace('.png', '.csv'), index=False)
+
+    # Write metrics to a LaTeX table
+    with open(output_file.replace('.png', '.tex'), 'w') as f:
+        metrics_df['Value'] = metrics_df['Value'].round(4)
+        f.write(metrics_df.to_latex(index=False))
+
+    logger.info(f"Confusion matrix and metrics saved to {output_file}, {output_file.replace('.png', '.csv')}, and {output_file.replace('.png', '.tex')}.")
+    logger.info(f"Confusion matrix and metrics saved to {output_file}.")
+
 def evaluate_performance(
     predictions: dict[str, PredictionResult], mixture_params: dict[str, dict], in_place: bool = False
 ) -> pd.DataFrame | dict:

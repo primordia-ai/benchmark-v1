@@ -76,7 +76,7 @@ def main():
         cm_df = pd.DataFrame(cm, index=['green', 'yellow', 'red', 'None'], columns=['green', 'yellow', 'red', 'None'])
         confusion_matrices.append(cm_df)
         # Plot the confusion matrix
-        plt.figure(figsize=(10, 7))
+        plt.figure(figsize=(3, 3))
         sns.heatmap(confusion_matrices[-1], annot=True, fmt='d', cmap='Blues')
         plt.title(f'Confusion Matrix for {indicator}')
         plt.xlabel('Predicted')
@@ -97,6 +97,7 @@ def main():
 
     # Save the summary as a CSV and LaTeX table
     summary_df = pd.DataFrame(metrics_list)     
+    
     summary_csv_path = os.path.join(output_dir, 'summary.csv')
     summary_df.to_csv(summary_csv_path, index=False)    
 

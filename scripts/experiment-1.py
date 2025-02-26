@@ -152,8 +152,8 @@ def main():
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
+        # Check category
         category = stocks[asset_id]['category']
-
         if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
             continue
@@ -330,7 +330,7 @@ def main():
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
-        stats.make_classification_eval(llm_results, os.path.join(results_dir, "llm_results.png"))
+        
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
         with open(llm_results_path, 'w') as f:
