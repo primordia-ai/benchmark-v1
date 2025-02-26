@@ -330,7 +330,7 @@ def main():
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
-        stats.make_classification_eval(llm_results, os.path.join(results_dir, "llm_results.png"))
+        
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
         with open(llm_results_path, 'w') as f:
