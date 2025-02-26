@@ -204,21 +204,21 @@ def summarize_document(
         max_retries=max_retries,
         messages=[
             {
-                "role": "system",
+                "role": "developer",
                 "content": "You are a financial analyst, trying to summarize some text."
             },
             {
-                "role": "system",
+                "role": "developer",
                 "content":f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
                           "tokens, and should try to capture the breadth of the content within.",
             },
             # Jesus
             {
-                "role": "system", "content": "Remember, your summary is about the document content. "
+                "role": "developer", "content": "Remember, your summary is about the document content. "
                                              "Avoid self-referential language about yourself and this task, etc."
             },
             {
-                "role": "system", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
+                "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
                                            "Return in JSON format with key 'summary'"
             },
             {
@@ -241,7 +241,7 @@ def summarize_document(
             response_model=RewrittenSummary,
             messages=[
                 {
-                    "role": "system",
+                    "role": "developer",
                     "content": "You are a helpful analyst that carefully summarizes content."
                                " Return your responses in JSON format with keys 'summary', 'absent', and 'desired_entities'."
                 },
@@ -268,7 +268,7 @@ def summarize_document(
                 },
                 # Jesus
                 # {
-                #     "role": "system", "content": "Remember, your summary is about the document content, "
+                #     "role": "developer", "content": "Remember, your summary is about the document content, "
                 #                                  "avoid self-referential language about yourself and this task, etc."
                 # },
                 {

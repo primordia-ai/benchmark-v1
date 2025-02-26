@@ -185,7 +185,6 @@ class LLMBaseClass(ABC):
         except FileNotFoundError:
             raise FileNotFoundError(f'File not found for asset_id {asset_id}')
 
-        print(f"MW PROMTP -- {prompt}")
         client = self.get_client()
         try:
             response, completion = client.chat.completions.create_with_completion(
@@ -193,8 +192,7 @@ class LLMBaseClass(ABC):
                 temperature=self.temperature,
                 messages=[
                     {
-                        # "role": "system",
-                        "role": "system",  # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
                         # back-compatible
                         "content": self.system_roles["financial_analyst"],
                     },

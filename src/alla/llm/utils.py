@@ -238,25 +238,26 @@ def prompt_se_context(indicator, report_text: str):
     Returns:
         str: A formatted prompt containing the description of the indicator, the company reports, and the indicator name.
     """
-
     prompt_template = f'''
-        You have been given the following information:
-        There are so called soft indicators that are used to evaluate the company's performance.
-        The values of the indicator are represented by the colors red, yellow, and green,
-        where red indicates a negative performance, yellow indicates a neutral performance, and green indicates a positive performance.
-        The indicator you are evaluating is: '{indicator}'
-        Your task is to read the business reports and infer the value of the indicator. 
-        Your output should include your color estimate (red, yellow, or green) for the given indicator.
-        Also give an explanation of why you chose that value.
-        The description of the indicator and the company reports are given below:
-        '''
+    Below is a collection of financial reports and analyses for a certain company.
+    We evaluate companies across a variety of dimensions, which we call 'indicators'.
+    For each indicator, a company can have a value of 'red', 'yellow', or 'green', describing their
+    performance according to the indicator.
+    Your task is to consider these reports and respond with the 'value' (color) and 'reason' for choosing that color
+    based on the content of the provided reports. 
 
-    indicator_desc = SOFT_INDICATOR_DESC[indicator]
-    indicator_desc += "\n=================\nREPORTS BEGIN\n=================\n\n"
+    You are considering only one indicator right now, with the following description:
 
-    prompt = prompt_template + indicator_desc + report_text
+    Indicator: '{indicator}'
+    Description: {SOFT_INDICATOR_DESC[indicator]}
+    
+    \n=================\nREPORTS BEGIN\n=================\n\n
+    '''
+
+    prompt = prompt_template + report_text
     prompt += "\n=================\nREPORTS END\n=================\n\n"
-    prompt += f"\nThe indicator name to evaluate is: {indicator}"
+    prompt += ("\nPlease return your evaluation in JSON format with keys 'value' (one of red, yellow, or green) "
+               "and 'reason', the reason for that choice.")
     return prompt
 
 
