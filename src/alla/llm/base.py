@@ -42,21 +42,21 @@ def get_retry_control(
             stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
             wait=wait,
             before=before_retry_callback,
-            # retry_error_callback=retry_error_callback,
+            retry_error_callback=retry_error_callback,
         )
     elif max_retries:
         return Retrying(
             stop=stop_after_attempt(max_retries),
             wait=wait,
             before=before_retry_callback,
-            # retry_error_callback=retry_error_callback,
+            retry_error_callback=retry_error_callback,
         )
     elif budget:
         return Retrying(
             stop=stop_after_delay(budget),
             wait=wait,
             before=before_retry_callback,
-            # retry_error_callback=retry_error_callback,
+            retry_error_callback=retry_error_callback,
         )
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
@@ -64,7 +64,7 @@ def get_retry_control(
             stop=stop_after_attempt(3),
             wait=wait,
             before=before_retry_callback,
-            # retry_error_callback=retry_error_callback,
+            retry_error_callback=retry_error_callback,
         )
 
 
