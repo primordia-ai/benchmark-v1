@@ -65,6 +65,9 @@ def main():
     parser.add_argument(
         "--no-input", action="store_true", help="Skip any input prompting"
     )
+    parser.add_argument(
+        "--budget", type=int, default=30, help="Budget per task in seconds. Default 30."
+    )
 
     args = parser.parse_args()
 
@@ -103,6 +106,7 @@ def main():
     testing = args.test
     temp = args.temp
     strict = args.strict
+    budget_per_task = args.budget
     pre_extract_dir = args.pre_extracted
     if pre_extract_dir:
         pre_extract = True
@@ -133,8 +137,7 @@ def main():
         n_asset = 15
         n_asset_per = n_asset / 3
         budget_mode = BudgetMode.WALL
-        total_budget = 1e5
-        budget_per_task = 30
+        total_budget = 300  # 5 minutes
         max_retries = 3
         asset_memory_depth = 100
     else:
@@ -143,7 +146,6 @@ def main():
         n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
-        budget_per_task = 30
         max_retries = 10
         asset_memory_depth = 100
 
