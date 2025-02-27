@@ -4,6 +4,7 @@ Consolidate LLM models, and LLM utils etc.
 from abc import ABC
 
 import instructor
+import time
 from instructor.exceptions import InstructorRetryException
 from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
 from tqdm import tqdm
@@ -17,17 +18,21 @@ from alla.utils import BudgetMode
 def retry_error_callback(state: RetryCallState) -> None:
     exception = state.outcome.exception()
     result = f"{exception.__class__.__name__} {exception})"
+    start = state.start_time
+    elapsed = float(round(time.monotonic() - start, 2))
     logger.debug(
-        f"Retry Error. Attempt {state.attempt_number}. Elapsed time {state.seconds_since_start}. Reason: {result}"
+        f"Retry ({state.attempt_number}) Error. Elapsed time {elapsed}. Reason: {result}"
     )
-    return state
+    return None
 
 
 def before_retry_callback(state: RetryCallState) -> None:
     if state.attempt_number > 1:
+        start = state.start_time
+        elapsed = float(round(time.monotonic() - start, 2))
         slept = float(round(state.idle_for, 2))
         logger.debug(
-            f"Retrying. Attempt {state.attempt_number}. Slept {slept}. Elapsed time {state.seconds_since_start}..."
+            f"Retry ({state.attempt_number}) Start. Slept {slept}. Elapsed time {elapsed}..."
         )
 
 
