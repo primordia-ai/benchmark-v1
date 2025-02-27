@@ -230,7 +230,7 @@ class LLMBaseClass(ABC):
             # py_response["value"] = None
             # py_response["numeric"] = None
             return py_response, False
-       else:
+        else:
             # Success
             py_response = response.model_dump()
             # Add the indicator value
