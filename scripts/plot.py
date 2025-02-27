@@ -77,7 +77,7 @@ def exp1(results_name: str):
     # Create a combined pandas df of the category and growth values for llm and truth sets
     df = pd.concat(
         [
-            pd.DataFrame(alla_data).assign(source="ALLA"),
+            pd.DataFrame(alla_data).assign(source="CRISTAL"),
             pd.DataFrame(llm_data).assign(source="LLM"),
             pd.DataFrame(truth_data).assign(source="Truth")
         ], ignore_index=True
@@ -184,7 +184,7 @@ def exp1(results_name: str):
     save_path = os.path.join(SAVE_DIR, f"confusion-alla.{save_fmt}")
 
     y_true_alla = df[df["source"] == "Truth"].sort_values("asset")["category"]
-    y_pred_alla = df[df["source"] == "ALLA"].sort_values("asset")["category"]
+    y_pred_alla = df[df["source"] == "CRISTAL"].sort_values("asset")["category"]
 
     cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
     cm_alla_df = pd.DataFrame(
