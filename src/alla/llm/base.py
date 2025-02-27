@@ -17,7 +17,9 @@ from alla.utils import BudgetMode
 def retry_error_callback(state: RetryCallState) -> None:
     exception = state.outcome.exception()
     result = f"{exception.__class__.__name__} {exception})"
-    logger.debug(f"Attempt {state.attempt_number} Retry failed: {result}")
+    sleep = state.upcoming_sleep
+    logger.debug(f"Retry Error. Attempt {state.attempt_number} Retry failed: {result}")
+    return state
 
 
 def before_retry_callback(state: RetryCallState) -> None:
@@ -37,21 +39,21 @@ def get_retry_control(
             stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
             wait=wait,
             before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
+            # retry_error_callback=retry_error_callback,
         )
     elif max_retries:
         return Retrying(
             stop=stop_after_attempt(max_retries),
             wait=wait,
             before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
+            # retry_error_callback=retry_error_callback,
         )
     elif budget:
         return Retrying(
             stop=stop_after_delay(budget),
             wait=wait,
             before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
+            # retry_error_callback=retry_error_callback,
         )
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
@@ -59,7 +61,7 @@ def get_retry_control(
             stop=stop_after_attempt(3),
             wait=wait,
             before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
+            # retry_error_callback=retry_error_callback,
         )
 
 
