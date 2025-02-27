@@ -76,11 +76,12 @@ def main():
         cm_df = pd.DataFrame(cm, index=['green', 'yellow', 'red', 'None'], columns=['green', 'yellow', 'red', 'None'])
         confusion_matrices.append(cm_df)
         # Plot the confusion matrix
-        plt.figure(figsize=(3, 3))
+        plt.figure(figsize=(4, 3))
         sns.heatmap(confusion_matrices[-1], annot=True, fmt='d', cmap='Blues')
         plt.title(f'Confusion Matrix for {indicator}')
         plt.xlabel('Predicted')
         plt.ylabel('True')
+        plt.tight_layout()
         plt.savefig(os.path.join(output_dir, f'{indicator}_confusion_matrix.png'))
         # Combine all accuracies into a single DataFrame
         accuracy = np.trace(confusion_matrices[-1].values) / np.sum(confusion_matrices[-1].values)

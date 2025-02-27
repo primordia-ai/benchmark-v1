@@ -3,7 +3,8 @@ import os
 
 import pandas as pd
 from matplotlib import pyplot as plt
-
+from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import classification_report
 from alla.env import PROJECT_ROOT
 
 
@@ -169,11 +170,15 @@ def exp1(results_name: str):
         y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
     )
     report_llm_df = pd.DataFrame(report_llm).transpose()
-
+    # Calculate accuracy and MCC
+    accuracy_llm = (y_true.reset_index(drop=True) == y_pred.reset_index(drop=True)).mean()
+    mcc_llm = matthews_corrcoef(y_true, y_pred)
+    # Save the updated report to LaTeX
     save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
+    caption = f"Classification report for LLM results. Accuracy: {accuracy_llm:.2f}, MCC: {mcc_llm:.2f}"
     print(f"Saving LLM classification report to {save_path_llm_report}")
     with open(save_path_llm_report, 'w') as f:
-        f.write(report_llm_df.to_latex())
+        f.write(report_llm_df.to_latex(caption=caption, label="tab:classification_report_llm"))
 
     # <><>< 4. Confusion Matrix, ALLA ><><>
     save_path = os.path.join(SAVE_DIR, f"confusion-alla.{save_fmt}")
@@ -202,11 +207,17 @@ def exp1(results_name: str):
         y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
     )
     report_alla_df = pd.DataFrame(report_alla).transpose()
+    # Calculate accuracy and MCC
+    accuracy_alla = (y_true_alla.reset_index(drop=True) == y_pred_alla.reset_index(drop=True)).mean()
+    mcc_alla = matthews_corrcoef(y_true_alla, y_pred_alla)
 
+    # Save the updated report to LaTeX with caption
     save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
+    caption = f"Classification report for ALLA results. Accuracy: {accuracy_alla:.2f}, MCC: {mcc_alla:.2f}"
     print(f"Saving ALLA classification report to {save_path_alla_report}")
     with open(save_path_alla_report, 'w') as f:
-        f.write(report_alla_df.to_latex())
+        f.write(report_alla_df.to_latex(caption=caption, label="tab:classification_report_alla"))
+
 
     # <><>< 5. Class Loss Boxplot ><><>
     # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding
