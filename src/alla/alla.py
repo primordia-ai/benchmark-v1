@@ -21,7 +21,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from alla import stats as alla_stats, synthetic as synth
 from alla.env import PROJECT_ROOT
 from alla.llm import AVAILABLE_MODELS
-from alla.llm.base import LLMBaseClass
+from alla.llm.base import LLMBaseClass, SoftIndicatorExtractionError
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import BudgetMode
@@ -494,16 +494,17 @@ class ALLA:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
                          )
-                    except RuntimeError as re:
-                        logger.error(f"Failed to extract indicator '{selected_name}'")
+                    except SoftIndicatorExtractionError as e:
+                        logger.warning(f"Failed to extract indicator '{selected_name}'")
+                        logger.debug(f"Failure Reason: {e}")
                         extraction_failed = True
-
-                    # Convert to one-hot distribution
-                    extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
-                    # if fails we should take the next indicator
-                    # Update this indicators soft-extraction cost
-                    # TODO -- Could be improved with an expected cost (same approach as for 'utility')
-                    self.indicators.cost.loc[selected_name] = se_cost
+                    else:
+                        # Convert to one-hot distribution
+                        extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
+                        # if fails we should take the next indicator
+                        # Update this indicators soft-extraction cost
+                        # TODO -- Could be improved with an expected cost (same approach as for 'utility')
+                        self.indicators.cost.loc[selected_name] = se_cost
 
                 if not extraction_failed:
                     likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
@@ -557,7 +558,7 @@ class ALLA:
             indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
         )
         if not success:
-            raise RuntimeError(
+            raise SoftIndicatorExtractionError(
                 f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
                 f"{response['last_completion']}"
             )

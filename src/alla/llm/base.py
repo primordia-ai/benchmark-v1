@@ -16,6 +16,11 @@ from alla.logger import logger
 from alla.utils import BudgetMode
 
 
+class SoftIndicatorExtractionError(Exception):
+    """Raised when a soft indicator cannot be extracted from reports"""
+    pass
+
+
 def retry_error_callback(state: RetryCallState) -> None:
     exception = state.outcome.exception()
     result = f"{exception.__class__.__name__} {exception})"
@@ -55,9 +60,9 @@ def get_retry_control(
     return Retrying(
         stop=stop,
         wait=wait,
-        # TODO -- Seems to cause an error
         before=before_retry_callback,
-        retry_error_callback=retry_error_callback,
+        # TODO -- Seems to cause an error
+        # retry_error_callback=retry_error_callback,
     )
 
 def init_llm_prompt_logger(log_path: str):
@@ -234,7 +239,7 @@ class LLMBaseClass(ABC):
         else:
             # Success
             py_response = response.model_dump()
-            # Add the indicator value
+            # Add the indicator name
             py_response["indicator"] = indicator_name
 
             return py_response, True
