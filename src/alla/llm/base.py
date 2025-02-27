@@ -231,16 +231,6 @@ class LLMBaseClass(ABC):
             # py_response["value"] = None
             # py_response["numeric"] = None
             return py_response, False
-        except AttributeError as e:
-            print(f"MW EXCEPTION -- {e}")
-            # This is a bug in the instructor library
-            py_response = {
-                "error": str(e),
-                "reason": "Failed to extract soft indicator from reports",
-                "value": None,
-                "numeric": None,
-            }
-            return py_response, False
         else:
             # Success
             py_response = response.model_dump()
