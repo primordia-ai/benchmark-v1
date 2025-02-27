@@ -37,7 +37,7 @@ def before_retry_callback(state: RetryCallState) -> None:
 
 def get_retry_control(
     max_retries: int | None = None, budget: float | None = None, wait_range: tuple[float, float] | None = None
-) -> Retrying:
+) -> AsyncRetrying:
     # Wait time between requests
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
 
