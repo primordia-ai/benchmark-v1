@@ -19,27 +19,37 @@ def get_retry_control(
 ) -> Retrying:
     # Wait time between requests
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
+    before = lambda s: print("before:", s)
+    after = lambda s: print("after:", s)
 
     if max_retries and budget:
         return Retrying(
             stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
             wait=wait,
+            before=before,
+            after=after,
         )
     elif max_retries:
         return Retrying(
             stop=stop_after_attempt(max_retries),
             wait=wait,
+            before=before,
+            after=after,
         )
     elif budget:
         return Retrying(
             stop=stop_after_delay(budget),
             wait=wait,
+            before=before,
+            after=after,
         )
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
         return Retrying(
             stop=stop_after_attempt(3),
             wait=wait,
+            before=before,
+            after=after,
         )
 
 
