@@ -558,7 +558,7 @@ class ALLA:
         strt = time.time()
         response, success = self.llm.extract_indicator(
             # indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
-            indicator_name, str(asset.asset), reports_text=reports_text, budget=10, max_retries=2
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=20
         )
         print(f"MW: Time to extract indicator: {time.time() - strt}")
         if not success:
