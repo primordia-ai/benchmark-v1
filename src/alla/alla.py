@@ -554,13 +554,9 @@ class ALLA:
         :param budget:          Budget for this extraction
         """
         se_start = time.time()
-        # TODO -- f"MW REMOVE
-        strt = time.time()
         response, success = self.llm.extract_indicator(
-            # indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
-            indicator_name, str(asset.asset), reports_text=reports_text, budget=10
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
         )
-        print(f"MW: Time to extract indicator: {time.time() - strt}")
         if not success:
             raise RuntimeError(
                 f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"

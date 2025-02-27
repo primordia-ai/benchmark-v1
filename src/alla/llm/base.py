@@ -23,7 +23,7 @@ def retry_error_callback(state: RetryCallState) -> RetryCallState:
     logger.debug(
         f"Retry ({state.attempt_number}) Error. Elapsed time {elapsed}. Reason: {result}"
     )
-    return None
+    return state
 
 
 def before_retry_callback(state: RetryCallState) -> None:
