@@ -190,7 +190,7 @@ def exp1(results_name: str):
     sns.heatmap(cm_alla_df, annot=True, fmt="d", cmap="Blues")
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
-    plt.title("Confusion Matrix for ALLA")
+    plt.title("Confusion Matrix for CRISTAL")
     plt.tight_layout()
 
     print(f"Saving to {save_path}")
