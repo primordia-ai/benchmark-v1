@@ -20,6 +20,7 @@ TODO -- Ablations
     2. LLM budgeting and conversing with itself
 """
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category.",
@@ -55,7 +56,8 @@ def main():
                                               "is excluded, so that other assets can continue to be evaluated."
     )
     parser.add_argument(
-        "--pre-extracted", action="store_true", help="Use pre-extracted indicators."
+        "--pre-extracted", type=str, default=None, help="Specify a directory (relative to data/extracted_indicators/) "
+                                                        "for pre-extracted indicators"
     )
     parser.add_argument(
         "--log-level", type=str, default="INFO", help="Logging level. Default 'INFO'."
@@ -88,17 +90,26 @@ def main():
     # Set logging to file
     log_to_file(log_path, level=file_loglevel)
 
+    # Get some info about the run for adding to the config file
     no_input = args.no_input
+    description = ""
+    command_str = "python " + " ".join(sys.argv)
     if not no_input:
         # Prompt user for description
         desc_path = os.path.join(results_dir, "description.txt")
-        capture_description(desc_path, logger)
+        description = capture_description(logger)
 
     llm_code = args.llm_code
     testing = args.test
     temp = args.temp
     strict = args.strict
-    pre_extract = args.pre_extracted
+    pre_extract_dir = args.pre_extracted
+    if pre_extract_dir:
+        pre_extract = True
+        if not os.path.exists(pre_extract_dir):
+            raise ValueError(f"Pre-extracted directory '{pre_extract_dir}' does not exist")
+    else:
+        pre_extract = False
 
     categories = ["high_growth", "stable", "time_bomb"]
     mixture_params = {
@@ -150,6 +161,7 @@ def main():
     report_dir = os.path.join(PROJECT_ROOT, "data/reports", llm.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
+    financials = {}  # For use by LLM
     for asset_id in os.listdir(report_dir):
         # Check category
         category = stocks[asset_id]['category']
@@ -163,9 +175,12 @@ def main():
             "category": category,
             "growth": stocks[asset_id]['growth_2025'],
         }
+        financials[asset_id] = stocks[asset_id]['financials']
 
     # Save run data to config.yaml
     run_data = {
+        "command": command_str,
+        "description": description,
         "seed": seed,
         "test": testing,
         "llm": llm.to_json(),
@@ -215,7 +230,7 @@ def main():
                         # Load the pre-extracted indicators
                         # Technically you don't need to use the {llm.code} subset
                         extract_path = os.path.join(
-                            PROJECT_ROOT, f"data/extracted_indicators/{llm.path_code}","llama3.1_8b",f"{asset_id}.json"
+                            PROJECT_ROOT, f"data/extracted_indicators", pre_extract_dir, f"{asset_id}.json"
                         )
                         # Result is list of {"value": .., "indicator": ..} items
                         extracted_colors = llm_utils.load_extracted_indicators(
@@ -247,6 +262,8 @@ def main():
                                 raise ValueError(f"Failed to process asset {asset_id}: {reason}")
                             # Else log and continue
                             logger.warning(f"Failed to process asset {asset_id}: {reason}")
+                            continue
+
                         # Record the growth quantiles and the category distribution
                         quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
                         cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
@@ -275,30 +292,32 @@ def main():
         #####################
         # LLM Portion
         #
-        # For each asset combine its report text and the pre-extract indicators into one prompt
 
-        # The llm that generated the indicators doesn't necessarily have to be the subject model
-        # (At least for this experiment)
-        indicator_llm_path_code = "llama3.1_8b"
         llm_results = {}
-
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
                 logger.info(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     indicators = None
-                    # Load indicators
-                    indicator_file = os.path.join(
-                        PROJECT_ROOT, "data/extracted_indicators","deepseek-r1_70b", indicator_llm_path_code, f"{asset_id}.json"
-                    )
-                    with open(indicator_file, 'r') as f:
-                        indicators = json.load(f)
+                    if pre_extract:
+                        # Load the pre-extracted indicators
+                        # Note that this includes both quantitative and qualitative indicators
+                        indicator_file = os.path.join(
+                            PROJECT_ROOT, f"data/extracted_indicators", pre_extract_dir, f"{asset_id}.json"
+                        )
+                        with open(indicator_file, 'r') as f:
+                            indicators = json.load(f)
+                    else:
+                        # We should actually still provide the quantitative indicators since these are 'gimmes'
+                        indicators = synth.indicators_from_financials(
+                            financials[asset_id], as_colors=True
+                        )
+
                     # Get report text
-                    # TODO -- The report text provides descriptions of qualitative indicators
-                    #  but not quantitative atm
                     report_file = os.path.join(report_dir, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
+                    # Modifies the prompt if indicators are provided, but they are not required
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
                     # For checking
                     start = time.time()
@@ -329,7 +348,6 @@ def main():
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
-        
         # Save the llm results
         llm_results_path = os.path.join(results_dir, "llm_results.json")
         with open(llm_results_path, 'w') as f:
@@ -343,6 +361,7 @@ if __name__ == '__main__':
     import json
     import os
     import time
+    import sys
 
     import numpy as np
     from tqdm import tqdm
@@ -357,6 +376,7 @@ if __name__ == '__main__':
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
     import pytensor
+
     pytensor.config.exception_verbosity = 'high'
 
     # Set seed

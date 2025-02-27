@@ -20,7 +20,6 @@ from alla.logger import logger
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
 
-
 SUMMARY_TARGET_LEN = 256
 MIN_SUMMARY_TOKENS = 64
 MAX_SUMMARY_TOKENS = 1024
@@ -209,17 +208,17 @@ def summarize_document(
             },
             {
                 "role": "developer",
-                "content":f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
-                          "tokens, and should try to capture the breadth of the content within.",
+                "content": f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
+                           "tokens, and should try to capture the breadth of the content within.",
             },
             # Jesus
             {
                 "role": "developer", "content": "Remember, your summary is about the document content. "
-                                             "Avoid self-referential language about yourself and this task, etc."
+                                                "Avoid self-referential language about yourself and this task, etc."
             },
             {
                 "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
-                                           "Return in JSON format with key 'summary'"
+                                                "Return in JSON format with key 'summary'"
             },
             {
                 "role": "user", "content": f"Please summarize the following content in about {SUMMARY_TARGET_LEN} "
