@@ -6,7 +6,7 @@ from abc import ABC
 import instructor
 import time
 from instructor.exceptions import InstructorRetryException
-from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
+from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
@@ -37,7 +37,7 @@ def before_retry_callback(state: RetryCallState) -> None:
 
 def get_retry_control(
     max_retries: int | None = None, budget: float | None = None, wait_range: tuple[float, float] | None = None
-) -> AsyncRetrying:
+) -> Retrying:
     # Wait time between requests
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
 
@@ -51,9 +51,10 @@ def get_retry_control(
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
         stop = stop_after_attempt(3)
 
-    return AsyncRetrying(
+    return Retrying(
         stop=stop,
         wait=wait,
+        # TODO -- Seems to cause an error
         # before=before_retry_callback,
         # retry_error_callback=retry_error_callback,
     )
@@ -229,7 +230,7 @@ class LLMBaseClass(ABC):
             # py_response["value"] = None
             # py_response["numeric"] = None
             return py_response, False
-        else:
+       else:
             # Success
             py_response = response.model_dump()
             # Add the indicator value
