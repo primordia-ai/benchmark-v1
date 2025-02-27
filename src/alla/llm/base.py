@@ -19,7 +19,7 @@ def get_retry_control(
 ) -> Retrying:
     # Wait time between requests
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
-    before = lambda s: print("before:", s)
+    before = lambda s: logger("before:", s)
     after = lambda s: print("after:", s)
 
     if max_retries and budget:

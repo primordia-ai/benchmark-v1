@@ -557,7 +557,7 @@ class ALLA:
         # TODO -- f"MW REMOVE
         response, success = self.llm.extract_indicator(
             # indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
-            indicator_name, str(asset.asset), reports_text=reports_text, budget=None, max_retries=3
+            indicator_name, str(asset.asset), reports_text=reports_text, budget=60, max_retries=3
         )
         if not success:
             raise RuntimeError(
