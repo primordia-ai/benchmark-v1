@@ -17,7 +17,6 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
-    from alla.llm.base import init_llm_prompt_logger
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Process the first asset with ALLA")
