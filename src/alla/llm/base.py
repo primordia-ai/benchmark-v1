@@ -5,7 +5,7 @@ from abc import ABC
 
 import instructor
 from instructor.exceptions import InstructorRetryException
-from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
+from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
@@ -14,42 +14,52 @@ from alla.logger import logger
 from alla.utils import BudgetMode
 
 
+def retry_error_callback(state: RetryCallState) -> None:
+    exception = state.outcome.exception()
+    result = f"{exception.__class__.__name__} {exception})"
+    logger.debug(f"Attempt {state.attempt_number} Retry failed: {result}")
+
+
+def before_retry_callback(state: RetryCallState) -> None:
+    if state.attempt_number > 1:
+        slept = float(round(state.idle_for, 2))
+        logger.debug(f"Retrying. Attempt {state.attempt_number}. Slept {slept}...")
+
+
 def get_retry_control(
     max_retries: int | None = None, budget: float | None = None, wait_range: tuple[float, float] | None = None
 ) -> Retrying:
     # Wait time between requests
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
-    before = lambda s: logger("before:", s)
-    after = lambda s: print("after:", s)
 
     if max_retries and budget:
         return Retrying(
             stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
             wait=wait,
-            before=before,
-            after=after,
+            before=before_retry_callback,
+            retry_error_callback=retry_error_callback,
         )
     elif max_retries:
         return Retrying(
             stop=stop_after_attempt(max_retries),
             wait=wait,
-            before=before,
-            after=after,
+            before=before_retry_callback,
+            retry_error_callback=retry_error_callback,
         )
     elif budget:
         return Retrying(
             stop=stop_after_delay(budget),
             wait=wait,
-            before=before,
-            after=after,
+            before=before_retry_callback,
+            retry_error_callback=retry_error_callback,
         )
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
         return Retrying(
             stop=stop_after_attempt(3),
             wait=wait,
-            before=before,
-            after=after,
+            before=before_retry_callback,
+            retry_error_callback=retry_error_callback,
         )
 
 
