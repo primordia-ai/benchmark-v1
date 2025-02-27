@@ -56,7 +56,7 @@ def get_retry_control(
         stop=stop,
         wait=wait,
         before=before_retry_callback,
-        retry_error_callback=retry_error_callback,
+        # retry_error_callback=retry_error_callback,
     )
 
 def init_llm_prompt_logger(log_path: str):
