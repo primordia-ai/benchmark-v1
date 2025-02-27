@@ -211,7 +211,7 @@ class LLMBaseClass(ABC):
             # Add the indicator value
             py_response["indicator"] = indicator_name
             py_response["error"] = str(e)
-            py_response["last_completion"] = e.last_completion  # e.messages[-1]
+            py_response["last_completion"] = e.messages[-1]
             # py_response["reason"] = "Failed to extract soft indicator from reports"
             # py_response["value"] = None
             # py_response["numeric"] = None
