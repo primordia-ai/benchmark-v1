@@ -20,7 +20,6 @@ TODO -- Ablations
     2. LLM budgeting and conversing with itself
 """
 
-
 def main():
     parser = argparse.ArgumentParser(
         description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category.",
@@ -120,13 +119,13 @@ def main():
 
     if testing:
         # If testing, we will have 12 assets, and 4 per category
-        n_asset = 6
+        n_asset = 15
         n_asset_per = n_asset / 3
         budget_mode = BudgetMode.WALL
         total_budget = 1e5
-        budget_per_task = 10
+        budget_per_task = 30
         max_retries = 3
-        asset_memory_depth = 20
+        asset_memory_depth = 100
     else:
         # Otherwise, just run all assets
         n_asset = 200
@@ -357,6 +356,8 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
+    import pytensor
+    pytensor.config.exception_verbosity = 'high'
 
     # Set seed
     # 101010 happens to be 42 in binary. How charming.
