@@ -43,35 +43,21 @@ def get_retry_control(
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
 
     if max_retries and budget:
-        return Retrying(
-            stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
-            wait=wait,
-            before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
-        )
+        stop = (stop_after_attempt(max_retries) | stop_after_delay(budget))
     elif max_retries:
-        return Retrying(
-            stop=stop_after_attempt(max_retries),
-            wait=wait,
-            before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
-        )
+        stop = stop_after_attempt(max_retries)
     elif budget:
-        return Retrying(
-            stop=stop_after_delay(budget),
-            wait=wait,
-            before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
-        )
+        stop = stop_after_delay(budget)
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
-        return Retrying(
-            stop=stop_after_attempt(3),
-            wait=wait,
-            before=before_retry_callback,
-            retry_error_callback=retry_error_callback,
-        )
+        stop = stop_after_attempt(3)
 
+    return Retrying(
+        stop=stop,
+        wait=wait,
+        # before=before_retry_callback,
+        # retry_error_callback=retry_error_callback,
+    )
 
 def init_llm_prompt_logger(log_path: str):
     """Initialize a logger specifically for LLM prompts"""
