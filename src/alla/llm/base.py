@@ -15,7 +15,7 @@ from alla.logger import logger
 from alla.utils import BudgetMode
 
 
-def retry_error_callback(state: RetryCallState) -> None:
+def retry_error_callback(state: RetryCallState) -> RetryCallState:
     exception = state.outcome.exception()
     result = f"{exception.__class__.__name__} {exception})"
     start = state.start_time
@@ -23,7 +23,7 @@ def retry_error_callback(state: RetryCallState) -> None:
     logger.debug(
         f"Retry ({state.attempt_number}) Error. Elapsed time {elapsed}. Reason: {result}"
     )
-    return None
+    return state
 
 
 def before_retry_callback(state: RetryCallState) -> None:
