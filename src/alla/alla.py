@@ -491,10 +491,18 @@ class ALLA:
                     # Get report for this indicator, returns cached if available
                     reports_text = self.get_report(asset_id)
                     extr_color, se_cost = self._call_soft_extractor(
-                        asset, selected_name, budget, reports_text
-                    )
+                            asset, selected_name, budget, reports_text
+                        )
+                    try:
+                        extr_color, se_cost = self._call_soft_extractor(
+                            asset, selected_name, budget, reports_text
+                         )
+                    except RuntimeError:
+                        logger.error(f"Failed to extract indicator '{selected_name}'")
+                        continue
                     # Convert to one-hot distribution
                     extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
+                    # if fails we should take the next indicator
                     # Update this indicators soft-extraction cost
                     # TODO -- Could be improved with an expected cost (same approach as for 'utility')
                     self.indicators.cost.loc[selected_name] = se_cost

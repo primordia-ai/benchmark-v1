@@ -257,7 +257,7 @@ def prompt_se_context(indicator, report_text: str):
     prompt = prompt_template + report_text
     prompt += "\n=================\nREPORTS END\n=================\n\n"
     prompt += ("\nPlease return your evaluation in JSON format with keys 'value' (one of red, yellow, or green) "
-               "and 'reason', the reason for that choice.")
+               "and 'reason', the reason for that choice. Please return a single evaluation for this asset.")
     return prompt
 
 
