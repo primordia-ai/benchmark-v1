@@ -21,7 +21,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from alla import stats as alla_stats, synthetic as synth
 from alla.env import PROJECT_ROOT
 from alla.llm import AVAILABLE_MODELS
-from alla.llm.base import LLMBaseClass
+from alla.llm.base import LLMBaseClass, SoftIndicatorExtractionError
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import BudgetMode
@@ -83,7 +83,7 @@ class ALLA:
         llm: LLMBaseClass,
         asset_memory_depth: int = 20,
         budget: float = 100,
-        budget_mode: BudgetMode = BudgetMode.SYNTH,
+        budget_mode: BudgetMode = BudgetMode.WALL,
     ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
@@ -478,9 +478,9 @@ class ALLA:
 
                 candidates.remove(selected)
                 logger.debug(
-                    f"Selecting '{selected_name}' | "
-                    f"Expected cost {selected['cost']} | Remaining budget {budget})"
+                    f"Selecting '{selected_name}' | Expected cost {selected['cost']} | Remaining budget {budget})"
                 )
+                extraction_failed = False
 
                 if pre_extracted:
                     # Convert from point estimate to distribution, like the synthetics
@@ -490,31 +490,31 @@ class ALLA:
                     # Call soft extractor
                     # Get report for this indicator, returns cached if available
                     reports_text = self.get_report(asset_id)
-                    extr_color, se_cost = self._call_soft_extractor(
-                            asset, selected_name, budget, reports_text
-                        )
                     try:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
                          )
-                    except RuntimeError:
-                        logger.error(f"Failed to extract indicator '{selected_name}'")
-                        continue
-                    # Convert to one-hot distribution
-                    extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
-                    # if fails we should take the next indicator
-                    # Update this indicators soft-extraction cost
-                    # TODO -- Could be improved with an expected cost (same approach as for 'utility')
-                    self.indicators.cost.loc[selected_name] = se_cost
+                    except SoftIndicatorExtractionError as e:
+                        logger.warning(f"Failed to extract indicator '{selected_name}'")
+                        logger.debug(f"Failure Reason: {e}")
+                        extraction_failed = True
+                    else:
+                        # Convert to one-hot distribution
+                        extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
+                        # if fails we should take the next indicator
+                        # Update this indicators soft-extraction cost
+                        # TODO -- Could be improved with an expected cost (same approach as for 'utility')
+                        self.indicators.cost.loc[selected_name] = se_cost
 
-                likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
-                likelihood = likelihood.reshape(3, )
-                p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
-                # Update
-                self._update_alphas(asset, alphas)
-                self._update_prior(asset, p_k)
-                # TODO -- Maybe move this out for performance
-                self.compute_growth_quantiles(asset=asset)
+                if not extraction_failed:
+                    likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
+                    likelihood = likelihood.reshape(3, )
+                    p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    # Update
+                    self._update_alphas(asset, alphas)
+                    self._update_prior(asset, p_k)
+                    # TODO -- Maybe move this out for performance
+                    self.compute_growth_quantiles(asset=asset)
 
                 ###############
                 # Update Budget
@@ -558,7 +558,7 @@ class ALLA:
             indicator_name, str(asset.asset), reports_text=reports_text, budget=budget
         )
         if not success:
-            raise RuntimeError(
+            raise SoftIndicatorExtractionError(
                 f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
                 f"{response['last_completion']}"
             )

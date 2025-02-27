@@ -12,10 +12,12 @@ if __name__ == '__main__':
     SEED = 101010
     np.random.seed(SEED)
 
+    from alla.logger import logger, reset_logger, DEBUG
+    reset_logger(DEBUG)
+
     from alla import synthetic as synth
     from alla.alla import ALLA
     from alla.env import PROJECT_ROOT, SYSTEM_USER
-    from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
 
     # Parse command-line arguments
@@ -34,9 +36,15 @@ if __name__ == '__main__':
         llm_cls = get_llm("llama-tiny")
 
     llm = llm_cls(temperature=0, seed=SEED)
+    llm_log = "./tmp/test_process_asset.log"
+    # Remove if exists
+    if os.path.exists(llm_log):
+        os.remove(llm_log)
+
+    llm.log_to_file("./tmp/test_process_asset.log")
     # Create ALLA model
     m = ALLA(
-        stocks, llm, asset_memory_depth=5, budget=30,
+        stocks, llm, asset_memory_depth=5, budget=30
     )
 
     asset_name = "asset_0"

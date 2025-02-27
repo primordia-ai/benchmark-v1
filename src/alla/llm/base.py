@@ -1,19 +1,44 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
-import os
 from abc import ABC
 
 import instructor
+import time
 from instructor.exceptions import InstructorRetryException
-from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
+from tenacity import (Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState,
+                      before_nothing)
 from tqdm import tqdm
 
-from alla.env import PROJECT_ROOT
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
 from alla.utils import BudgetMode
+
+
+class SoftIndicatorExtractionError(Exception):
+    """Raised when a soft indicator cannot be extracted from reports"""
+    pass
+
+
+def retry_error_callback(state: RetryCallState) -> None:
+    exception = state.outcome.exception()
+    result = f"{exception.__class__.__name__} {exception})"
+    start = state.start_time
+    elapsed = float(round(time.monotonic() - start, 2))
+    logger.debug(
+        f"Retry ({state.attempt_number}) Error. Elapsed time {elapsed}. Reason: {result}"
+    )
+
+
+def before_retry_callback(state: RetryCallState) -> None:
+    if state.attempt_number > 1:
+        start = state.start_time
+        elapsed = float(round(time.monotonic() - start, 2))
+        slept = float(round(state.idle_for, 2))
+        logger.debug(
+            f"Retry ({state.attempt_number}) Start. Slept {slept}. Elapsed time {elapsed}..."
+        )
 
 
 def get_retry_control(
@@ -23,27 +48,22 @@ def get_retry_control(
     wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
 
     if max_retries and budget:
-        return Retrying(
-            stop=(stop_after_attempt(max_retries) | stop_after_delay(budget)),
-            wait=wait,
-        )
+        stop = (stop_after_attempt(max_retries) | stop_after_delay(budget))
     elif max_retries:
-        return Retrying(
-            stop=stop_after_attempt(max_retries),
-            wait=wait,
-        )
+        stop = stop_after_attempt(max_retries)
     elif budget:
-        return Retrying(
-            stop=stop_after_delay(budget),
-            wait=wait,
-        )
+        stop = stop_after_delay(budget)
     else:
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
-        return Retrying(
-            stop=stop_after_attempt(3),
-            wait=wait,
-        )
+        stop = stop_after_attempt(3)
 
+    return Retrying(
+        stop=stop,
+        wait=wait,
+        before=before_retry_callback,
+        # TODO -- Seems to cause an error
+        # retry_error_callback=retry_error_callback,
+    )
 
 def init_llm_prompt_logger(log_path: str):
     """Initialize a logger specifically for LLM prompts"""
@@ -211,7 +231,7 @@ class LLMBaseClass(ABC):
             # Add the indicator value
             py_response["indicator"] = indicator_name
             py_response["error"] = str(e)
-            py_response["last_completion"] = e.last_completion  # e.messages[-1]
+            py_response["last_completion"] = e.messages[-1]
             # py_response["reason"] = "Failed to extract soft indicator from reports"
             # py_response["value"] = None
             # py_response["numeric"] = None
@@ -219,7 +239,7 @@ class LLMBaseClass(ABC):
         else:
             # Success
             py_response = response.model_dump()
-            # Add the indicator value
+            # Add the indicator name
             py_response["indicator"] = indicator_name
 
             return py_response, True
