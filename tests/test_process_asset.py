@@ -12,10 +12,12 @@ if __name__ == '__main__':
     SEED = 101010
     np.random.seed(SEED)
 
+    from alla.logger import logger, reset_logger, DEBUG
+    reset_logger(DEBUG)
+
     from alla import synthetic as synth
     from alla.alla import ALLA
     from alla.env import PROJECT_ROOT, SYSTEM_USER
-    from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
 
     # Parse command-line arguments
