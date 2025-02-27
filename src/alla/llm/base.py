@@ -231,6 +231,7 @@ class LLMBaseClass(ABC):
             # py_response["numeric"] = None
             return py_response, False
         except AttributeError as e:
+            print(f"MW EXCEPTION -- {e}")
             # This is a bug in the instructor library
             py_response = {
                 "error": str(e),
