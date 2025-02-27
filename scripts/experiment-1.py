@@ -152,8 +152,6 @@ def main():
     stocks = synth.load_stocks(as_dataset=False)
     for asset_id in os.listdir(report_dir):
         # Check category
-        if asset_id != 'asset_17':
-            continue
         category = stocks[asset_id]['category']
         if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
