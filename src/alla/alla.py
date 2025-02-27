@@ -478,9 +478,9 @@ class ALLA:
 
                 candidates.remove(selected)
                 logger.debug(
-                    f"Selecting '{selected_name}' | "
-                    f"Expected cost {selected['cost']} | Remaining budget {budget})"
+                    f"Selecting '{selected_name}' | Expected cost {selected['cost']} | Remaining budget {budget})"
                 )
+                extraction_failed = False
 
                 if pre_extracted:
                     # Convert from point estimate to distribution, like the synthetics
@@ -490,16 +490,14 @@ class ALLA:
                     # Call soft extractor
                     # Get report for this indicator, returns cached if available
                     reports_text = self.get_report(asset_id)
-                    extr_color, se_cost = self._call_soft_extractor(
-                            asset, selected_name, budget, reports_text
-                        )
                     try:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
                          )
                     except RuntimeError as re:
                         logger.error(f"Failed to extract indicator '{selected_name}'")
-                        continue
+                        extraction_failed = True
+
                     # Convert to one-hot distribution
                     extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
                     # if fails we should take the next indicator
@@ -507,14 +505,15 @@ class ALLA:
                     # TODO -- Could be improved with an expected cost (same approach as for 'utility')
                     self.indicators.cost.loc[selected_name] = se_cost
 
-                likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
-                likelihood = likelihood.reshape(3, )
-                p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
-                # Update
-                self._update_alphas(asset, alphas)
-                self._update_prior(asset, p_k)
-                # TODO -- Maybe move this out for performance
-                self.compute_growth_quantiles(asset=asset)
+                if not extraction_failed:
+                    likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
+                    likelihood = likelihood.reshape(3, )
+                    p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    # Update
+                    self._update_alphas(asset, alphas)
+                    self._update_prior(asset, p_k)
+                    # TODO -- Maybe move this out for performance
+                    self.compute_growth_quantiles(asset=asset)
 
                 ###############
                 # Update Budget
