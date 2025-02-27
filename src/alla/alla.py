@@ -560,7 +560,7 @@ class ALLA:
         if not success:
             raise RuntimeError(
                 f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
-                f"{response['last_completion']['content']}"
+                f"{response['last_completion']}"
             )
 
         result = response["value"]
