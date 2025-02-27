@@ -17,6 +17,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
     from alla.logger import logger
     from alla.llm import get_llm, utils as llm_utils
+    from alla.llm.base import init_llm_prompt_logger
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Process the first asset with ALLA")
@@ -34,6 +35,7 @@ if __name__ == '__main__':
         llm_cls = get_llm("llama-tiny")
 
     llm = llm_cls(temperature=0, seed=SEED)
+    llm.log_to_file("./tmp/test_process_asset.log")
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=5, budget=30,

@@ -1,7 +1,6 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
-import os
 from abc import ABC
 
 import instructor
@@ -9,7 +8,6 @@ from instructor.exceptions import InstructorRetryException
 from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
 from tqdm import tqdm
 
-from alla.env import PROJECT_ROOT
 from alla.llm import utils as llm_utils
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
