@@ -34,6 +34,11 @@ if __name__ == '__main__':
         llm_cls = get_llm("llama-tiny")
 
     llm = llm_cls(temperature=0, seed=SEED)
+    llm_log = "./tmp/test_process_asset.log"
+    # Remove if exists
+    if os.path.exists(llm_log):
+        os.remove(llm_log)
+
     llm.log_to_file("./tmp/test_process_asset.log")
     # Create ALLA model
     m = ALLA(
