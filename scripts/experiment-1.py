@@ -68,6 +68,9 @@ def main():
     parser.add_argument(
         "--budget", type=int, default=30, help="Budget per task in seconds. Default 30."
     )
+    parser.add_argument(
+        "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
+    )
 
     args = parser.parse_args()
 
@@ -89,7 +92,6 @@ def main():
     results_dir = os.path.join(PROJECT_ROOT, f"results/exp-1/{run_name}")
     os.makedirs(results_dir, exist_ok=True)
     log_path = os.path.join(results_dir, "out.log")
-    llm_log_path = os.path.join(results_dir, "llm.log")
     # Set logging to file
     log_to_file(log_path, level=file_loglevel)
 
@@ -103,6 +105,7 @@ def main():
         description = capture_description(logger)
 
     llm_code = args.llm_code
+    llm_extractor_code = args.extractor
     testing = args.test
     temp = args.temp
     strict = args.strict
@@ -152,11 +155,20 @@ def main():
     if mode in ['llm', 'both'] and budget_mode != BudgetMode.WALL:
         raise ValueError("LLM mode only available for WALL budget")
 
-    # Initialize our LLM
+    #####################
+    # Configure LLMs
+    #
+    # LLM-Base
+    llm_log_path = os.path.join(results_dir, "llm.log")
     llm = get_llm(llm_code)(temperature=temp, seed=seed)
     # Activate logging LLM
     logger.info(f"Piping LLM logs to {llm_log_path}")
     llm.log_to_file(llm_log_path)
+    # Extractor LLM
+    extractor_log_path = os.path.join(results_dir, "llm-extractor.log")
+    extractor = get_llm(llm_extractor_code)(temperature=temp, seed=seed)
+    logger.info(f"Piping Extractor logs to {extractor_log_path}")
+    extractor.log_to_file(extractor_log_path)
 
     # We can just compile asset names here
     # Only for assets that we have reports for
@@ -185,7 +197,8 @@ def main():
         "description": description,
         "seed": seed,
         "test": testing,
-        "llm": llm.to_json(),
+        "base_llm": llm.to_json(),
+        "extractor_llm": extractor.to_json(),
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
@@ -194,12 +207,14 @@ def main():
         "assets": {cat: len(reports) for cat, reports in assets.items()}
     }
 
-    # Convert stocks to dataset now
+    #####################
+    # Configure ALLA
+    #
     stocks = synth.stocks_to_xarray(stocks)
     if mode in ['alla', 'both']:
-        # Create ALLA model
+        # Create ALLA model -- Use Extractor LLM
         m = ALLA(
-            stocks, llm, asset_memory_depth=asset_memory_depth,
+            stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
         )
         run_data['alla'] = m.to_json()
