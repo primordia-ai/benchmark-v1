@@ -6,7 +6,8 @@ from abc import ABC
 import instructor
 import time
 from instructor.exceptions import InstructorRetryException
-from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
+from tenacity import (Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState,
+                      before_nothing)
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
@@ -56,7 +57,7 @@ def get_retry_control(
         wait=wait,
         # TODO -- Seems to cause an error
         before=before_retry_callback,
-        retry_error_callback=retry_error_callback,
+        # retry_error_callback=retry_error_callback,
     )
 
 def init_llm_prompt_logger(log_path: str):
