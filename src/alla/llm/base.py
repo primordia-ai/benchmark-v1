@@ -6,7 +6,7 @@ from abc import ABC
 import instructor
 import time
 from instructor.exceptions import InstructorRetryException
-from tenacity import Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
+from tenacity import AsyncRetrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
@@ -16,7 +16,6 @@ from alla.utils import BudgetMode
 
 
 def retry_error_callback(state: RetryCallState) -> None:
-    return
     exception = state.outcome.exception()
     result = f"{exception.__class__.__name__} {exception})"
     start = state.start_time
@@ -27,7 +26,6 @@ def retry_error_callback(state: RetryCallState) -> None:
 
 
 def before_retry_callback(state: RetryCallState) -> None:
-    return
     if state.attempt_number > 1:
         start = state.start_time
         elapsed = float(round(time.monotonic() - start, 2))
@@ -53,11 +51,11 @@ def get_retry_control(
         logger.warning("No retry control specified. Defaulting to 3 attempts.")
         stop = stop_after_attempt(3)
 
-    return Retrying(
+    return AsyncRetrying(
         stop=stop,
         wait=wait,
-        before=before_retry_callback,
-        retry_error_callback=retry_error_callback,
+        # before=before_retry_callback,
+        # retry_error_callback=retry_error_callback,
     )
 
 def init_llm_prompt_logger(log_path: str):
