@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # Process the first stock
     # print(f"Processing '{category_select}' stock '{asset_name}'")
     logger.info(f"Calling process_asset with remaining budget: {m.budget}")
-    success, reason = m.process_asset(asset_name, max_budget=None, pre_extracted=extracted_colors)
+    success, reason = m.process_asset(asset_name, max_budget=30, pre_extracted=extracted_colors)
     if not success:
         raise Exception(f"Failed processing asset: {reason}")
 
