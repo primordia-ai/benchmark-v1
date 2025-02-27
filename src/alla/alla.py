@@ -497,7 +497,7 @@ class ALLA:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
                          )
-                    except RuntimeError:
+                    except RuntimeError as re:
                         logger.error(f"Failed to extract indicator '{selected_name}'")
                         continue
                     # Convert to one-hot distribution
@@ -560,7 +560,7 @@ class ALLA:
         if not success:
             raise RuntimeError(
                 f"Soft indicator extraction failed: {response['error']}\n\nLast Completion:\n"
-                f"{response['last_completion']}"
+                f"{response['last_completion']['content']}"
             )
 
         result = response["value"]
