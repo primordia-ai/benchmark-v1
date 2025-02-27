@@ -83,7 +83,7 @@ class ALLA:
         llm: LLMBaseClass,
         asset_memory_depth: int = 20,
         budget: float = 100,
-        budget_mode: BudgetMode = BudgetMode.SYNTH,
+        budget_mode: BudgetMode = BudgetMode.WALL,
     ):
         """
         Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions

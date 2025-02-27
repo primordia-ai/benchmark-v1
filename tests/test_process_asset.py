@@ -44,7 +44,7 @@ if __name__ == '__main__':
     llm.log_to_file("./tmp/test_process_asset.log")
     # Create ALLA model
     m = ALLA(
-        stocks, llm, asset_memory_depth=5, budget=30,
+        stocks, llm, asset_memory_depth=5, budget=30
     )
 
     asset_name = "asset_0"
