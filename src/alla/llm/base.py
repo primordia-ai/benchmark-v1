@@ -55,8 +55,8 @@ def get_retry_control(
         stop=stop,
         wait=wait,
         # TODO -- Seems to cause an error
-        # before=before_retry_callback,
-        # retry_error_callback=retry_error_callback,
+        before=before_retry_callback,
+        retry_error_callback=retry_error_callback,
     )
 
 def init_llm_prompt_logger(log_path: str):
@@ -229,6 +229,15 @@ class LLMBaseClass(ABC):
             # py_response["reason"] = "Failed to extract soft indicator from reports"
             # py_response["value"] = None
             # py_response["numeric"] = None
+            return py_response, False
+        except AttributeError as e:
+            # This is a bug in the instructor library
+            py_response = {
+                "error": str(e),
+                "reason": "Failed to extract soft indicator from reports",
+                "value": None,
+                "numeric": None,
+            }
             return py_response, False
         else:
             # Success
