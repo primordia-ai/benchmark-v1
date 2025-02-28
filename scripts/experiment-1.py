@@ -341,13 +341,9 @@ def main():
                     # Modifies the prompt if indicators are provided, but they are not required
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
                     # For checking
-                    remaining_budget = budget_per_task
-                    while remaining_budget > 0:
-                        start = time.time()
-                        # We might wrap this in try-except, but the method itself does so for LLM request
-                        evaluation, success = llm.evaluate_asset(prompt, max_retries=max_retries, budget=budget_per_task)
-                        remaining_budget -= (time.time() - start)
-
+                    start = time.time()
+                    # We might wrap this in try-except, but the method itself does so for LLM request
+                    evaluation, success = llm.evaluate_asset(prompt, max_retries=max_retries, budget=budget_per_task)
                     end = time.time()
                     if end - start > budget_per_task:
                         logger.warning(f"Asset '{asset_id}' eval exceeded budget: {end - start} > {budget_per_task}")
