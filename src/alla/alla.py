@@ -366,7 +366,7 @@ class ALLA:
 
     def process_asset(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
-    ) -> tuple[bool, Optional[str]]:
+    ) -> tuple[bool, Optional[str], float]:
         """
         Process an asset to infer its class and growth forecast
 
@@ -375,7 +375,7 @@ class ALLA:
         :param pre_extracted:       Optional dictionary of extracted indicators colors for this asset,
                                     {<indicator>: <value>}
 
-        :return:    Boolean indicating success, and an optional string reason on failure
+        :return:    Boolean indicating success, and an optional string reason on failure, and remaining budget
         """
         start = iter_start = time.time()
         budget = min(max_budget, self.budget) if max_budget is not None else self.budget
@@ -536,12 +536,15 @@ class ALLA:
 
         # If no indicators were within budget, return False
         if len(candidates) == len(Indicators.qualitative):
-            return False, "No qualitative indicators were within budget."
+            return False, "No qualitative indicators were within budget.", budget
+
+        if budget > 0:
+            logger.warning(f"Finished processing asset with budget remaining: {budget}")
 
         # Refresh indicator rank at the end
         # self.refresh_indicator_rank()
 
-        return True, ""
+        return True, "", budget
 
     def _call_soft_extractor(
         self, asset: xr.Dataset, indicator_name: str, budget: float, reports_text: str | None = None
