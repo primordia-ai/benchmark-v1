@@ -21,7 +21,7 @@ def run_multi_exp1():
         ],
     }
 
-    base_command = f"python experiment-1.py --test --llm-code=llama-large --extractor=llama-tiny --mode=both"
+    base_command = f"python experiment-1.py --no-input --test --llm-code=llama-large --extractor=llama-tiny --mode=both"
 
     for name in runs:
         command = base_command + f" --name={name}"
