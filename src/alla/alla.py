@@ -470,6 +470,7 @@ class ALLA:
                 ind: pre_extracted[ind] for ind in synth.Indicators.quantitative
             }
 
+        qual_processed = False  # Set true on successful qual
         with logging_redirect_tqdm(loggers=[logger]):
             # We will at most to one evaluation for each indicator
             for i_ind in tqdm(range(Indicators.count), desc="Indicator", leave=False):
@@ -562,6 +563,7 @@ class ALLA:
                     likelihood = likelihood.reshape(3, )
                     p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
                     # Update
+                    qual_processed = True
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
                     # TODO -- Maybe move this out for performance
@@ -585,8 +587,7 @@ class ALLA:
                     logger.debug(f"Asset budget exhausted")
                     break
 
-        print(f"MW LENGTHS -- {len(candidates)} | {len(Indicators.qualitative)}")
-        if len(candidates) >= len(Indicators.qualitative):
+        if not qual_processed:
             logger.warning("No qualitative indicators were within budget.")
             # Zero out the budget to prevent infinite recursion
             budget = 0
