@@ -290,7 +290,7 @@ class ALLA:
 
         return report_text
 
-    def rank_indicators(self, prior, candidates) -> list:
+    def rank_indicators_deprecated(self, prior, candidates) -> list:
         """
         Rank indicators by expected utility using expected log Bayes factor for growth prediction
 
@@ -343,6 +343,57 @@ class ALLA:
                                 # Weight by posterior probability of g
                                 utility += p_col * post_prob * (np.log(post_prob) - np.log(prior_prob)) * \
                                            (g_points[1] - g_points[0])
+
+            # Add to list
+            indicator_tuples.append((can, utility))
+
+            # Update the utility of this indicator
+            obs = self.indicators.observations.sel(indicator=can['name']).item()
+            if obs == 0:
+                # First observation
+                self.indicators.observations.loc[can['name']] = 1
+                self.indicators.utility.loc[can['name']] = utility
+            else:
+                # Running average
+                current_avg = self.indicators.utility.loc[can['name']].item()
+                self.indicators.observations.loc[can['name']] = obs + 1
+                self.indicators.utility.loc[can['name']] += ((utility - current_avg) / obs)
+                # self.indicator_utility_avg[j, 1] += ((utility - self.indicator_utility_avg[j, 1]) /
+                #                                      self.indicator_utility_avg[j, 0])
+
+        # Return the sorted list of candidates, descending
+        return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
+
+    def rank_indicators(self, prior, candidates) -> list:
+        """
+        Rank indicators by expected utility using expected log Bayes factor for growth prediction
+
+        Also updates observed indicator utility average
+        """
+        # For tracking utility
+        indicator_tuples = []
+
+        for can in candidates:
+            utility = 0
+
+            class_color_matrix = self.ind_likelihood(can['name'])  # [classes, colors]
+            # Sum over the colors for each asset-class
+            color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
+            color_likelihoods = color_likelihoods.reshape(-1, )
+
+            # TODO -- optimize
+            for ic, c in enumerate(["red", "yellow", "green"]):
+                # P(c | p_k)
+                p_col = color_likelihoods[ic]
+
+                if p_col > 0:
+                    # Posterior class probabilities if we observe color
+                    cls_likelihood = class_color_matrix[:, ic]
+                    gamma = prior * cls_likelihood
+                    if np.sum(gamma) > 1e-6:
+                        gamma = gamma / np.sum(gamma)
+                        # Expected log Bayes factor
+                        utility += p_col * np.sum(gamma * np.log(cls_likelihood) - np.log(p_col))
 
             # Add to list
             indicator_tuples.append((can, utility))
