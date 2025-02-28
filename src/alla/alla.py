@@ -585,6 +585,7 @@ class ALLA:
                     logger.debug(f"Asset budget exhausted")
                     break
 
+        print(f"MW LENGTHS -- {len(candidates)} | {len(Indicators.qualitative)}")
         if len(candidates) >= len(Indicators.qualitative):
             logger.warning("No qualitative indicators were within budget.")
             # Zero out the budget to prevent infinite recursion
