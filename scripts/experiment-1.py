@@ -71,12 +71,22 @@ def main():
     parser.add_argument(
         "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
     )
+    parser.add_argument(
+        "--reports-dir", type=str, default="data/reports/llama3_70b",
+        help="Directory of the generated asset reports (relative to Project Root). These will be used by the "
+             "SI-extractor to estimate colors, and by LLM-Base to evaluate assets."
+    )
 
     args = parser.parse_args()
 
     mode = args.mode
     if mode not in ["alla", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
+
+    # Check reports dir is valid
+    reports_dir = os.path.join(PROJECT_ROOT, args.reports_dir)
+    if not os.path.exists(reports_dir):
+        raise ValueError(f"Reports directory '{reports_dir}' does not exist")
 
     # Seed rng
     seed = args.seed
@@ -172,11 +182,10 @@ def main():
 
     # We can just compile asset names here
     # Only for assets that we have reports for
-    report_dir = os.path.join(PROJECT_ROOT, "data/reports", extractor.path_code)
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     financials = {}  # For use by LLM
-    for asset_id in os.listdir(report_dir):
+    for asset_id in os.listdir(reports_dir):
         # Check category
         category = stocks[asset_id]['category']
         if n_asset_per and len(assets[category]) >= n_asset_per:
@@ -191,7 +200,9 @@ def main():
         }
         financials[asset_id] = stocks[asset_id]['financials']
 
-    # Save run data to config.yaml
+    #####################
+    # Save details to config file
+    #
     run_data = {
         "command": command_str,
         "description": description,
@@ -199,6 +210,7 @@ def main():
         "test": testing,
         "base_llm": llm.to_json(),
         "extractor_llm": extractor.to_json(),
+        "reports_dir": reports_dir,
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
@@ -331,7 +343,7 @@ def main():
                         )
 
                     # Get report text
-                    report_file = os.path.join(report_dir, f"{asset_id}")
+                    report_file = os.path.join(reports_dir, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
                     # Modifies the prompt if indicators are provided, but they are not required
