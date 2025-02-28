@@ -45,3 +45,14 @@ class QwenCoderTiny(QwenCoder):
         "qwen-tiny",
         "qwen-0.5b",
     ]
+
+
+class QwenLarge(QwenCoder):
+    """Larger Qwen model"""
+    name = "Qwen2.5 72B"
+    code = "qwen2.5:72b"
+    path_code = "qwen2.5_72b"
+    aliases = [
+        "qwen-large",
+        "qwen-72b",
+    ]

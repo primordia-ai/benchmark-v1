@@ -19,7 +19,7 @@ def exp1(results_name: str):
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
-    save_fmt = "png"
+    save_fmt = "pdf"
 
     # Create figs directory
     os.makedirs(SAVE_DIR, exist_ok=True)

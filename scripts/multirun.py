@@ -6,30 +6,31 @@ import time
 
 
 def run_multi_exp1():
-    llm_base = "llama-small"
     extractor = "llama-small"
-    tag = "rankV2-"
+    tag = ""
 
-    runs = {
-        f"{tag}{llm_base}-budget5": [
-            "--budget=5"
-        ],
-        f"{tag}{llm_base}-budget10": [
-            "--budget=10"
-        ],
-        f"{tag}{llm_base}-budget15": [
-            "--budget=15"
-        ],
-        f"{tag}{llm_base}-budget20": [
-            "--budget=20"
-        ],
-        # f"{tag}{llm_base}-budget120": [
-        #     "--budget=120"
-        # ],
-    }
+    budget_iters = [
+        5, 10, 15, 20
+    ]
+    model_iters = [
+        "llama-large",
+        # "deepseek-r1-14b",
+        "deepseek-r1-70b",
+        # "qwen-32b",
+        "qwen-72b",
+    ]
+
+    runs = {}
+    for model in model_iters:
+        for budget in budget_iters:
+            name = f"{tag}{model}-budget{budget}"
+            runs[name] = [
+                f"--llm-code={model}",
+                f"--budget={budget}"
+            ]
 
     base_command = (
-        f"python experiment-1.py --no-input --llm-code={llm_base} --extractor={extractor} --mode=both"
+        f"python experiment-1.py --no-input --extractor={extractor} --mode=llm"
     )
 
     for name in runs:
