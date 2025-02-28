@@ -534,8 +534,10 @@ class ALLA:
                     logger.debug(f"Asset budget exhausted")
                     break
 
-        if len(candidates) == len(Indicators.qualitative):
+        if len(candidates) >= len(Indicators.qualitative):
             logger.warning("No qualitative indicators were within budget.")
+            # Zero out the budget to prevent infinite recursion
+            budget = 0
 
         if budget > 0:
             logger.warning(f"Finished processing asset with budget remaining: {budget}")
