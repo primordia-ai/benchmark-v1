@@ -10,6 +10,9 @@ def run_multi_exp1():
     extractor = "llama-small"
 
     runs = {
+        f"{llm_base}-budget5": [
+            "--budget=5"
+        ],
         f"{llm_base}-budget15": [
             "--budget=15"
         ],
