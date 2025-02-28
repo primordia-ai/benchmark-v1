@@ -22,7 +22,7 @@ def run_multi_exp1():
     }
 
     base_command = (
-        "python experiment-1.py --no-input --test --llm-code=llama-large --extractor=llama-small --mode=both"
+        "python experiment-1.py --no-input --llm-code=llama-small --extractor=llama-small --mode=llm"
     )
 
     for name in runs:
@@ -35,7 +35,8 @@ def run_multi_exp1():
         result = subprocess.run(command, shell=True)
         if result.returncode != 0:
             print(f"Command failed with return code {result.returncode}")
-            break
+            # Try the next one
+            continue
 
 
 if __name__ == '__main__':
