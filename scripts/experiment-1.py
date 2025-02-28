@@ -264,7 +264,6 @@ def main():
                             success, reason, remaining_budget = m.process_asset(
                                 asset_id, max_budget=remaining_budget, pre_extracted=extracted_colors
                             )
-                            print(f"MW BUDG -- {remaining_budget}")
                     except Exception as e:
                         if strict:
                             raise e
