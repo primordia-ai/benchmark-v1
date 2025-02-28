@@ -71,22 +71,12 @@ def main():
     parser.add_argument(
         "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
     )
-    parser.add_argument(
-        "--reports-dir", type=str, default="llama3_70b",
-        help="Directory of the generated asset reports (relative to data/reports/). These will be used by the "
-             "SI-extractor to estimate colors, and by LLM-Base to evaluate assets."
-    )
 
     args = parser.parse_args()
 
     mode = args.mode
     if mode not in ["alla", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
-
-    # Check reports dir is valid
-    reports_dir = os.path.join(PROJECT_ROOT, "data/reports", args.reports_dir)
-    if not os.path.exists(reports_dir):
-        raise ValueError(f"Reports directory '{reports_dir}' does not exist")
 
     # Seed rng
     seed = args.seed
@@ -185,7 +175,7 @@ def main():
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
     financials = {}  # For use by LLM
-    for asset_id in os.listdir(reports_dir):
+    for asset_id in os.listdir(REPORTS_DIR):
         # Check category
         category = stocks[asset_id]['category']
         if n_asset_per and len(assets[category]) >= n_asset_per:
@@ -210,7 +200,7 @@ def main():
         "test": testing,
         "base_llm": llm.to_json(),
         "extractor_llm": extractor.to_json(),
-        "reports_dir": reports_dir,
+        "reports_dir": REPORTS_DIR,
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
@@ -343,7 +333,7 @@ def main():
                         )
 
                     # Get report text
-                    report_file = os.path.join(reports_dir, f"{asset_id}")
+                    report_file = os.path.join(REPORTS_DIR, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
                     # Modifies the prompt if indicators are provided, but they are not required
@@ -401,7 +391,7 @@ if __name__ == '__main__':
     from alla import synthetic as synth, stats
     from alla.alla import ALLA
     from alla.utils import BudgetMode
-    from alla.env import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT, REPORTS_DIR
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports
     import pytensor

@@ -19,7 +19,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from alla import stats as alla_stats, synthetic as synth
-from alla.env import PROJECT_ROOT
+from alla.env import PROJECT_ROOT, REPORTS_DIR
 from alla.llm import AVAILABLE_MODELS
 from alla.llm.base import LLMBaseClass, SoftIndicatorExtractionError
 from alla.llm.wrangling import read_reports
@@ -280,7 +280,7 @@ class ALLA:
             return self._cached_reports[asset_id]
 
         report_text = read_reports(
-            report_dir=str(os.path.join(PROJECT_ROOT, "data/reports", self.llm.path_code, asset_id)),
+            report_dir=str(os.path.join(REPORTS_DIR, asset_id)),
         )
         size_limit = 1e7  # in bytes
         self._cached_reports[asset_id] = report_text
