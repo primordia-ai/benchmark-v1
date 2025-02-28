@@ -72,8 +72,8 @@ def main():
         "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
     )
     parser.add_argument(
-        "--reports-dir", type=str, default="data/reports/llama3_70b",
-        help="Directory of the generated asset reports (relative to Project Root). These will be used by the "
+        "--reports-dir", type=str, default="llama3_70b",
+        help="Directory of the generated asset reports (relative to data/reports/). These will be used by the "
              "SI-extractor to estimate colors, and by LLM-Base to evaluate assets."
     )
 
@@ -84,7 +84,7 @@ def main():
         raise ValueError(f"Invalid mode '{mode}'")
 
     # Check reports dir is valid
-    reports_dir = os.path.join(PROJECT_ROOT, args.reports_dir)
+    reports_dir = os.path.join(PROJECT_ROOT, "data/reports", args.reports_dir)
     if not os.path.exists(reports_dir):
         raise ValueError(f"Reports directory '{reports_dir}' does not exist")
 
