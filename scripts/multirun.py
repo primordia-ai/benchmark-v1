@@ -8,23 +8,24 @@ import time
 def run_multi_exp1():
     llm_base = "llama-small"
     extractor = "llama-small"
+    tag = "rankV2-"
 
     runs = {
-        f"{llm_base}-budget5": [
+        f"{tag}{llm_base}-budget5": [
             "--budget=5"
         ],
-        f"{llm_base}-budget15": [
+        f"{tag}{llm_base}-budget10": [
+            "--budget=10"
+        ],
+        f"{tag}{llm_base}-budget15": [
             "--budget=15"
         ],
-        f"{llm_base}-budget30": [
-            "--budget=30"
+        f"{tag}{llm_base}-budget20": [
+            "--budget=20"
         ],
-        f"{llm_base}-budget60": [
-            "--budget=60"
-        ],
-        f"{llm_base}-budget120": [
-            "--budget=120"
-        ],
+        # f"{tag}{llm_base}-budget120": [
+        #     "--budget=120"
+        # ],
     }
 
     base_command = (
