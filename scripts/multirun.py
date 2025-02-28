@@ -6,23 +6,26 @@ import time
 
 
 def run_multi_exp1():
+    llm_base = "llama-small"
+    extractor = "llama-small"
+
     runs = {
-        "llama70b-budget15": [
+        f"{llm_base}-budget15": [
             "--budget=15"
         ],
-        "llama70b-budget30": [
+        f"{llm_base}-budget30": [
             "--budget=30"
         ],
-        "llama70b-budget60": [
+        f"{llm_base}-budget60": [
             "--budget=60"
         ],
-        "llama70b-budget120": [
+        f"{llm_base}-budget120": [
             "--budget=120"
         ],
     }
 
     base_command = (
-        "python experiment-1.py --no-input --llm-code=llama-small --extractor=llama-small --mode=llm"
+        f"python experiment-1.py --no-input --llm-code={llm_base} --extractor={extractor} --mode=both"
     )
 
     for name in runs:
