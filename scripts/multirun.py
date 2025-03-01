@@ -10,14 +10,14 @@ def run_multi_exp1():
     tag = ""
 
     budget_iters = [
-        5, 10, 15, 20
+        10, 20
     ]
     model_iters = [
-        "llama-large",
+        # "llama-large",
         # "deepseek-r1-14b",
         "deepseek-r1-70b",
         # "qwen-32b",
-        "qwen-72b",
+        # "qwen-72b",
     ]
 
     runs = {}
