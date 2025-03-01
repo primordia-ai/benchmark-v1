@@ -366,6 +366,13 @@ def main():
                             "truth": truth_data[asset_id],
                         }
 
+        # TODO -- REMOVE DUPLICATE SAVE
+        # Save the llm results
+        llm_results_path = os.path.join(results_dir, "llm_results.json")
+        with open(llm_results_path, 'w') as f:
+            logger.info(f"Saving LLM results to {llm_results_path}")
+            json.dump(llm_results, f, indent=4)
+
         # Add in-place performance evaluation
         stats.evaluate_performance(llm_results, mixture_params, in_place=True)
 
