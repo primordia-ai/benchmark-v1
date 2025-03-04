@@ -116,6 +116,7 @@ if __name__ == '__main__':
         )
 
     else:
+
         ground_truth = synthetic.load_indicators()
 
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
