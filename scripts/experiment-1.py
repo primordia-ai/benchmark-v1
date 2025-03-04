@@ -145,12 +145,13 @@ def main():
         asset_memory_depth = 100
     else:
         # Otherwise, just run all assets
-        n_asset = 200
+        n_asset = 1000
         n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
-        max_retries = 10
-        asset_memory_depth = 100
+        budget_per_task = 30
+        max_retries = 5
+        asset_memory_depth = 24
 
     if mode in ['llm', 'both'] and budget_mode != BudgetMode.WALL:
         raise ValueError("LLM mode only available for WALL budget")

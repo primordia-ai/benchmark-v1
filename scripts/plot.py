@@ -37,7 +37,12 @@ def exp1(results_name: str):
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
-    # Load ALLA results
+    # Combine the set of errored assets from both ALLA and LLM, to keep things balanced
+    errors = set()
+    errors |= {a_id for a_id, asset in alla_results.items() if "error" in asset}
+    errors |= {a_id for a_id, asset in llm_results.items() if "error" in asset}
+
+    # Load ALLA results -- filter out errors
     alla_data = [
         {
             "asset": a_id,
@@ -49,7 +54,7 @@ def exp1(results_name: str):
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
         }
-        for a_id, asset in alla_results.items()
+        for a_id, asset in alla_results.items() if a_id not in errors
     ]
     # LLM data
     llm_data = [
@@ -63,7 +68,7 @@ def exp1(results_name: str):
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
         }
-        for a_id, asset in llm_results.items()
+        for a_id, asset in llm_results.items() if a_id not in errors
     ]
     truth_data = [
         {
@@ -71,7 +76,7 @@ def exp1(results_name: str):
             "category": v["truth"]["category"],
             "growth": v["truth"]["growth"],
         }
-        for a_id, v in llm_results.items()
+        for a_id, v in llm_results.items() if a_id not in errors
     ]
 
     # Create a combined pandas df of the category and growth values for llm and truth sets
