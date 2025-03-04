@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import matthews_corrcoef
-from sklearn.metrics import classification_report
+
 from alla.env import PROJECT_ROOT
 
 
@@ -19,7 +19,7 @@ def exp1(results_name: str):
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
-    save_fmt = "png"
+    save_fmt = "pdf"
 
     # Create figs directory
     os.makedirs(SAVE_DIR, exist_ok=True)
@@ -222,7 +222,6 @@ def exp1(results_name: str):
     print(f"Saving ALLA classification report to {save_path_alla_report}")
     with open(save_path_alla_report, 'w') as f:
         f.write(report_alla_df.to_latex(caption=caption, label="tab:classification_report_alla"))
-
 
     # <><>< 5. Class Loss Boxplot ><><>
     # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding

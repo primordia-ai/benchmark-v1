@@ -239,8 +239,21 @@ def evaluate_performance(
             - 'parametric_score' (float): The score from fitting a distribution to the growth quantiles.
             - 'non_parametric_score' (float): The non-parametric quantile loss score.
     """
-    assets = list(predictions.keys())
-    n_asset = len(predictions)
+    # We have to handle error'd assets carefully.
+    valid_assets = []
+    atleast_one = False
+    for asset_id, data in predictions.items():
+        if "error" in data and data['error']:
+            logger.warning(f"Excluding asset {asset_id} from evaluation due to error.")
+            continue
+        atleast_one = True
+        valid_assets.append(asset_id)
+
+    if not atleast_one:
+        logger.warning("No valid assets to evaluate.")
+        return pd.DataFrame() if not in_place else predictions
+
+    n_asset = len(valid_assets)
     classes = list(mixture_params['mu'].keys())
     n_class = len(classes)
 
@@ -249,24 +262,13 @@ def evaluate_performance(
     sigmas = np.zeros((n_asset, n_class))
     true_growths = np.zeros(n_asset, dtype=float)
 
-    atleast_one = False
-    for i, asset in enumerate(assets):
+    for i, asset in enumerate(valid_assets):
         data = predictions[asset]
-        if "error" in data:
-            # This asset eval had an error
-            logger.warning(f"Excluding asset {asset} from evaluation due to error.")
-            continue
-        atleast_one = True
         true_growths[i] = data['truth']['growth']
-
         for j, cat in enumerate(classes):
             weights[i, j] = data['category'][cat]
             mus[i, j] = mixture_params['mu'][cat]
             sigmas[i, j] = mixture_params['sigma'][cat]
-
-    if not atleast_one:
-        logger.warning("No valid assets to evaluate.")
-        return pd.DataFrame() if not in_place else predictions
 
     with pymc.Model() as model:
         dist = pymc.NormalMixture.dist(w=weights, mu=mus, sigma=sigmas)
@@ -275,11 +277,8 @@ def evaluate_performance(
     parametric_scores = logp.eval()
 
     scores = []
-    for i, asset in enumerate(assets):
+    for i, asset in enumerate(valid_assets):
         data = predictions[asset]
-        if "error" in data:
-            # This asset eval had an error
-            continue
         true_class = data['truth']['category']
         class_pred = data['category'][true_class]
         if class_pred < 1e-8:
