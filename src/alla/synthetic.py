@@ -6,7 +6,7 @@ import xarray as xr
 from pydantic import BaseModel
 
 import alla.env
-from alla import utils, stats as alla_stats
+from alla import stats as alla_stats
 
 # Has relevance for data arrays
 ORDERED_INDICATORS = (
@@ -1110,13 +1110,19 @@ def compute_growth_quantiles(mixture_weights: list[float], quantiles: list[float
 # Ground Truth data
 
 def load_indicators() -> xr.Dataset:
-    return np.load(f"{alla.env.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
+    raise DeprecationWarning("This function is deprecated in favor of load_stocks(as_dataset=True)")
+    # return np.load(f"{alla.env.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
 def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
     if as_dataset:
         return stocks_to_xarray(
-            np.load(f"{alla.env.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+            np.load(
+                f"{alla.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl",
+                allow_pickle=True
+            )
         )
     else:
-        return np.load(f"{alla.env.PROJECT_ROOT}/data/ground-truth/stock_all_ground_truth_dict.pkl", allow_pickle=True)
+        return np.load(
+            f"{alla.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl", allow_pickle=True
+        )
