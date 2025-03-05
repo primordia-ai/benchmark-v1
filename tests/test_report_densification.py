@@ -17,7 +17,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("deepseek-r1:70b")
+        llm_cls = get_llm("llama-large")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     print(report_txt)
     print("\n===============\n\nSUMMARIZING\n\n")
 
-    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=5)
+    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=3)
     for i, summ in enumerate(summaries):
         print(f"<><><>< Summary {i} ><><><>\n")
         print(summ)
