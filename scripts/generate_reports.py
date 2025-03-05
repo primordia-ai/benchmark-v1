@@ -117,8 +117,8 @@ if __name__ == '__main__':
 
     else:
 
-        ground_truth = synthetic.load_indicators()
-
+        ground_truth = synthetic.load_stocks()
+        print(f'Length of ground truth: {len(ground_truth['asset'].values)}')
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
 
         for asset_id, soft_indicator_values in tqdm(
