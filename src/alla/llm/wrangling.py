@@ -227,8 +227,14 @@ def summarize_document(
     )
 
     summary_chain.append(summary_init.summary)
-    desired_entity_messages = ([])
-    prev_summary = None
+    prev_summary = summary_chain[-1]
+    # desired_entity_messages = ([])
+    desired_entity_messages = ([
+        {
+            "role": "user",
+            "content": "Desired Entities: None as yet."
+        },
+    ])
 
     logger.debug(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
 
