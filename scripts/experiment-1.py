@@ -339,6 +339,10 @@ def main():
                     report_file = os.path.join(REPORTS_DIR, f"{asset_id}")
                     reports_text = read_reports(report_file)
 
+                    # Compress the reports
+                    ...
+
+
                     # Modifies the prompt if indicators are provided, but they are not required
                     prompt = llm_utils.prompt_exp1_task(reports_text, indicators)
                     # For checking
@@ -359,6 +363,7 @@ def main():
                     else:
                         # Successful eval
                         # Compute growth quantiles
+                        print(f"MW DEBUG -- {evaluation} | Ans: {truth_data[asset_id]['category']}")
                         mix_weights = [evaluation['high_growth'], evaluation['stable'], evaluation['time_bomb']]
                         quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
                         llm_results[asset_id] = {

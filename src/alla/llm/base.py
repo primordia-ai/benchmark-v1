@@ -259,26 +259,54 @@ class LLMBaseClass(ABC):
         :return:                        Asset evaluation and bool indicating response success
         """
         client = self.get_client()
-        try:
-            response, completion = client.chat.completions.create_with_completion(
-                model=self.code,
-                temperature=self.temperature,
-                messages=[
-                    {"role": "user", "content": prompt},
-                ],
-                response_model=llm_utils.AssetEvaluationV2,
-                max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
-                seed=self.seed,
-            )
-        except InstructorRetryException as e:
-            result = {
-                "error": str(e),
-                "last_completion": e.last_completion,  # e.messages[-1]
-            }
-            return result, False
+        remaining_budget = budget
+        # Initial message
+        messages = [
+            {"role": "user", "content": prompt},
+        ]
+        # Record predictions to return most recent
+        predictions = []
+        error_result = None
+        start = time.time()
+        while remaining_budget > 5:
+            # LLM can continue to max_retry within the budget
+            retry_ctrl = get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 1.0))
+            try:
+                response, completion = client.chat.completions.create_with_completion(
+                    model=self.code,
+                    temperature=self.temperature,
+                    messages=messages,
+                    response_model=llm_utils.AssetEvaluationV2,
+                    max_retries=retry_ctrl,
+                    seed=self.seed,
+                )
+            except InstructorRetryException as e:
+                # Could not manage to produce a response
+                error_result = {
+                    "error": str(e),
+                    "last_completion": e.last_completion,  # e.messages[-1]
+                }
+                break
+            else:
+                # Success, record the prediction
+                predictions.append(
+                    response.model_dump()
+                )
+                # Update messages with critic prompt
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": llm_utils.prompt_critic_exp1(predictions[-1])
+                    }
+                )
+                remaining_budget = budget - (time.time() - start)
+                if remaining_budget > 5:
+                    logger.debug(f"Re-prompting with critic. Last estimate: {predictions[-1]}")
+
+        if predictions:
+            return predictions[-1], True
         else:
-            # Success
-            return response.model_dump(), True
+            return error_result, False
 
     def __str__(self):
         """Return name and class dot notation"""

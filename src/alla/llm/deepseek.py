@@ -12,8 +12,7 @@ class DeepseekSmall(LLMBaseClass):
     code = "deepseek-r1:14b"
     path_code = "deepseek-r1_14b"
     aliases = [
-        "deepseek_small",
-        "deepseek small",
+        "deepseek-small",
         "deepseek-r1-14b",
         "deepseek-r1 14b",
     ]
@@ -45,8 +44,7 @@ class DeepseekMedium(DeepseekSmall):
     code = "deepseek-r1:70b"
     path_code = "deepseek-r1_70b"
     aliases = [
-        "deepseek_medium",
-        "deepseek medium",
+        "deepseek-medium",
         "deepseek-r1-70b",
         "deepseek-r1 70b",
     ]
@@ -60,8 +58,7 @@ class DeepseekLarge(DeepseekSmall):
     code = "deepseek-r1:671b"
     path_code = "deepseek-r1_671b"
     aliases = [
-        "deepseek_large",
-        "deepseek large",
+        "deepseek-large",
         "deepseek-r1-671b",
         "deepseek-r1 671b",
     ]
@@ -86,8 +83,7 @@ class DeepseekMini(DeepseekSmall):
     code = "deepseek-r1:1.5b"
     path_code = "deepseek-r1_1.5b"
     aliases = [
-        "deepseek_mini",
-        "deepseek mini",
+        "deepseek-mini",
         "deepseek-r1-1.5b",
         "deepseek-r1 1.5b",
     ]
