@@ -49,4 +49,4 @@ if __name__ == '__main__':
     print("\n===============\n\nSUMMARIZING\n\n")
 
     # In debug mode, the summaries are printed out already
-    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=3)
+    summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=3, budget=20)
