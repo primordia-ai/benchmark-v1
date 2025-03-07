@@ -1,13 +1,12 @@
 """
 Consolidate LLM models, and LLM utils etc.
 """
+import time
 from abc import ABC
 
 import instructor
-import time
 from instructor.exceptions import InstructorRetryException
-from tenacity import (Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random, RetryCallState,
-                      before_nothing)
+from tenacity import (RetryCallState, Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random)
 from tqdm import tqdm
 
 from alla.llm import utils as llm_utils
@@ -20,50 +19,6 @@ class SoftIndicatorExtractionError(Exception):
     """Raised when a soft indicator cannot be extracted from reports"""
     pass
 
-
-def retry_error_callback(state: RetryCallState) -> None:
-    exception = state.outcome.exception()
-    result = f"{exception.__class__.__name__} {exception})"
-    start = state.start_time
-    elapsed = float(round(time.monotonic() - start, 2))
-    logger.debug(
-        f"Retry ({state.attempt_number}) Error. Elapsed time {elapsed}. Reason: {result}"
-    )
-
-
-def before_retry_callback(state: RetryCallState) -> None:
-    if state.attempt_number > 1:
-        start = state.start_time
-        elapsed = float(round(time.monotonic() - start, 2))
-        slept = float(round(state.idle_for, 2))
-        logger.debug(
-            f"Retry ({state.attempt_number}) Start. Slept {slept}. Elapsed time {elapsed}..."
-        )
-
-
-def get_retry_control(
-    max_retries: int | None = None, budget: float | None = None, wait_range: tuple[float, float] | None = None
-) -> Retrying:
-    # Wait time between requests
-    wait = wait_random(wait_range[0], wait_range[1]) if wait_range else wait_none()
-
-    if max_retries and budget:
-        stop = (stop_after_attempt(max_retries) | stop_after_delay(budget))
-    elif max_retries:
-        stop = stop_after_attempt(max_retries)
-    elif budget:
-        stop = stop_after_delay(budget)
-    else:
-        logger.warning("No retry control specified. Defaulting to 3 attempts.")
-        stop = stop_after_attempt(3)
-
-    return Retrying(
-        stop=stop,
-        wait=wait,
-        before=before_retry_callback,
-        # TODO -- Seems to cause an error
-        # retry_error_callback=retry_error_callback,
-    )
 
 def init_llm_prompt_logger(log_path: str):
     """Initialize a logger specifically for LLM prompts"""
@@ -222,7 +177,7 @@ class LLMBaseClass(ABC):
                     },
                 ],
                 response_model=llm_utils.ExtractedIndicator,
-                max_retries=get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
+                max_retries=llm_utils.get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
                 seed=self.seed,
             )
         except InstructorRetryException as e:
@@ -270,7 +225,7 @@ class LLMBaseClass(ABC):
         start = time.time()
         while remaining_budget > 5:
             # LLM can continue to max_retry within the budget
-            retry_ctrl = get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 1.0))
+            retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 1.0))
             try:
                 response, completion = client.chat.completions.create_with_completion(
                     model=self.code,

@@ -14,8 +14,9 @@ import instructor
 import nltk
 from openai import OpenAI
 from pydantic import BaseModel, Field, field_validator
-
+import time
 from alla.logger import logger
+from alla.llm.utils import get_retry_control
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
@@ -169,7 +170,7 @@ class RewrittenSummary(BaseModel):
 
 
 def summarize_document(
-    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3
+    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3, budget: int | None,
 ) -> list[str]:
     """
     Generate a chain of summaries for a given document using the provided language model.
@@ -178,6 +179,7 @@ def summarize_document(
     :param document:        The document to summarize
     :param summary_steps:   The number of summary steps to generate
     :param max_retries:     The maximum number of retries to attempt for each completion
+    :param budget:          The budget to use for each completion
     :return:                A list of summaries generated for the document
     """
 
@@ -196,11 +198,14 @@ def summarize_document(
     #     mode=instructor.Mode.JSON,
     # )
 
+    # Give it half the budget
+    summary_retries = get_retry_control(max_retries=1, budget=budget//2)
+    s1 = time.time()
     summary_chain = []  # We first generate an initial summary
     summary_init: SummaryInit = client.chat.completions.create(
         model=llm.code,
         response_model=SummaryInit,
-        max_retries=max_retries,
+        max_retries=summary_retries,
         messages=[
             {
                 "role": "developer",
@@ -227,6 +232,8 @@ def summarize_document(
     )
 
     summary_chain.append(summary_init.summary)
+    logger.debug(f"\n<><><  INIT SUMMARY  ><><>\n{summary_chain[-1]}\n")
+
     prev_summary = summary_chain[-1]
     # desired_entity_messages = ([])
     desired_entity_messages = [
@@ -236,12 +243,17 @@ def summarize_document(
         },
     ]
 
-    logger.debug(f"\n<><><  INIT SUMMARY  ><><>\n{summary_chain[-1]}\n")
-
     for _i in range(1, summary_steps + 1):
+        remaining_budget = budget - (time.time() - s1)
+        if remaining_budget < 1:
+            logger.debug(f"Summary Budget exhausted at step {_i}")
+            return summary_chain
+
+        retries = get_retry_control(max_retries=max_retries, budget=remaining_budget)
+
         new_summary: RewrittenSummary = client.chat.completions.create(
             model=llm.code,
-            max_retries=max_retries,
+            max_retries=retries,
             response_model=RewrittenSummary,
             messages=[
                 {

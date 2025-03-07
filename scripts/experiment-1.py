@@ -345,9 +345,9 @@ def main():
 
                     # Compress the reports
                     if compress_reports:
-                        # TODO -- Consider if this is within budget...
+                        # TODO -- Consider if this is within budget...For now just give it 10s
                         # Seems to work better with llama, and deepseek had a hard time
-                        summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3)
+                        summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3, budget=10)
                         reports_text = summaries[-1]
 
 
@@ -393,6 +393,7 @@ if __name__ == '__main__':
 
     import argparse
     import json
+    from datetime import timedelta
     import os
     import time
     import sys
