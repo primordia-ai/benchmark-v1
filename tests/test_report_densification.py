@@ -32,6 +32,12 @@ if __name__ == '__main__':
     # ]
     includes = None
 
+    llm_log = "./tmp/test_report_densitification.log"
+    # Remove if exists
+    if os.path.exists(llm_log):
+        os.remove(llm_log)
+    llm.log_to_file(llm_log)
+
     # Load the report
     asset = "asset_0"
     report_dir = os.path.join(PROJECT_ROOT, f"tests/data/reports/{asset}")
