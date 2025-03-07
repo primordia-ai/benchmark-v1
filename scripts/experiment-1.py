@@ -149,7 +149,7 @@ def main():
         asset_memory_depth = 100
     else:
         # Otherwise, just run all assets
-        n_asset = 1000
+        n_asset = 200
         n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
