@@ -236,9 +236,9 @@ def summarize_document(
         },
     ]
 
-    logger.debug(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
+    logger.debug(f"\n<><><  INIT SUMMARY  ><><>\n{summary_chain[-1]}\n")
 
-    for _i in range(summary_steps):
+    for _i in range(1, summary_steps + 1):
         new_summary: RewrittenSummary = client.chat.completions.create(
             model=llm.code,
             max_retries=max_retries,
@@ -289,6 +289,8 @@ def summarize_document(
             ],
         )
         summary_chain.append(new_summary.summary)
+        logger.debug(f"\n<><><  SUMMARY {_i}  ><><>\n{summary_chain[-1]}\n")
+        logger.debug(f"Desired Entities for Summary {_i+1}: {','.join(new_summary.desired_entities)}\n")
         # For next iter
         desired_entity_messages.append(
             {
@@ -297,7 +299,6 @@ def summarize_document(
                            f"{','.join(new_summary.desired_entities)}",
             },
         )
-        logger.debug(f"\nNext Desired Entities: {','.join(new_summary.desired_entities)}\n")
         prev_summary = new_summary
 
     return summary_chain
