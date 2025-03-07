@@ -170,7 +170,7 @@ class RewrittenSummary(BaseModel):
 
 
 def summarize_document(
-    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3, budget: int | None = None,
+    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3, budget: int | None = 120,
 ) -> list[str]:
     """
     Generate a chain of summaries for a given document using the provided language model.
