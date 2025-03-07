@@ -21,7 +21,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("deepseek-small")
+        llm_cls = get_llm("deepseek-large")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         include=includes
     )
     max_retries = 3
-    budget = 30
+    budget = 60
 
     # indicator text
     indicator_file = os.path.join(PROJECT_ROOT, "tests/data/extracted_indicators", f"{asset}.json")
