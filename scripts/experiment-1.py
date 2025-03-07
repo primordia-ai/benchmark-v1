@@ -71,6 +71,9 @@ def main():
     parser.add_argument(
         "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
     )
+    parser.add_argument(
+        "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
+    )
 
     args = parser.parse_args()
 
@@ -110,6 +113,7 @@ def main():
     temp = args.temp
     strict = args.strict
     budget_per_task = args.budget
+    compress_reports = args.compress_reports
     pre_extract_dir = args.pre_extracted
     if pre_extract_dir:
         pre_extract = True
@@ -340,7 +344,11 @@ def main():
                     reports_text = read_reports(report_file)
 
                     # Compress the reports
-                    ...
+                    if compress_reports:
+                        # TODO -- Consider if this is within budget...
+                        # Seems to work better with llama, and deepseek had a hard time
+                        summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3)
+                        reports_text = summaries[-1]
 
 
                     # Modifies the prompt if indicators are provided, but they are not required
@@ -400,7 +408,7 @@ if __name__ == '__main__':
     from alla.utils import BudgetMode
     from alla.env import PROJECT_ROOT, REPORTS_DIR
     from alla.llm import get_llm, utils as llm_utils
-    from alla.llm.wrangling import read_reports
+    from alla.llm.wrangling import read_reports, summarize_document
     import pytensor
 
     pytensor.config.exception_verbosity = 'high'

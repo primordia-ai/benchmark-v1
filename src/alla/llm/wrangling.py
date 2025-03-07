@@ -231,7 +231,7 @@ def summarize_document(
     desired_entity_messages = ([])
     prev_summary = None
 
-    print(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
+    logger.debug(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
 
     for _i in range(summary_steps):
         new_summary: RewrittenSummary = client.chat.completions.create(
