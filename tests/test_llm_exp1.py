@@ -45,7 +45,7 @@ if __name__ == '__main__':
         include=includes
     )
     max_retries = 3
-    budget = 60
+    budget = 30
 
     # indicator text
     indicator_file = os.path.join(PROJECT_ROOT, "tests/data/extracted_indicators", f"{asset}.json")
