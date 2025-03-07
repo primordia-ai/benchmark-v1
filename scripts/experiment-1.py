@@ -363,7 +363,6 @@ def main():
                     else:
                         # Successful eval
                         # Compute growth quantiles
-                        print(f"MW DEBUG -- {evaluation} | Ans: {truth_data[asset_id]['category']}")
                         mix_weights = [evaluation['high_growth'], evaluation['stable'], evaluation['time_bomb']]
                         quantile_pred: np.ndarray = synth.compute_growth_quantiles(mix_weights, quantiles=quantiles)
                         llm_results[asset_id] = {
