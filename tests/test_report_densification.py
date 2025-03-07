@@ -20,7 +20,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("llama-large")
+        llm_cls = get_llm("llama-small")
     else:
         llm_cls = get_llm("llama-small")
 
