@@ -161,10 +161,18 @@ class LLMBaseClass(ABC):
             raise FileNotFoundError(f'File not found for asset_id {asset_id}')
 
         client = self.get_client()
+        # TODO -- Hacky soln for gemini
+        if "gemini" in self.code.lower():
+            additional_kwargs = {}
+        else:
+            additional_kwargs = {
+                "model": self.code,
+                "temperature": self.temperature,
+                "seed": self.seed,
+            }
         try:
             response, completion = client.chat.completions.create_with_completion(
-                model=self.code,
-                temperature=self.temperature,
+                **additional_kwargs,
                 messages=[
                     {
                         "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
@@ -178,7 +186,6 @@ class LLMBaseClass(ABC):
                 ],
                 response_model=llm_utils.ExtractedIndicator,
                 max_retries=llm_utils.get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
-                seed=self.seed,
             )
         except InstructorRetryException as e:
             response = e.last_completion  # e.messages[-1]
@@ -223,28 +230,25 @@ class LLMBaseClass(ABC):
         predictions = []
         error_result = None
         start = time.time()
+        if "gemini" in self.code.lower():
+            additional_kwargs = {}
+        else:
+            additional_kwargs = {
+                "model": self.code,
+                "temperature": self.temperature,
+                "seed": self.seed,
+            }
+
         while remaining_budget > 5:
             # LLM can continue to max_retry within the budget
             retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
             try:
-                if "gemini" in self.code.lower():
-                    response, completion = client.chat.completions.create_with_completion(
-                        # model=self.code,
-                        # temperature=self.temperature,
-                        messages=messages,
-                        response_model=llm_utils.AssetEvaluationV2,
-                        max_retries=retry_ctrl,
-                        # seed=self.seed,
-                    )
-                else:
-                    response, completion = client.chat.completions.create_with_completion(
-                        model=self.code,
-                        temperature=self.temperature,
-                        messages=messages,
-                        response_model=llm_utils.AssetEvaluationV2,
-                        max_retries=retry_ctrl,
-                        seed=self.seed,
-                    )
+                response, completion = client.chat.completions.create_with_completion(
+                    **additional_kwargs,
+                    messages=messages,
+                    response_model=llm_utils.AssetEvaluationV2,
+                    max_retries=retry_ctrl,
+                )
             except InstructorRetryException as e:
                 # Could not manage to produce a response
                 error_result = {

@@ -202,8 +202,15 @@ def summarize_document(
     summary_retries = get_retry_control(max_retries=1, budget=budget//2)
     s1 = time.time()
     summary_chain = []  # We first generate an initial summary
+    if "gemini" in llm.code.lower():
+        additional_kwargs = {}
+    else:
+        additional_kwargs = {
+            "model": llm.code,
+        }
+
     summary_init: SummaryInit = client.chat.completions.create(
-        model=llm.code,
+        **additional_kwargs,
         response_model=SummaryInit,
         max_retries=summary_retries,
         messages=[
@@ -228,7 +235,7 @@ def summarize_document(
                                            f"-{MAX_SUMMARY_TOKENS} words (tokens), and return your result in JSON "
                                            f"format with the key 'summary'."
             },
-        ]
+        ],
     )
 
     summary_chain.append(summary_init.summary)
@@ -252,7 +259,7 @@ def summarize_document(
         retries = get_retry_control(max_retries=max_retries, budget=remaining_budget)
 
         new_summary: RewrittenSummary = client.chat.completions.create(
-            model=llm.code,
+            **additional_kwargs,
             max_retries=retries,
             response_model=RewrittenSummary,
             messages=[

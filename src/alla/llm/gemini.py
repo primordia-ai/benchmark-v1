@@ -37,6 +37,8 @@ class Gemini15(LLMBaseClass):
         genai.configure(api_key=self.api_key)
 
     def init_client(self) -> None:
+        # TODO -- GEMINI seems to be treated differently.
+        # TODO -- From these deviations, we are not currently passing in the temp and seed anywhere
         self._client = instructor.from_gemini(
             client=genai.GenerativeModel(
                 model_name=self.code,
