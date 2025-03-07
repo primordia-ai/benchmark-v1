@@ -270,7 +270,7 @@ def summarize_document(
                 #                                  "avoid self-referential language about yourself and this task, etc."
                 # },
                 {
-                    "role": "user", "content": f"Here is the subject text: \n<TEXT START>\n{document}\n<TEXT END>"
+                    "role": "user", "content": f"Here is the main subject text: \n<TEXT START>\n{document}\n<TEXT END>"
                 },
                 {
                     "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
