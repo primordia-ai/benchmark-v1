@@ -229,12 +229,12 @@ def summarize_document(
     summary_chain.append(summary_init.summary)
     prev_summary = summary_chain[-1]
     # desired_entity_messages = ([])
-    desired_entity_messages = ([
+    desired_entity_messages = [
         {
             "role": "user",
             "content": "Desired Entities: None as yet."
         },
-    ])
+    ]
 
     logger.debug(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
 
@@ -281,7 +281,7 @@ def summarize_document(
                 {
                     "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
                 },
-                *desired_entity_messages,
+                desired_entity_messages[-1],
                 {
                     "role": "user", "content": "Please format your response in JSON with keys 'summary', 'absent', "
                                                "and 'desired_entities'."
@@ -290,13 +290,14 @@ def summarize_document(
         )
         summary_chain.append(new_summary.summary)
         # For next iter
-        desired_entity_messages = ([
+        desired_entity_messages.append(
             {
                 "role": "user",
                 "content": f"Please include these Desired Entities in your summary: "
                            f"{','.join(new_summary.desired_entities)}",
             },
-        ])
+        )
+        logger.debug(f"\nNext Desired Entities: {','.join(new_summary.desired_entities)}\n")
         prev_summary = new_summary
 
     return summary_chain
