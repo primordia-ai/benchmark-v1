@@ -591,7 +591,7 @@ class ALLA:
                     break
                 # early stopping if prior for one class > 0.99 or plateaus
                 # first if plateau then if prior for one class > 0.99
-                plateau = np.all(np.isclose(self.last_n_priors[:, -1], self.last_n_priors[:, -5], atol=1e-4))
+                plateau = np.all(np.isclose(self.last_n_priors[:, -1], self.last_n_priors[:, -5], atol=1e-5))
                 if (len(self.last_n_priors) >= 3 and plateau) or np.max(p_k) > 0.99:
                     if plateau:
                         logger.warning(f"Asset prior has plateaued. Early stopping")
