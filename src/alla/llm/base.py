@@ -227,14 +227,24 @@ class LLMBaseClass(ABC):
             # LLM can continue to max_retry within the budget
             retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
             try:
-                response, completion = client.chat.completions.create_with_completion(
-                    model=self.code,
-                    temperature=self.temperature,
-                    messages=messages,
-                    response_model=llm_utils.AssetEvaluationV2,
-                    max_retries=retry_ctrl,
-                    seed=self.seed,
-                )
+                if "gemini" in self.code.lower():
+                    response, completion = client.chat.completions.create_with_completion(
+                        # model=self.code,
+                        # temperature=self.temperature,
+                        messages=messages,
+                        response_model=llm_utils.AssetEvaluationV2,
+                        max_retries=retry_ctrl,
+                        # seed=self.seed,
+                    )
+                else:
+                    response, completion = client.chat.completions.create_with_completion(
+                        model=self.code,
+                        temperature=self.temperature,
+                        messages=messages,
+                        response_model=llm_utils.AssetEvaluationV2,
+                        max_retries=retry_ctrl,
+                        seed=self.seed,
+                    )
             except InstructorRetryException as e:
                 # Could not manage to produce a response
                 error_result = {
