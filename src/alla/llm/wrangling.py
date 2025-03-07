@@ -106,8 +106,8 @@ class RewrittenSummary(BaseModel):
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    f"summary plus the new Desired Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
-                    f"tokens) as the previous summary and should be easily understood without the Document",
+                    f"summary plus the new Desired Entities. It should be between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} "
+                    f"words (tokens), and should be easily understood without the source Document",
     )
     absent: list[str] = Field(
         ...,
@@ -203,13 +203,14 @@ def summarize_document(
         max_retries=max_retries,
         messages=[
             {
-                "role": "developer",
+                "role": "developer", "between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words"
                 "content": "You are a financial analyst, trying to summarize some text."
             },
             {
                 "role": "developer",
-                "content": f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
-                           "tokens, and should try to capture the breadth of the content within.",
+                "content": f"Write an initial summary about the document provided. It must be between "
+                           f"between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words (tokens), and should try "
+                           "to capture the breadth of the content within.",
             },
             # Jesus
             {
@@ -217,12 +218,10 @@ def summarize_document(
                                                 "Avoid self-referential language about yourself and this task, etc."
             },
             {
-                "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
-                                                "Return in JSON format with key 'summary'"
-            },
-            {
-                "role": "user", "content": f"Please summarize the following content in about {SUMMARY_TARGET_LEN} "
-                                           f"tokens:\n\n{document}"
+                "role": "user", "content": f"Please summarize the following document: \n<TEXT START>\n{document}\n<TEXT END>"
+                                           f"Please summarize the above document in {MIN_SUMMARY_TOKENS}"
+                                           f"-{MAX_SUMMARY_TOKENS} words (tokens), and return your result in JSON "
+                                           f"format with the key 'summary'."
             },
         ]
     )
@@ -253,7 +252,7 @@ def summarize_document(
                     To create the current summary you will perform the following tasks:
                         - Identify 1-3 informative entities from the subject text which are missing from 
                         the previous summary, but desirable to include.
-                        - Write a new denser summary with target length of ~{SUMMARY_TARGET_LEN} tokens/words which 
+                        - Write a new denser summary between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words (tokens) which 
                         covers every entity and detail from the previous summary plus the Desired Entities Guidelines. 
                         - Make every word count: re-write the previous summary to improve flow and make space for 
                         additional entities. 
