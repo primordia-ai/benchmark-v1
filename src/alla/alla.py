@@ -265,8 +265,6 @@ class ALLA:
             self.stocks['prior'].loc[asset.asset], -1, axis=1
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
-        
-        self.last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5:]
 
     def add_budget(self, budget: float):
         """
@@ -567,11 +565,25 @@ class ALLA:
                     # Update
                     qual_processed = True
                     self._update_alphas(asset, alphas)
-                    self._update_prior(asset, p_k)
                     # TODO -- Maybe move this out for performance
                     self.compute_growth_quantiles(asset=asset)
 
-                
+                    self._update_prior(asset, p_k)
+                    # Early stopping if prior for one class > 0.95 or plateaus
+                    if np.max(p_k) > 0.95:
+                        logger.debug(f"Asset prior for one class > 0.95. Early stopping")
+                        break
+
+                    # Check for plateau
+                    last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
+                    # Check the last_n isn't from the initialized values
+                    init_prior = np.ones(self.n_classes,) / self.n_classes
+                    if not np.allclose(last_n_priors, init_prior):
+                        avg_difference = np.mean(abs(p_k - last_n_priors))
+                        if avg_difference < 0.1:
+                            logger.debug(f"Asset prior has plateaued. Early stopping")
+                            break
+
                 ###############
                 # Update Budget
 
@@ -589,24 +601,7 @@ class ALLA:
                 if budget <= 0:
                     logger.debug(f"Asset budget exhausted")
                     break
-                # early stopping if prior for one class > 0.99 or plateaus
-                # first if plateau then if prior for one class > 0.99
-                plateau = np.all(np.isclose(self.last_n_priors[:, -1], self.last_n_priors[:, -5], atol=1e-5))
-                if (len(self.last_n_priors) >= 3 and plateau) or np.max(p_k) > 0.99:
-                    if plateau:
-                        logger.warning(f"Asset prior has plateaued. Early stopping")
-                        if budget > 0:
-                            logger.warning(f"Finished processing asset {self} with budget remaining: {budget}")
-                        # return and set budget to 0 to prevent infinite recursion
-                        return True, "Asset prior has plateaued. Early stopping", 0
-                    
-                    if np.max(p_k) > 0.99:
-                        logger.warning(f"Asset prior for one class > 0.99. Early stopping")
-                        if budget > 0:
-                            logger.warning(f"Finished processing asset with budget remaining: {budget}")
-                        # return and set budget to 0 to prevent infinite recursion
-                        return True, "Asset prior for one class > 0.99. Early stopping", 0
-                        
+
 
         if not qual_processed:
             logger.warning("No qualitative indicators were within budget.")
