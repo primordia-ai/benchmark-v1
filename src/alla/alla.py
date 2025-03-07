@@ -74,7 +74,6 @@ class ALLA:
     stocks: xr.Dataset
     indicators: xr.Dataset
     _cached_reports: Optional[Dict[str, str]]
-    last_n_priors : list = []
     _version: str = "0.1"
 
     def __init__(
