@@ -40,8 +40,8 @@ if __name__ == '__main__':
     # Remove if exists
     if os.path.exists(llm_log):
         os.remove(llm_log)
+    llm.log_to_file(llm_log)
 
-    llm.log_to_file("./tmp/test_process_asset.log")
     # Create ALLA model
     m = ALLA(
         stocks, llm, asset_memory_depth=5, budget=30

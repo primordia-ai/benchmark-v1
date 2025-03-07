@@ -36,6 +36,12 @@ if __name__ == '__main__':
         ]
 
     llm = llm_cls(temperature=0, seed=SEED)
+    # Log the llm output to tmp
+    llm_log = "./tmp/test_llm_exp1.log"
+    # Remove if exists
+    if os.path.exists(llm_log):
+        os.remove(llm_log)
+    llm.log_to_file(llm_log)
 
     # Load the report
     asset = "asset_0"
@@ -57,3 +63,4 @@ if __name__ == '__main__':
     result, success = llm.evaluate_asset(prompt, max_retries=max_retries, budget=budget)
     # NOTE: Llama-tiny truncates this prompt since it can't handle it...
     print(f"\nTEST RESULT:\n{result}")
+    print(f"'asset_0' is a stable asset")
