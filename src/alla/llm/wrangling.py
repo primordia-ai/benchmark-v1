@@ -203,7 +203,7 @@ def summarize_document(
         max_retries=max_retries,
         messages=[
             {
-                "role": "developer", "between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words"
+                "role": "developer",
                 "content": "You are a financial analyst, trying to summarize some text."
             },
             {
