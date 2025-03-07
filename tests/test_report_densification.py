@@ -48,10 +48,5 @@ if __name__ == '__main__':
     print(report_txt)
     print("\n===============\n\nSUMMARIZING\n\n")
 
+    # In debug mode, the summaries are printed out already
     summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=3)
-    for i, summ in enumerate(summaries):
-        if i == 0:
-            print(f"<><><>< Summary 0 (initial) ><><><>\n")
-        else:
-            print(f"<><><>< Summary {i} ><><><>\n")
-        print(summ)
