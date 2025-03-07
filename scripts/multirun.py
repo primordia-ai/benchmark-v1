@@ -16,7 +16,7 @@ def run_multi_exp1():
     model_iters = [
         "llama-large",
         "llama-small",
-        "deepseek-r1-14b",
+        # "deepseek-r1-14b",
         # "deepseek-r1-70b",
         # "qwen-32b",
         # "qwen-72b",
