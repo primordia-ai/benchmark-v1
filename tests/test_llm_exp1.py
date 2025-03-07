@@ -18,9 +18,23 @@ if __name__ == '__main__':
 
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm import wrangling
-    from alla.env import PROJECT_ROOT
+    from alla.env import PROJECT_ROOT, SYSTEM_USER
 
-    llm_cls = get_llm("llama-small")
+    if SYSTEM_USER == "dsfhswf":
+        llm_cls = get_llm("llama-large")
+        includes=[
+            "brand_strength_report.txt",
+            "digital_transformation_report.txt",
+            "geopolitical_risk_report.txt",
+        ]
+    else:
+        llm_cls = get_llm("llama-small")
+        includes=[
+            "brand_strength_report.txt",
+            "digital_transformation_report.txt",
+            "geopolitical_risk_report.txt",
+        ]
+
     llm = llm_cls(temperature=0, seed=SEED)
 
     # Load the report
@@ -28,11 +42,7 @@ if __name__ == '__main__':
     report_dir = os.path.join(PROJECT_ROOT, f"tests/data/reports/{asset}")
     report_txt = wrangling.read_reports(
         report_dir,
-        include=[
-            "brand_strength_report.txt",
-            "digital_transformation_report.txt",
-            "geopolitical_risk_report.txt",
-        ]
+        include=includes
     )
     max_retries = 3
     budget = 60
