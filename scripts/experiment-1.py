@@ -347,8 +347,15 @@ def main():
                     if compress_reports:
                         # TODO -- Consider if this is within budget...For now just give it 10s
                         # Seems to work better with llama, and deepseek had a hard time
-                        summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3, budget=10)
-                        reports_text = summaries[-1]
+                        try:
+                            summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3, budget=10)
+                        except Exception as e:
+                            # Log and move on if not strict
+                            if strict:
+                                raise e
+                            logger.warning(f"Failed to compress reports for asset {asset_id}: {e}")
+                        else:
+                            reports_text = summaries[-1]
 
 
                     # Modifies the prompt if indicators are provided, but they are not required
