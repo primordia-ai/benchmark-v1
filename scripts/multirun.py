@@ -6,19 +6,29 @@ import time
 
 
 def run_multi_exp1():
-    extractor = "llama-small"
-    tag = ""
 
+    ############
+    # Variables
     budget_iters = [
-        10, 20
+        5, 10, 20, 30
     ]
     model_iters = [
-        # "llama-large",
-        # "deepseek-r1-14b",
+        "llama-large",
+        "llama-small",
+        "deepseek-r1-14b",
         "deepseek-r1-70b",
         # "qwen-32b",
         # "qwen-72b",
     ]
+
+    ############
+    # Constants
+    tag = "critic"
+    if tag:
+        tag = tag.split("-")[0] + "-"
+
+    extractor = "llama-small"
+    mode = "llm"
 
     runs = {}
     for model in model_iters:
@@ -26,11 +36,11 @@ def run_multi_exp1():
             name = f"{tag}{model}-budget{budget}"
             runs[name] = [
                 f"--llm-code={model}",
-                f"--budget={budget}"
+                f"--budget={budget}",
             ]
 
     base_command = (
-        f"python experiment-1.py --no-input --extractor={extractor} --mode=llm"
+        f"python experiment-1.py --no-input --extractor={extractor} --mode={mode}"
     )
 
     for name in runs:
