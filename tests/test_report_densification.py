@@ -18,20 +18,16 @@ if __name__ == '__main__':
 
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("llama-large")
-        includes=[
-            "brand_strength_report.txt",
-            "digital_transformation_report.txt",
-            "geopolitical_risk_report.txt",
-        ]
     else:
         llm_cls = get_llm("llama-small")
-        includes=[
-            "brand_strength_report.txt",
-            "digital_transformation_report.txt",
-            "geopolitical_risk_report.txt",
-        ]
 
     llm = llm_cls(temperature=0, seed=SEED)
+    # includes=[
+    #     "brand_strength_report.txt",
+    #     "digital_transformation_report.txt",
+    #     "geopolitical_risk_report.txt",
+    # ]
+    includes = None
 
     # Load the report
     asset = "asset_0"
