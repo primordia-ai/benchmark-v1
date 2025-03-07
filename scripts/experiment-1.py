@@ -74,6 +74,9 @@ def main():
     parser.add_argument(
         "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
     )
+    parser.add_argument(
+        "--reports-dir", type=str, default=None, help="Reports directory override over env REPORTS_DIR."
+    )
 
     args = parser.parse_args()
 
@@ -114,6 +117,11 @@ def main():
     strict = args.strict
     budget_per_task = args.budget
     compress_reports = args.compress_reports
+    REPORTS_DIR = args.reports_dir or _REPORTS_DIR
+    # Check reports is valid
+    if not os.path.exists(REPORTS_DIR):
+        raise ValueError(f"Reports directory '{REPORTS_DIR}' does not exist")
+
     pre_extract_dir = args.pre_extracted
     if pre_extract_dir:
         pre_extract = True
@@ -414,7 +422,7 @@ if __name__ == '__main__':
     from alla import synthetic as synth, stats
     from alla.alla import ALLA
     from alla.utils import BudgetMode
-    from alla.env import PROJECT_ROOT, REPORTS_DIR
+    from alla.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
     from alla.llm import get_llm, utils as llm_utils
     from alla.llm.wrangling import read_reports, summarize_document
     import pytensor
