@@ -3,6 +3,7 @@ Script for running multiple runs
 """
 import subprocess
 import time
+from alla.env import PROJECT_ROOT
 
 
 def run_multi_exp1():
@@ -32,6 +33,8 @@ def run_multi_exp1():
 
     extractor = "llama-small"
     mode = "llm"
+    # We'll override the reports dir to 200 for this run
+    reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b_200"
 
     runs = {}
     for model in model_iters:
@@ -43,7 +46,7 @@ def run_multi_exp1():
             ]
 
     base_command = (
-        f"python experiment-1.py --no-input --extractor={extractor} --mode={mode}"
+        f"python experiment-1.py --no-input --extractor={extractor} --mode={mode} --reports-dir={reports_dir}"
     )
 
     for name in runs:
