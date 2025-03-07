@@ -103,6 +103,7 @@ if __name__ == '__main__':
     np.random.seed(SEED)
     parser = argparse.ArgumentParser(description='Generate financial reports based on soft indicators.')
     parser.add_argument('--model_code', type=str, required=True, help='The model code to be used for generating reports')
+    parser.add_argument('--start', type=int, action='store_true', help='Where to start report generation. If not set will start from the beginning')
     parser.add_argument('--test', action='store_true', help='Flag to run in test mode')
     args = parser.parse_args()
     model_code = args.model_code
@@ -120,9 +121,14 @@ if __name__ == '__main__':
         ground_truth = synthetic.load_stocks()
         print(f'Length of ground truth: {len(ground_truth['asset'].values)}')
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
+        
+        if start:
+            start_asset = 662
+        else:
+            start_asset = 0
 
         for asset_id, soft_indicator_values in tqdm(
-                zip(soft_indicators_data['asset'].values, soft_indicators_data['ryg'].values), desc="Assets",
+                zip(soft_indicators_data['asset'].values[start_asset:], soft_indicators_data['ryg'].values[start_asset:]), desc="Assets",
                 leave=True, position=0
         ):
             data = dict(zip(soft_indicators_data['indicator'].values, soft_indicator_values))
