@@ -21,7 +21,7 @@ if __name__ == '__main__':
     from alla.env import PROJECT_ROOT, SYSTEM_USER
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("llama-large")
+        llm_cls = get_llm("deepseek-large")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
