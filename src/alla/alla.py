@@ -74,7 +74,7 @@ class ALLA:
     stocks: xr.Dataset
     indicators: xr.Dataset
     _cached_reports: Optional[Dict[str, str]]
-
+    last_n_priors : list = []
     _version: str = "0.1"
 
     def __init__(
@@ -265,6 +265,8 @@ class ALLA:
             self.stocks['prior'].loc[asset.asset], -1, axis=1
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
+        
+        self.last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5:]
 
     def add_budget(self, budget: float):
         """
@@ -569,6 +571,7 @@ class ALLA:
                     # TODO -- Maybe move this out for performance
                     self.compute_growth_quantiles(asset=asset)
 
+                
                 ###############
                 # Update Budget
 
@@ -586,6 +589,24 @@ class ALLA:
                 if budget <= 0:
                     logger.debug(f"Asset budget exhausted")
                     break
+                # early stopping if prior for one class > 0.99 or plateaus
+                # first if plateau then if prior for one class > 0.99
+                plateau = np.all(np.isclose(self.last_n_priors[:, -1], self.last_n_priors[:, -5], atol=1e-4))
+                if (len(self.last_n_priors) >= 3 and plateau) or np.max(p_k) > 0.99:
+                    if plateau:
+                        logger.warning(f"Asset prior has plateaued. Early stopping")
+                        if budget > 0:
+                            logger.warning(f"Finished processing asset {self} with budget remaining: {budget}")
+                        # return and set budget to 0 to prevent infinite recursion
+                        return True, "Asset prior has plateaued. Early stopping", 0
+                    
+                    if np.max(p_k) > 0.99:
+                        logger.warning(f"Asset prior for one class > 0.99. Early stopping")
+                        if budget > 0:
+                            logger.warning(f"Finished processing asset with budget remaining: {budget}")
+                        # return and set budget to 0 to prevent infinite recursion
+                        return True, "Asset prior for one class > 0.99. Early stopping", 0
+                        
 
         if not qual_processed:
             logger.warning("No qualitative indicators were within budget.")
