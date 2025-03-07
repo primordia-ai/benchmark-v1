@@ -24,7 +24,7 @@ if __name__ == '__main__':
             "geopolitical_risk_report.txt",
         ]
     else:
-        llm_cls = get_llm("deepseek-r1:7b")
+        llm_cls = get_llm("llama-small")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
@@ -45,5 +45,8 @@ if __name__ == '__main__':
 
     summaries = wrangling.summarize_document(llm, report_txt, summary_steps=4, max_retries=3)
     for i, summ in enumerate(summaries):
-        print(f"<><><>< Summary {i} ><><><>\n")
+        if i == 0:
+            print(f"<><><>< Summary 0 (initial) ><><><>\n")
+        else:
+            print(f"<><><>< Summary {i} ><><><>\n")
         print(summ)

@@ -419,7 +419,7 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     
     ---
     You have received all the information you need.
-    Please return your evaluation in JSON format with as:
+    Please return your evaluation in JSON format as:
      
     "high_growth": <float>, 
     "stable": <float>, 
@@ -427,6 +427,24 @@ def prompt_exp1_task(report_text: str, indicators_json: str | None):
     """
 
     return prompt
+
+
+def prompt_critic_exp1(previous_result: str) -> str:
+    """
+    Prompt from the critic that prompts the LLM to update its last prediction
+    """
+    return f"""
+    Your latest predicted distribution was: {previous_result}
+    
+    Please consider all the details in the reports critically, and update your prediction. 
+    This is not to say your previous prediction is inaccurate (though it might be), we just want to be as accurate as possible.
+
+    Please return your updated prediction in JSON format as:
+     
+    "high_growth": <float>, 
+    "stable": <float>, 
+    "time_bomb": <float>
+    """
 
 
 def prompt_exp1_prolog() -> str:
