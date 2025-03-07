@@ -225,7 +225,7 @@ class LLMBaseClass(ABC):
         start = time.time()
         while remaining_budget > 5:
             # LLM can continue to max_retry within the budget
-            retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 1.0))
+            retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
             try:
                 response, completion = client.chat.completions.create_with_completion(
                     model=self.code,
@@ -247,6 +247,19 @@ class LLMBaseClass(ABC):
                 predictions.append(
                     response.model_dump()
                 )
+                # Check for early stopping
+                if len(predictions) > 1:
+                    last = predictions[-2]
+                    this = predictions[-1]
+                    deltas = [
+                        this['high_growth'] - last['high_growth'],
+                        this['stable'] - last['stable'],
+                        this['time_bomb'] - last['time_bomb']
+                    ]
+                    if all(abs(delta) < 0.01 for delta in deltas):
+                        logger.debug("Early stopping from plateau")
+                        break
+
                 # Update messages with critic prompt
                 messages.append(
                     {

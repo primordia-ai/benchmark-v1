@@ -439,7 +439,7 @@ def prompt_critic_exp1(previous_result: str) -> str:
     return f"""
     Your latest predicted distribution was: {previous_result}
     
-    Please consider all the details in the reports critically, and update your prediction. 
+    Please consider all the details in the reports critically, and adjust your prediction as needed. 
     This is not to say your previous prediction is inaccurate (though it might be), we just want to be as accurate as possible.
 
     Please return your updated prediction in JSON format as:
