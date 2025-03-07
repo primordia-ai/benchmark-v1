@@ -103,13 +103,14 @@ if __name__ == '__main__':
     np.random.seed(SEED)
     parser = argparse.ArgumentParser(description='Generate financial reports based on soft indicators.')
     parser.add_argument('--model_code', type=str, required=True, help='The model code to be used for generating reports')
-    parser.add_argument('--start', type=int, action='store_true', help='Where to start report generation. If not set will start from the beginning')
+    parser.add_argument('--start', type=int, default=0, action='store_true', help='Where to start report generation. If not set will start from the beginning')
     parser.add_argument('--test', action='store_true', help='Flag to run in test mode')
     args = parser.parse_args()
     model_code = args.model_code
-
+    start_asset = args.start
+    test = args.test
     # Read the pkl file
-    test = False
+
     if test == True:
         generate_report(
             indicator='turnaround_plan', value='green', asset_id='test_asset', save_path='../data/reports',
@@ -121,11 +122,6 @@ if __name__ == '__main__':
         ground_truth = synthetic.load_stocks()
         print(f'Length of ground truth: {len(ground_truth['asset'].values)}')
         soft_indicators_data = ground_truth.where(ground_truth['indicator_type'] == 'soft', drop=True)
-        
-        if start:
-            start_asset = 662
-        else:
-            start_asset = 0
 
         for asset_id, soft_indicator_values in tqdm(
                 zip(soft_indicators_data['asset'].values[start_asset:], soft_indicators_data['ryg'].values[start_asset:]), desc="Assets",
