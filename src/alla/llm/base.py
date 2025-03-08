@@ -239,7 +239,9 @@ class LLMBaseClass(ABC):
                 "seed": self.seed,
             }
 
-        while remaining_budget > 5:
+        critic_hits = 0
+        max_critic_hits = 5
+        while remaining_budget > 0 and critic_hits < max_critic_hits:
             # LLM can continue to max_retry within the budget
             retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
             try:
@@ -282,8 +284,9 @@ class LLMBaseClass(ABC):
                     }
                 )
                 remaining_budget = budget - (time.time() - start)
-                if remaining_budget > 5:
+                if remaining_budget > 0:
                     logger.debug(f"Re-prompting with critic. Last estimate: {predictions[-1]}")
+                    critic_hits += 1
 
         if predictions:
             return predictions[-1], True
