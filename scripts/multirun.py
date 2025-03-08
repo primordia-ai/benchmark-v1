@@ -11,7 +11,7 @@ def run_multi_exp1():
     ############
     # Variables
     budget_iters = [
-        5, 10,
+        20
     ]
     model_iters = [
         "llama-large",
@@ -21,8 +21,8 @@ def run_multi_exp1():
         # "qwen-32b",
         # "qwen-72b",
         # CAREFUL with rated usage
-        "gpt-4o",
-        "gemini2",
+        # "gpt-4o",
+        # "gemini2",
     ]
 
     ############
