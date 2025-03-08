@@ -240,7 +240,12 @@ class LLMBaseClass(ABC):
             }
 
         critic_hits = 0
-        max_critic_hits = 5
+        max_critic_hits = 10
+        # Reduce max hits for private api-models
+        # TODO -- hacky; preferable to perhaps mag an attribute on the model itself signifying this
+        if any([private in self.code.lower() for private in ["gpt", "gemini", "claude"]]):
+            max_critic_hits = 5
+
         while remaining_budget > 0 and critic_hits < max_critic_hits:
             # LLM can continue to max_retry within the budget
             retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
