@@ -332,6 +332,9 @@ def main():
             for cat, a_ids in assets.items():
                 logger.info(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
+                    if "gemini" in llm.code:
+                        time.sleep(3)
+
                     indicators = None
                     if pre_extract:
                         # Load the pre-extracted indicators
