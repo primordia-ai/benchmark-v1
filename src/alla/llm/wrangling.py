@@ -14,8 +14,9 @@ import instructor
 import nltk
 from openai import OpenAI
 from pydantic import BaseModel, Field, field_validator
-
+import time
 from alla.logger import logger
+from alla.llm.utils import get_retry_control
 
 if TYPE_CHECKING:
     from alla.llm.base import LLMBaseClass
@@ -106,8 +107,8 @@ class RewrittenSummary(BaseModel):
     summary: str = Field(
         ...,
         description="This is a new, denser summary which covers every entity and detail from the previous "
-                    f"summary plus the new Desired Entities. It should have the same length (~{SUMMARY_TARGET_LEN} "
-                    f"tokens) as the previous summary and should be easily understood without the Document",
+                    f"summary plus the new Desired Entities. It should be between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} "
+                    f"words (tokens), and should be easily understood without the source Document",
     )
     absent: list[str] = Field(
         ...,
@@ -169,7 +170,7 @@ class RewrittenSummary(BaseModel):
 
 
 def summarize_document(
-    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3
+    llm: "LLMBaseClass", document: str, summary_steps: int = 3, max_retries: int = 3, budget: int | None = 120,
 ) -> list[str]:
     """
     Generate a chain of summaries for a given document using the provided language model.
@@ -178,6 +179,7 @@ def summarize_document(
     :param document:        The document to summarize
     :param summary_steps:   The number of summary steps to generate
     :param max_retries:     The maximum number of retries to attempt for each completion
+    :param budget:          The budget to use for each completion
     :return:                A list of summaries generated for the document
     """
 
@@ -196,11 +198,21 @@ def summarize_document(
     #     mode=instructor.Mode.JSON,
     # )
 
+    # Give it half the budget
+    summary_retries = get_retry_control(max_retries=1, budget=budget//2)
+    s1 = time.time()
     summary_chain = []  # We first generate an initial summary
+    if "gemini" in llm.code.lower():
+        additional_kwargs = {}
+    else:
+        additional_kwargs = {
+            "model": llm.code,
+        }
+
     summary_init: SummaryInit = client.chat.completions.create(
-        model=llm.code,
+        **additional_kwargs,
         response_model=SummaryInit,
-        max_retries=max_retries,
+        max_retries=summary_retries,
         messages=[
             {
                 "role": "developer",
@@ -208,8 +220,9 @@ def summarize_document(
             },
             {
                 "role": "developer",
-                "content": f"Write an initial summary about the document provided. It should be ~{SUMMARY_TARGET_LEN} "
-                           "tokens, and should try to capture the breadth of the content within.",
+                "content": f"Write an initial summary about the document provided. It must be between "
+                           f"between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words (tokens), and should try "
+                           "to capture the breadth of the content within.",
             },
             # Jesus
             {
@@ -217,26 +230,37 @@ def summarize_document(
                                                 "Avoid self-referential language about yourself and this task, etc."
             },
             {
-                "role": "developer", "content": f"The generated summary should be about ~{SUMMARY_TARGET_LEN} tokens. "
-                                                "Return in JSON format with key 'summary'"
+                "role": "user", "content": f"Please summarize the following document: \n<TEXT START>\n{document}\n<TEXT END>"
+                                           f"Please summarize the above document in {MIN_SUMMARY_TOKENS}"
+                                           f"-{MAX_SUMMARY_TOKENS} words (tokens), and return your result in JSON "
+                                           f"format with the key 'summary'."
             },
-            {
-                "role": "user", "content": f"Please summarize the following content in about {SUMMARY_TARGET_LEN} "
-                                           f"tokens:\n\n{document}"
-            },
-        ]
+        ],
     )
 
     summary_chain.append(summary_init.summary)
-    desired_entity_messages = ([])
-    prev_summary = None
+    logger.debug(f"\n<><><  INIT SUMMARY  ><><>\n{summary_chain[-1]}\n")
 
-    print(f"\n<><><  SUMMARY  ><><>\n{summary_chain[-1]}\n")
+    prev_summary = summary_chain[-1]
+    # desired_entity_messages = ([])
+    desired_entity_messages = [
+        {
+            "role": "user",
+            "content": "Desired Entities: None as yet."
+        },
+    ]
 
-    for _i in range(summary_steps):
+    for _i in range(1, summary_steps + 1):
+        remaining_budget = budget - (time.time() - s1)
+        if remaining_budget < 1:
+            logger.debug(f"Summary Budget exhausted at step {_i}")
+            return summary_chain
+
+        retries = get_retry_control(max_retries=max_retries, budget=remaining_budget)
+
         new_summary: RewrittenSummary = client.chat.completions.create(
-            model=llm.code,
-            max_retries=max_retries,
+            **additional_kwargs,
+            max_retries=retries,
             response_model=RewrittenSummary,
             messages=[
                 {
@@ -253,7 +277,7 @@ def summarize_document(
                     To create the current summary you will perform the following tasks:
                         - Identify 1-3 informative entities from the subject text which are missing from 
                         the previous summary, but desirable to include.
-                        - Write a new denser summary with target length of ~{SUMMARY_TARGET_LEN} tokens/words which 
+                        - Write a new denser summary between {MIN_SUMMARY_TOKENS}-{MAX_SUMMARY_TOKENS} words (tokens) which 
                         covers every entity and detail from the previous summary plus the Desired Entities Guidelines. 
                         - Make every word count: re-write the previous summary to improve flow and make space for 
                         additional entities. 
@@ -271,12 +295,12 @@ def summarize_document(
                 #                                  "avoid self-referential language about yourself and this task, etc."
                 # },
                 {
-                    "role": "user", "content": f"Here is the subject text: \n<TEXT START>\n{document}\n<TEXT END>"
+                    "role": "user", "content": f"Here is the main subject text: \n<TEXT START>\n{document}\n<TEXT END>"
                 },
                 {
                     "role": "user", "content": f"Here is the previous summary of the subject text: {prev_summary}",
                 },
-                *desired_entity_messages,
+                desired_entity_messages[-1],
                 {
                     "role": "user", "content": "Please format your response in JSON with keys 'summary', 'absent', "
                                                "and 'desired_entities'."
@@ -284,14 +308,16 @@ def summarize_document(
             ],
         )
         summary_chain.append(new_summary.summary)
+        logger.debug(f"\n<><><  SUMMARY {_i}  ><><>\n{summary_chain[-1]}\n")
+        logger.debug(f"Desired Entities for Summary {_i+1}: {','.join(new_summary.desired_entities)}\n")
         # For next iter
-        desired_entity_messages = ([
+        desired_entity_messages.append(
             {
                 "role": "user",
                 "content": f"Please include these Desired Entities in your summary: "
                            f"{','.join(new_summary.desired_entities)}",
             },
-        ])
+        )
         prev_summary = new_summary
 
     return summary_chain

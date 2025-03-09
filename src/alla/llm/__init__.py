@@ -4,6 +4,9 @@ from .base import LLMBaseClass
 from .llama import LlamaLarge, LlamaSmall, LlamaSmallAlt, LlamaTiny
 from .deepseek import DeepseekSmall, DeepseekMedium, DeepseekLarge, DeepseekMini, Deepseek7b
 from .qwen import QwenCoder, QwenCoderTiny, QwenLarge
+from .openai import GPT, GPT4o
+from .anthropic import AnthropicModel
+from .gemini import Gemini2, Gemini15
 
 AVAILABLE_MODELS = {
     # Model codes to classes
@@ -19,6 +22,11 @@ AVAILABLE_MODELS = {
     QwenCoder.code: QwenCoder,
     QwenCoderTiny.code: QwenCoderTiny,
     QwenLarge.code: QwenLarge,
+    GPT.code: GPT,
+    GPT4o.code: GPT4o,
+    AnthropicModel.code: AnthropicModel,
+    Gemini2.code: Gemini2,
+    Gemini15.code: Gemini15,
 }
 
 

@@ -71,6 +71,12 @@ def main():
     parser.add_argument(
         "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
     )
+    parser.add_argument(
+        "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
+    )
+    parser.add_argument(
+        "--reports-dir", type=str, default=None, help="Reports directory override over env REPORTS_DIR."
+    )
 
     args = parser.parse_args()
 
@@ -110,6 +116,12 @@ def main():
     temp = args.temp
     strict = args.strict
     budget_per_task = args.budget
+    compress_reports = args.compress_reports
+    REPORTS_DIR = args.reports_dir or _REPORTS_DIR
+    # Check reports is valid
+    if not os.path.exists(REPORTS_DIR):
+        raise ValueError(f"Reports directory '{REPORTS_DIR}' does not exist")
+
     pre_extract_dir = args.pre_extracted
     if pre_extract_dir:
         pre_extract = True
@@ -145,7 +157,7 @@ def main():
         asset_memory_depth = 100
     else:
         # Otherwise, just run all assets
-        n_asset = 1000
+        n_asset = 200
         n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
@@ -320,6 +332,9 @@ def main():
             for cat, a_ids in assets.items():
                 logger.info(f"\n=============  {llm.name}  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
+                    if "gemini" in llm.code:
+                        time.sleep(3)
+
                     indicators = None
                     if pre_extract:
                         # Load the pre-extracted indicators
@@ -340,7 +355,18 @@ def main():
                     reports_text = read_reports(report_file)
 
                     # Compress the reports
-                    ...
+                    if compress_reports:
+                        # TODO -- Consider if this is within budget...For now just give it 10s
+                        # Seems to work better with llama, and deepseek had a hard time
+                        try:
+                            summaries = summarize_document(llm, reports_text, summary_steps=3, max_retries=3, budget=10)
+                        except Exception as e:
+                            # Log and move on if not strict
+                            if strict:
+                                raise e
+                            logger.warning(f"Failed to compress reports for asset {asset_id}: {e}")
+                        else:
+                            reports_text = summaries[-1]
 
 
                     # Modifies the prompt if indicators are provided, but they are not required
@@ -385,6 +411,7 @@ if __name__ == '__main__':
 
     import argparse
     import json
+    from datetime import timedelta
     import os
     import time
     import sys
@@ -398,9 +425,9 @@ if __name__ == '__main__':
     from alla import synthetic as synth, stats
     from alla.alla import ALLA
     from alla.utils import BudgetMode
-    from alla.env import PROJECT_ROOT, REPORTS_DIR
+    from alla.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
     from alla.llm import get_llm, utils as llm_utils
-    from alla.llm.wrangling import read_reports
+    from alla.llm.wrangling import read_reports, summarize_document
     import pytensor
 
     pytensor.config.exception_verbosity = 'high'

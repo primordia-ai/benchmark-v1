@@ -13,7 +13,7 @@ class QwenCoder(LLMBaseClass):
     path_code = "qwen2.5_coder_32b"
     # context_window = 128_000
     aliases = [
-        "qwen-large",
+        "qwen-medium",
         "qwen-32b",
     ]
 

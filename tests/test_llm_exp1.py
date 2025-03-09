@@ -28,7 +28,7 @@ if __name__ == '__main__':
             "geopolitical_risk_report.txt",
         ]
     else:
-        llm_cls = get_llm("llama-small")
+        llm_cls = get_llm("gemini2")
         includes=[
             "brand_strength_report.txt",
             "digital_transformation_report.txt",
