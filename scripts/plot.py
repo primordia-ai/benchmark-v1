@@ -37,12 +37,12 @@ def exp1(results_name: str):
     alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
-    # Combine the set of errored assets from both ALLA and LLM, to keep things balanced
+    # Combine the set of errored assets from both CRISTAL and LLM, to keep things balanced
     errors = set()
     errors |= {a_id for a_id, asset in alla_results.items() if "error" in asset}
     errors |= {a_id for a_id, asset in llm_results.items() if "error" in asset}
 
-    # Load ALLA results -- filter out errors
+    # Load CRISTAL results -- filter out errors
     alla_data = [
         {
             "asset": a_id,
@@ -185,7 +185,7 @@ def exp1(results_name: str):
     with open(save_path_llm_report, 'w') as f:
         f.write(report_llm_df.to_latex(caption=caption, label="tab:classification_report_llm"))
 
-    # <><>< 4. Confusion Matrix, ALLA ><><>
+    # <><>< 4. Confusion Matrix, CRISTAL ><><>
     save_path = os.path.join(SAVE_DIR, f"confusion-alla.{save_fmt}")
 
     y_true_alla = df[df["source"] == "Truth"].sort_values("asset")["category"]
@@ -218,8 +218,8 @@ def exp1(results_name: str):
 
     # Save the updated report to LaTeX with caption
     save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
-    caption = f"Classification report for ALLA results. Accuracy: {accuracy_alla:.2f}, MCC: {mcc_alla:.2f}"
-    print(f"Saving ALLA classification report to {save_path_alla_report}")
+    caption = f"Classification report for CRISTAL results. Accuracy: {accuracy_alla:.2f}, MCC: {mcc_alla:.2f}"
+    print(f"Saving CRISTAL classification report to {save_path_alla_report}")
     with open(save_path_alla_report, 'w') as f:
         f.write(report_alla_df.to_latex(caption=caption, label="tab:classification_report_alla"))
 

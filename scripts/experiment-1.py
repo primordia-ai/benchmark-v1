@@ -1,5 +1,5 @@
 """
-Here we compare the performance of hard-coded ALLA vs LLM estimation of asset growth and category
+Here we compare the performance of hard-coded CRISTAL vs LLM estimation of asset growth and category
 on our synthetic dataset of assets.
 
 This uses the LLM-generated synthetic reports found in data/reports,
@@ -8,11 +8,11 @@ and the LLM-produced Soft-Indicator Extractor indicator color results that were 
 In this first experiment we provide an LLM (we'll use llama) with the synthetic reports, the soft-indicator
 extraction results, likelihood matrices, etc., and ask it to estimate next year's growth and asset category.
 
-With ALLA, we will used our hardcoded version that performs inference on the soft-indicator extracted
-indicators, and the logic around optimized selection given resources, etc. See ALLA.process_asset.
+With CRISTAL, we will used our hardcoded version that performs inference on the soft-indicator extracted
+indicators, and the logic around optimized selection given resources, etc. See CRISTAL.process_asset.
 
 In this experiment, for each asset the agents are allowed a fixed budget of wall-time to process an asset.
-ALLA will perform bayesian inference on the indicators, and the LLM will converse back with itself during
+CRISTAL will perform bayesian inference on the indicators, and the LLM will converse back with itself during
 its allotted time.
 
 TODO -- Ablations
@@ -23,7 +23,7 @@ TODO -- Ablations
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Experiment 1: Compare ALLA vs LLM estimation of asset growth and category.",
+        description="Experiment 1: Compare CRISTAL vs LLM estimation of asset growth and category.",
         epilog="""
         - Choose from one of three modes for your experiment: 'alla', 'llm', or 'both'.
         - Pre-extracted as True loads indicator colors that were previously extracted. This is useful for debugging 
@@ -223,11 +223,11 @@ def main():
     }
 
     #####################
-    # Configure ALLA
+    # Configure CRISTAL
     #
     stocks = synth.stocks_to_xarray(stocks)
     if mode in ['alla', 'both']:
-        # Create ALLA model -- Use Extractor LLM
+        # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
@@ -250,12 +250,12 @@ def main():
 
     if mode in ["alla", "both"]:
         #####################
-        # ALLA portion
+        # CRISTAL portion
         alla_results = {}
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
-                logger.info(f"\n=============  ALLA  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
+                logger.info(f"\n=============  CRISTAL  =============\nProcessing '{cat}' assets ({len(a_ids)})\n")
                 for asset_id in tqdm(a_ids, desc="Assets"):
                     extracted_colors = None
                     if pre_extract:
@@ -310,10 +310,10 @@ def main():
         # Add in-place performance evaluation
         stats.evaluate_performance(alla_results, mixture_params, in_place=True)
 
-        # Save ALLA results
+        # Save CRISTAL results
         alla_results_path = os.path.join(results_dir, "alla_results.json")
         with open(alla_results_path, 'w') as f:
-            logger.info(f"Saving ALLA results to {alla_results_path}")
+            logger.info(f"Saving CRISTAL results to {alla_results_path}")
             json.dump(alla_results, f, indent=4)
 
         # Save the alla model

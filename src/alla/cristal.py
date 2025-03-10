@@ -1,5 +1,5 @@
 """
-ALLA Models
+CRISTAL Models
 """
 import copy
 import datetime
@@ -30,13 +30,13 @@ Indicators = synth.Indicators
 
 class CRISTAL:
     """
-    Active Lifelong Learning Architecture
+    Coherent Reliable Intentional Synthesis of Truthful Analysis Logic.
 
     Through statistical modeling of asset/company properties (i.e. their asset class, and growth),
-    ALLA refines its predictive abilities on these properties through active inference on
+    CRISTAL refines its predictive abilities on these properties through active inference on
     observed asset attributes, namely their 'indicators'.
 
-    Equipped with the ground-truth parameters that make up the growth distribution (mu_g, sigma_g), ALLA can
+    Equipped with the ground-truth parameters that make up the growth distribution (mu_g, sigma_g), CRISTAL can
     make an informed estimate of an asset's upcoming growth by its categorical likelihood (mixture weights).
     The growth distribution follows a Gaussian Mixture Model, formed by the three asset classes:
     High Growth, Stable, or Time-Bomb.
@@ -52,8 +52,8 @@ class CRISTAL:
         asset_memory_depth (int): Depth of memory in steps for inference model updates.
         budget (float): Remaining budget for performing asset evaluations.
         budget_mode (BudgetMode): What budget mode we are using.
-        llm (LLMBaseClass): Loaded LLM at ALLA's disposal for various tasks.
-        stocks (xarray.Dataset): Dataset for the assets/stocks. Also where ALLA's belief model parameters are stored.
+        llm (LLMBaseClass): Loaded LLM at CRISTAL's disposal for various tasks.
+        stocks (xarray.Dataset): Dataset for the assets/stocks. Also where CRISTAL's belief model parameters are stored.
         indicators (xarray.Dataset): Indicator dataset of likelihoods of a color given class.
         _cached_reports (Optional[Dict[str, str]]): Cached reports.
         _version (str): Version.
@@ -85,15 +85,15 @@ class CRISTAL:
         budget_mode: BudgetMode = BudgetMode.WALL,
     ):
         """
-        Copy the stocks Dataset, and add new dimensions for ALLA's class prediction, and quantile predictions
+        Copy the stocks Dataset, and add new dimensions for CRISTAL's class prediction, and quantile predictions
 
         :param stocks_dataset:      xr.Dataset from synth.generate_synthetic_stocks
         :param llm:                 Initialized LLM model
         :param asset_memory_depth:  How many inference updates to remember for each asset
-        :param budget:              Budget for ALLA to spend on inference
+        :param budget:              Budget for CRISTAL to spend on inference
         :param budget_mode:         Budget mode
         """
-        # Copy the stocks Dataset and add new dimension for ALLA's class prediction, and quantile predictions
+        # Copy the stocks Dataset and add new dimension for CRISTAL's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
         # Contains e.g. the financials
         self.stocks_json: Dict[str, synth.AssetJSON] = synth.load_stocks(as_dataset=False)
@@ -812,7 +812,7 @@ class CRISTAL:
         :param save_path:   path to save the plot
         :return:
         """
-        # TODO -- Should be separated out of ALLA to a plot.py file
+        # TODO -- Should be separated out of CRISTAL to a plot.py file
         # Initialize seaborn
         sns.set_theme(style="darkgrid")
         sns.set_context("notebook")
@@ -915,14 +915,14 @@ class CRISTAL:
 
 def prompt_alla_briefing() -> str:
     """
-    Provide ALLA with a description of what it has access to and how it might use it:
+    Provide CRISTAL with a description of what it has access to and how it might use it:
     Make use of utils.describe_class.
     """
     prompt = """
     You will be prompted to write some code, e.g. statistical algorithms, to achieve various tasks.
-    These snippets will be used by the ALLA class as part of its asset evaluation.
-    Thus, you should make references to `self` when appropriate (you are the ALLA class).
-    Below is a description of the ALLA class and its methods:\n\n
+    These snippets will be used by the CRISTAL class as part of its asset evaluation.
+    Thus, you should make references to `self` when appropriate (you are the CRISTAL class).
+    Below is a description of the CRISTAL class and its methods:\n\n
     """
     prompt += describe_class(CRISTAL)
 

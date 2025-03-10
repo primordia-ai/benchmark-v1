@@ -1,5 +1,5 @@
 """
-Process the first asset with ALLA
+Process the first asset with CRISTAL
 """
 if __name__ == '__main__':
     from alla import synthetic as synth
@@ -10,8 +10,8 @@ if __name__ == '__main__':
     print(f"Generating {n_stock} synthetic stocks...")
     stocks = synth.generate_synthetic_stocks(n_stock)
 
-    # Create ALLA model
-    print("Initializing ALLA")
+    # Create CRISTAL model
+    print("Initializing CRISTAL")
     alla = CRISTAL(stocks, asset_memory_depth=20)
 
     # Process the first stock

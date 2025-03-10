@@ -25,7 +25,7 @@ def validate_log_path(log_path: str):
 
 
 def reset_logger(level=INFO):
-    """Re-initialize ALLA logger with one of the above options"""
+    """Re-initialize CRISTAL logger with one of the above options"""
     import logging
     # Create a custom logger
     _logger = logging.getLogger("alla")
@@ -50,7 +50,7 @@ def reset_logger(level=INFO):
 
 
 def get_logger():
-    """Initialize ALLA logger with one of the above options"""
+    """Initialize CRISTAL logger with one of the above options"""
     import logging
     # Create a custom logger
     _logger = logging.getLogger("alla")
