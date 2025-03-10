@@ -34,16 +34,16 @@ def exp1(results_name: str):
     # ================
     # Load data
 
-    alla_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+    cristal_results = json.load(open(os.path.join(RESULTS_DIR, "cristal_results.json"), 'r'))
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
     # Combine the set of errored assets from both CRISTAL and LLM, to keep things balanced
     errors = set()
-    errors |= {a_id for a_id, asset in alla_results.items() if "error" in asset}
+    errors |= {a_id for a_id, asset in cristal_results.items() if "error" in asset}
     errors |= {a_id for a_id, asset in llm_results.items() if "error" in asset}
 
     # Load CRISTAL results -- filter out errors
-    alla_data = [
+    cristal_data = [
         {
             "asset": a_id,
             "category": max(asset['category'], key=lambda x: asset['category'][x]),
@@ -54,7 +54,7 @@ def exp1(results_name: str):
             "parametric_score": asset['parametric_score'],
             "non_parametric_loss": asset['non_parametric_loss']
         }
-        for a_id, asset in alla_results.items() if a_id not in errors
+        for a_id, asset in cristal_results.items() if a_id not in errors
     ]
     # LLM data
     llm_data = [
@@ -82,7 +82,7 @@ def exp1(results_name: str):
     # Create a combined pandas df of the category and growth values for llm and truth sets
     df = pd.concat(
         [
-            pd.DataFrame(alla_data).assign(source="CRISTAL"),
+            pd.DataFrame(cristal_data).assign(source="CRISTAL"),
             pd.DataFrame(llm_data).assign(source="LLM"),
             pd.DataFrame(truth_data).assign(source="Truth")
         ], ignore_index=True
@@ -186,18 +186,18 @@ def exp1(results_name: str):
         f.write(report_llm_df.to_latex(caption=caption, label="tab:classification_report_llm"))
 
     # <><>< 4. Confusion Matrix, CRISTAL ><><>
-    save_path = os.path.join(SAVE_DIR, f"confusion-alla.{save_fmt}")
+    save_path = os.path.join(SAVE_DIR, f"confusion-cristal.{save_fmt}")
 
-    y_true_alla = df[df["source"] == "Truth"].sort_values("asset")["category"]
-    y_pred_alla = df[df["source"] == "CRISTAL"].sort_values("asset")["category"]
+    y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")["category"]
 
-    cm_alla = confusion_matrix(y_true_alla, y_pred_alla)
-    cm_alla_df = pd.DataFrame(
-        cm_alla, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    cm_cristal = confusion_matrix(y_true_cristal, y_pred_cristal)
+    cm_cristal_df = pd.DataFrame(
+        cm_cristal, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
     )
 
     plt.figure(figsize=(6, 4))
-    sns.heatmap(cm_alla_df, annot=True, fmt="d", cmap="Blues")
+    sns.heatmap(cm_cristal_df, annot=True, fmt="d", cmap="Blues")
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
     plt.title("Confusion Matrix for CRISTAL")
@@ -208,20 +208,20 @@ def exp1(results_name: str):
     plt.close()
 
     ### Latex export ###
-    report_alla = classification_report(
-        y_true_alla, y_pred_alla, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    report_cristal = classification_report(
+        y_true_cristal, y_pred_cristal, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
     )
-    report_alla_df = pd.DataFrame(report_alla).transpose()
+    report_cristal_df = pd.DataFrame(report_cristal).transpose()
     # Calculate accuracy and MCC
-    accuracy_alla = (y_true_alla.reset_index(drop=True) == y_pred_alla.reset_index(drop=True)).mean()
-    mcc_alla = matthews_corrcoef(y_true_alla, y_pred_alla)
+    accuracy_cristal = (y_true_cristal.reset_index(drop=True) == y_pred_cristal.reset_index(drop=True)).mean()
+    mcc_cristal = matthews_corrcoef(y_true_cristal, y_pred_cristal)
 
     # Save the updated report to LaTeX with caption
-    save_path_alla_report = os.path.join(RESULTS_DIR, "figs/classification_report_alla.tex")
-    caption = f"Classification report for CRISTAL results. Accuracy: {accuracy_alla:.2f}, MCC: {mcc_alla:.2f}"
-    print(f"Saving CRISTAL classification report to {save_path_alla_report}")
-    with open(save_path_alla_report, 'w') as f:
-        f.write(report_alla_df.to_latex(caption=caption, label="tab:classification_report_alla"))
+    save_path_cristal_report = os.path.join(RESULTS_DIR, "figs/classification_report_cristal.tex")
+    caption = f"Classification report for CRISTAL results. Accuracy: {accuracy_cristal:.2f}, MCC: {mcc_cristal:.2f}"
+    print(f"Saving CRISTAL classification report to {save_path_cristal_report}")
+    with open(save_path_cristal_report, 'w') as f:
+        f.write(report_cristal_df.to_latex(caption=caption, label="tab:classification_report_cristal"))
 
     # <><>< 5. Class Loss Boxplot ><><>
     # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding

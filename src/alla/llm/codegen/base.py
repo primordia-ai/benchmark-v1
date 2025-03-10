@@ -33,7 +33,7 @@ GREEN_IMPORTS = {
     # Built-ins
     "functools", "itertools", "math", "copy", "datetime", "random", "json",
     # Science
-    "alla", "numpy", "pandas", "scipy", "sklearn", "pymc", "xarray", "jax",
+    "alla", "cristal", "numpy", "pandas", "scipy", "sklearn", "pymc", "xarray", "jax",
 }
 
 

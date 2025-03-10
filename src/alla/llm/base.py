@@ -57,7 +57,7 @@ class LLMBaseClass(ABC):
         You are a financial analyst tasked with evaluating companies, or 'assets', based on their financials.
         The financials may come in the form of quantitative figures, or qualitative reports. 
         """,
-        "alla": f"""
+        "cristal": f"""
         You are CRISTAL, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.

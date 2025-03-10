@@ -715,7 +715,7 @@ class CRISTAL:
         if not model_name:
             # The date as dd-mm-yyyy
             date_str = datetime.datetime.now().strftime("%d-%m-%Y_%H%M")
-            model_name = os.path.join(date_str, f"alla_{self.llm.code}")
+            model_name = os.path.join(date_str, f"cristal_{self.llm.code}")
 
         if not save_dir:
             save_dir = os.path.join(PROJECT_ROOT, "models", model_name)
@@ -737,7 +737,7 @@ class CRISTAL:
             )
 
             # Save as npz
-            npz_path = os.path.join(save_dir, "alla.npz")
+            npz_path = os.path.join(save_dir, "cristal.npz")
             np.savez(
                 npz_path,
                 indicator_costs=self.indicators.cost.values.tolist(),
@@ -767,7 +767,7 @@ class CRISTAL:
 
         stocks_path = os.path.join(model_dir, "stocks.nc")
         ind_path = os.path.join(model_dir, "indicator_data.nc")
-        model_path = os.path.join(model_dir, "alla.npz")
+        model_path = os.path.join(model_dir, "cristal.npz")
 
         stocks = xr.open_dataset(stocks_path)
         indicator_data = xr.open_dataset(ind_path)
@@ -913,7 +913,7 @@ class CRISTAL:
         plt.show()
 
 
-def prompt_alla_briefing() -> str:
+def prompt_cristal_briefing() -> str:
     """
     Provide CRISTAL with a description of what it has access to and how it might use it:
     Make use of utils.describe_class.

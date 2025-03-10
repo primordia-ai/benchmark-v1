@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Experiment 1: Compare CRISTAL vs LLM estimation of asset growth and category.",
         epilog="""
-        - Choose from one of three modes for your experiment: 'alla', 'llm', or 'both'.
+        - Choose from one of three modes for your experiment: 'cristal', 'llm', or 'both'.
         - Pre-extracted as True loads indicator colors that were previously extracted. This is useful for debugging 
         and development.
         - Test is a reduced run that selects only a couple assets for each category, and has a reduced 
@@ -33,7 +33,7 @@ def main():
         """
     )
     parser.add_argument(
-        "--mode", type=str, help="Whether to run 'alla' or 'llm' or 'both'. Note that 'alla' still requires an "
+        "--mode", type=str, help="Whether to run 'cristal' or 'llm' or 'both'. Note that 'cristal' still requires an "
                                  "llm-code for its usage."
     )
     parser.add_argument(
@@ -81,7 +81,7 @@ def main():
     args = parser.parse_args()
 
     mode = args.mode
-    if mode not in ["alla", "llm", "both"]:
+    if mode not in ["cristal", "llm", "both"]:
         raise ValueError(f"Invalid mode '{mode}'")
 
     # Seed rng
@@ -226,13 +226,13 @@ def main():
     # Configure CRISTAL
     #
     stocks = synth.stocks_to_xarray(stocks)
-    if mode in ['alla', 'both']:
+    if mode in ['cristal', 'both']:
         # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
         )
-        run_data['alla'] = m.to_json()
+        run_data['cristal'] = m.to_json()
 
     config_path = os.path.join(results_dir, "config.json")
     with open(config_path, 'w') as f:
@@ -248,10 +248,10 @@ def main():
     for cat, ids in assets.items():
         logger.info(f"{len(ids)} reports found for '{cat}'")
 
-    if mode in ["alla", "both"]:
+    if mode in ["cristal", "both"]:
         #####################
         # CRISTAL portion
-        alla_results = {}
+        cristal_results = {}
 
         with logging_redirect_tqdm(loggers=[logger]):
             for cat, a_ids in assets.items():
@@ -282,13 +282,13 @@ def main():
                             raise e
                         # Else log and continue
                         logger.warning(f"Exception processing asset {asset_id}: {e}")
-                        alla_results[asset_id] = {
+                        cristal_results[asset_id] = {
                             "error": str(e),
                             "truth": truth_data[asset_id]
                         }
                     else:
                         if not success:
-                            alla_results[asset_id] = {
+                            cristal_results[asset_id] = {
                                 "error": reason,
                                 "truth": truth_data[asset_id]
                             }
@@ -301,24 +301,24 @@ def main():
                         # Record the growth quantiles and the category distribution
                         quantile_pred = m.stocks.sel(asset=asset_id).quantile_pred.values[:, -1]
                         cats = m.stocks.sel(asset=asset_id).prior.values[:, -1]
-                        alla_results[asset_id] = {
+                        cristal_results[asset_id] = {
                             "growth": tuple([(q, p) for q, p in zip(m.quantiles, quantile_pred)]),
                             "category": {c: p for c, p in zip(['high_growth', 'stable', 'time_bomb'], cats)},
                             "truth": truth_data[asset_id]
                         }
 
         # Add in-place performance evaluation
-        stats.evaluate_performance(alla_results, mixture_params, in_place=True)
+        stats.evaluate_performance(cristal_results, mixture_params, in_place=True)
 
         # Save CRISTAL results
-        alla_results_path = os.path.join(results_dir, "alla_results.json")
-        with open(alla_results_path, 'w') as f:
-            logger.info(f"Saving CRISTAL results to {alla_results_path}")
-            json.dump(alla_results, f, indent=4)
+        cristal_results_path = os.path.join(results_dir, "cristal_results.json")
+        with open(cristal_results_path, 'w') as f:
+            logger.info(f"Saving CRISTAL results to {cristal_results_path}")
+            json.dump(cristal_results, f, indent=4)
 
-        # Save the alla model
+        # Save the cristal model
         m.save_model(
-            model_name=f"alla-{run_name}",
+            model_name=f"cristal-{run_name}",
             save_dir=os.path.join(results_dir, "models")
         )
 
