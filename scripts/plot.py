@@ -34,7 +34,13 @@ def exp1(results_name: str):
     # ================
     # Load data
 
-    cristal_results = json.load(open(os.path.join(RESULTS_DIR, "cristal_results.json"), 'r'))
+    try:
+        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "cristal_results.json"), 'r'))
+    except FileNotFoundError:
+        # Older format
+        print("cristal_results.json not found, trying older format...")
+        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+
     llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
 
     # Combine the set of errored assets from both CRISTAL and LLM, to keep things balanced
