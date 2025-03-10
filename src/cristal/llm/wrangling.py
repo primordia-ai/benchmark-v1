@@ -15,11 +15,11 @@ import nltk
 from openai import OpenAI
 from pydantic import BaseModel, Field, field_validator
 import time
-from alla.logger import logger
-from alla.llm.utils import get_retry_control
+from cristal.logger import logger
+from cristal.llm.utils import get_retry_control
 
 if TYPE_CHECKING:
-    from alla.llm.base import LLMBaseClass
+    from cristal.llm.base import LLMBaseClass
 
 SUMMARY_TARGET_LEN = 256
 MIN_SUMMARY_TOKENS = 64

@@ -1,8 +1,8 @@
 import os
 
-from alla import utils
-from alla.stats import evaluate_performance
-from alla.synthetic import GROWTH_MU, GROWTH_SCALE
+from cristal import utils
+from cristal.stats import evaluate_performance
+from cristal.synthetic import GROWTH_MU, GROWTH_SCALE
 
 
 def main():

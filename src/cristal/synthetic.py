@@ -5,8 +5,8 @@ import numpy as np
 import xarray as xr
 from pydantic import BaseModel
 
-import alla.env
-from alla import stats as alla_stats
+import cristal.env
+from cristal import stats as cristal_stats
 
 # Has relevance for data arrays
 ORDERED_INDICATORS = (
@@ -1099,7 +1099,7 @@ def compute_growth_quantiles(mixture_weights: list[float], quantiles: list[float
     :param quantiles:        List of quantiles to compute
     """
     generator_params = [(m, sig) for m, sig in zip(GROWTH_MU, GROWTH_SCALE)]
-    return alla_stats.MixtureDistribution.compute_quantiles(
+    return cristal_stats.MixtureDistribution.compute_quantiles(
         distributions=generator_params,
         weights=mixture_weights,
         quantiles=quantiles
@@ -1111,18 +1111,18 @@ def compute_growth_quantiles(mixture_weights: list[float], quantiles: list[float
 
 def load_indicators() -> xr.Dataset:
     raise DeprecationWarning("This function is deprecated in favor of load_stocks(as_dataset=True)")
-    # return np.load(f"{alla.env.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
+    # return np.load(f"{cristal.env.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
 def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
     if as_dataset:
         return stocks_to_xarray(
             np.load(
-                f"{alla.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl",
+                f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl",
                 allow_pickle=True
             )
         )
     else:
         return np.load(
-            f"{alla.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl", allow_pickle=True
+            f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl", allow_pickle=True
         )

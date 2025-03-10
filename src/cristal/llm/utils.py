@@ -9,9 +9,9 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 from tenacity import RetryCallState, Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random
 
-from alla import synthetic as synth
-from alla.env import PROJECT_ROOT
-from alla.logger import logger
+from cristal import synthetic as synth
+from cristal.env import PROJECT_ROOT
+from cristal.logger import logger
 
 PROMPT_SRC = os.path.join(PROJECT_ROOT, "data/prompts/")
 

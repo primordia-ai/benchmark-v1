@@ -3,10 +3,10 @@ Test the codegen validation workflow
 """
 
 if __name__ == '__main__':
-    from alla.llm import get_llm
-    from alla.logger import logger
-    from alla.env import SYSTEM_USER
-    from alla.llm.codegen import dirichlet_bayes as db
+    from cristal.llm import get_llm
+    from cristal.logger import logger
+    from cristal.env import SYSTEM_USER
+    from cristal.llm.codegen import dirichlet_bayes as db
 
     SEED = 101010
 

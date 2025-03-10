@@ -4,8 +4,8 @@ import os
 import instructor
 from anthropic import Anthropic
 
-from alla.llm.base import LLMBaseClass
-from alla.env import PROJECT_ROOT
+from cristal.llm.base import LLMBaseClass
+from cristal.env import PROJECT_ROOT
 
 
 def get_api_key() -> str:

@@ -7,7 +7,7 @@ import pymc
 from scipy import stats
 from scipy.optimize import root_scalar
 
-from alla.logger import logger
+from cristal.logger import logger
 
 
 def mixture_entropy(weights, means, stds):

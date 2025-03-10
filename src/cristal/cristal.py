@@ -18,13 +18,13 @@ from scipy import stats
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from alla import stats as alla_stats, synthetic as synth
-from alla.env import PROJECT_ROOT, REPORTS_DIR
-from alla.llm import AVAILABLE_MODELS
-from alla.llm.base import LLMBaseClass, SoftIndicatorExtractionError
-from alla.llm.wrangling import read_reports
-from alla.logger import logger
-from alla.utils import BudgetMode, describe_class
+from cristal import stats as cristal_stats, synthetic as synth
+from cristal.env import PROJECT_ROOT, REPORTS_DIR
+from cristal.llm import AVAILABLE_MODELS
+from cristal.llm.base import LLMBaseClass, SoftIndicatorExtractionError
+from cristal.llm.wrangling import read_reports
+from cristal.logger import logger
+from cristal.utils import BudgetMode, describe_class
 
 Indicators = synth.Indicators
 
@@ -158,7 +158,7 @@ class CRISTAL:
         # Quantile predictions -- Quantiles initialized based on uniform class belief
         init_params = [(m, sig) for m, sig in zip(self.mu_g, self.sigma_g)]
         mix_weights = np.full(self.n_classes, 1 / self.n_classes)
-        quantile_values = alla_stats.MixtureDistribution.compute_quantiles(
+        quantile_values = cristal_stats.MixtureDistribution.compute_quantiles(
             distributions=init_params,
             weights=mix_weights,
             quantiles=self.quantiles
@@ -504,7 +504,7 @@ class CRISTAL:
                     color_pred = np.eye(3)[color_to_ind[color]]
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
                     # Update
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
@@ -560,7 +560,7 @@ class CRISTAL:
                 if not extraction_failed:
                     likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    p_k, alphas = alla_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
                     # Update
                     qual_processed = True
                     self._update_alphas(asset, alphas)
