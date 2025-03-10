@@ -9,11 +9,11 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
     import logging
-    from alla.llm import get_llm
-    from alla.llm.wrangling import read_reports
-    from alla.env import PROJECT_ROOT
-    from alla.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
-    from alla.logger import logger, reset_logger
+    from cristal.llm import get_llm
+    from cristal.llm.wrangling import read_reports
+    from cristal.env import PROJECT_ROOT
+    from cristal.synthetic import SOFT_INDICATOR_COSTS, FINANCIAL_LIKELIHOOD_MATRIX, load_stocks
+    from cristal.logger import logger, reset_logger
 
     # Set seed
     SEED = 10

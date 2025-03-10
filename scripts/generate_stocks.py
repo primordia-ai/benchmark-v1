@@ -9,7 +9,7 @@ if __name__ == '__main__':
     SEED = 101010
     np.random.seed(SEED)
 
-    from alla import synthetic as synth
+    from cristal import synthetic as synth
 
     # Generate 5 synthetic stocks
     stocks = synth.generate_synthetic_stocks(5, as_dataset=False)

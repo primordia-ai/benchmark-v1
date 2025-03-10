@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from alla.env import PROJECT_ROOT
+from cristal.env import PROJECT_ROOT
 import sys
 from sklearn.metrics import confusion_matrix, matthews_corrcoef
 import numpy as np
@@ -13,7 +13,7 @@ import seaborn as sns
 from sklearn.metrics import classification_report
 from glob import glob
 
-from alla import synthetic
+from cristal import synthetic
 
 def main():
     if len(sys.argv) != 3:

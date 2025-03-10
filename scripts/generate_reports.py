@@ -4,7 +4,7 @@ import re
 import ollama
 from tqdm import tqdm
 
-from alla.llm import utils as llm_utils
+from cristal.llm import utils as llm_utils
 
 
 # call a local llm and create reports for each soft indiactor in the data
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     import numpy as np
     import argparse
     
-    from alla import synthetic
+    from cristal import synthetic
     # Set seed
     SEED = 101010
     np.random.seed(SEED)
