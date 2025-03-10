@@ -24,7 +24,7 @@ from alla.llm import AVAILABLE_MODELS
 from alla.llm.base import LLMBaseClass, SoftIndicatorExtractionError
 from alla.llm.wrangling import read_reports
 from alla.logger import logger
-from alla.utils import BudgetMode
+from alla.utils import BudgetMode, describe_class
 
 Indicators = synth.Indicators
 
