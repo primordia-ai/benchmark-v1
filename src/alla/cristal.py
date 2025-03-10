@@ -28,7 +28,7 @@ from alla.utils import BudgetMode
 
 Indicators = synth.Indicators
 
-class ALLA:
+class CRISTAL:
     """
     Active Lifelong Learning Architecture
 
@@ -756,7 +756,7 @@ class ALLA:
             return False
 
     @classmethod
-    def load_model(cls, model_dir: str) -> "ALLA":
+    def load_model(cls, model_dir: str) -> "CRISTAL":
         """
         Load model from its directory
         """
@@ -924,7 +924,7 @@ def prompt_alla_briefing() -> str:
     Thus, you should make references to `self` when appropriate (you are the ALLA class).
     Below is a description of the ALLA class and its methods:\n\n
     """
-    prompt += describe_class(ALLA)
+    prompt += describe_class(CRISTAL)
 
     return prompt
 

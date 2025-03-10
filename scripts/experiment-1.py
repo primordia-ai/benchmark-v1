@@ -228,7 +228,7 @@ def main():
     stocks = synth.stocks_to_xarray(stocks)
     if mode in ['alla', 'both']:
         # Create ALLA model -- Use Extractor LLM
-        m = ALLA(
+        m = CRISTAL(
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
         )
@@ -423,7 +423,7 @@ if __name__ == '__main__':
     from alla.logger import logger, reset_logger, log_to_file, capture_description
 
     from alla import synthetic as synth, stats
-    from alla.alla import ALLA
+    from alla.cristal import CRISTAL
     from alla.utils import BudgetMode
     from alla.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
     from alla.llm import get_llm, utils as llm_utils

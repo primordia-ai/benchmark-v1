@@ -16,7 +16,7 @@ if __name__ == '__main__':
     reset_logger(DEBUG)
 
     from alla import synthetic as synth
-    from alla.alla import ALLA
+    from alla.cristal import CRISTAL
     from alla.env import PROJECT_ROOT, SYSTEM_USER
     from alla.llm import get_llm, utils as llm_utils
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     llm.log_to_file(llm_log)
 
     # Create ALLA model
-    m = ALLA(
+    m = CRISTAL(
         stocks, llm, asset_memory_depth=5, budget=30
     )
 
