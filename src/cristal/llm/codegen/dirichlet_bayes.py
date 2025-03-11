@@ -2,10 +2,10 @@ import ast
 import numpy as np
 from pydantic import model_validator, ValidationError
 
-from cristal.llm.codegen.base import LLMCodeGen, GREEN_IMPORTS
+from cristal.llm.codegen.validator import LLMCodeGenValidator, GREEN_IMPORTS
 
 
-class DirichletBayesFunction(LLMCodeGen):
+class DirichletBayesFunction(LLMCodeGenValidator):
     """
     Validator for the Dirichlet bayesian update function codegen
     """

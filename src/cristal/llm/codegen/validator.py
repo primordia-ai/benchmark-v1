@@ -37,7 +37,7 @@ GREEN_IMPORTS = {
 }
 
 
-class LLMCodeGen(BaseModel):
+class LLMCodeGenValidator(BaseModel):
     """
     Base validator for LLM-generated code
     """
@@ -46,7 +46,7 @@ class LLMCodeGen(BaseModel):
         description="Python code for execution."
     )
     # Self-referencing other methods in multimethod scenarios
-    sibling: 'Optional[LLMCodeGen]' = None
+    sibling: 'Optional[LLMCodeGenValidator]' = None
 
     # Private attributes that avoid regular validation stream
     is_function: ClassVar[bool | None] = None  # Must be set to specified to declare if returned code is a function or
