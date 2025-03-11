@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "alla"
+name = "cristal"
 version = "0.1.0"
 description = ""
 authors = [
@@ -9,7 +9,7 @@ authors = [
 readme = "README.md"
 
 packages = [
-    {include = "alla", from = "src"},
+    {include = "cristal", from = "src"},
 ]
 
 [build-system]

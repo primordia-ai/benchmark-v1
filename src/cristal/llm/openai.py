@@ -4,8 +4,8 @@ import os
 import instructor
 from openai import OpenAI
 
-from alla.llm.base import LLMBaseClass
-from alla.env import PROJECT_ROOT
+from cristal.llm.base import LLMBaseClass
+from cristal.env import PROJECT_ROOT
 
 
 def get_api_key():

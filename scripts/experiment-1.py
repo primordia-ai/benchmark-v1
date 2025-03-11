@@ -420,14 +420,14 @@ if __name__ == '__main__':
     from tqdm import tqdm
     from tqdm.contrib.logging import logging_redirect_tqdm
 
-    from alla.logger import logger, reset_logger, log_to_file, capture_description
+    from cristal.logger import logger, reset_logger, log_to_file, capture_description
 
-    from alla import synthetic as synth, stats
-    from alla.cristal import CRISTAL
-    from alla.utils import BudgetMode
-    from alla.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
-    from alla.llm import get_llm, utils as llm_utils
-    from alla.llm.wrangling import read_reports, summarize_document
+    from cristal import synthetic as synth, stats
+    from cristal.cristal import CRISTAL
+    from cristal.utils import BudgetMode
+    from cristal.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
+    from cristal.llm import get_llm, utils as llm_utils
+    from cristal.llm.wrangling import read_reports, summarize_document
     import pytensor
 
     pytensor.config.exception_verbosity = 'high'

@@ -9,10 +9,10 @@ from instructor.exceptions import InstructorRetryException
 from tenacity import (RetryCallState, Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random)
 from tqdm import tqdm
 
-from alla.llm import utils as llm_utils
-from alla.llm.wrangling import read_reports
-from alla.logger import logger
-from alla.utils import BudgetMode
+from cristal.llm import utils as llm_utils
+from cristal.llm.wrangling import read_reports
+from cristal.logger import logger
+from cristal.utils import BudgetMode
 
 
 class SoftIndicatorExtractionError(Exception):
@@ -61,7 +61,7 @@ class LLMBaseClass(ABC):
         You are CRISTAL, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.
-        """,  # Inserting the alla.utils.describe_class(CRISTAL) would be a circular import
+        """,  # Inserting the cristal.utils.describe_class(CRISTAL) would be a circular import
     }
 
     def __init__(

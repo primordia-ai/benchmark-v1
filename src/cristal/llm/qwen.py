@@ -1,7 +1,7 @@
 import instructor
 from openai import OpenAI
 
-from alla.llm.base import LLMBaseClass
+from cristal.llm.base import LLMBaseClass
 
 
 class QwenCoder(LLMBaseClass):

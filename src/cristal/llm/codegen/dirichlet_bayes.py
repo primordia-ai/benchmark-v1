@@ -2,7 +2,7 @@ import ast
 import numpy as np
 from pydantic import model_validator, ValidationError
 
-from alla.llm.codegen.base import LLMCodeGen, GREEN_IMPORTS
+from cristal.llm.codegen.base import LLMCodeGen, GREEN_IMPORTS
 
 
 class DirichletBayesFunction(LLMCodeGen):

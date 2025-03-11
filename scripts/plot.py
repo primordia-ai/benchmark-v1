@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import matthews_corrcoef
 
-from alla.env import PROJECT_ROOT
+from cristal.env import PROJECT_ROOT
 
 
 def exp1(results_name: str):

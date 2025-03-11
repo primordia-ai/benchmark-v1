@@ -2,8 +2,8 @@
 Process the first asset with CRISTAL
 """
 if __name__ == '__main__':
-    from alla import synthetic as synth
-    from alla.cristal import CRISTAL
+    from cristal import synthetic as synth
+    from cristal.cristal import CRISTAL
 
     # Generate 5 synthetic stocks
     n_stock = 5

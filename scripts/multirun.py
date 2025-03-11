@@ -3,7 +3,7 @@ Script for running multiple runs
 """
 import subprocess
 import time
-from alla.env import PROJECT_ROOT
+from cristal.env import PROJECT_ROOT
 
 
 def run_multi_exp1():

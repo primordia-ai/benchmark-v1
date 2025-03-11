@@ -12,13 +12,13 @@ if __name__ == '__main__':
     SEED = 101010
     np.random.seed(SEED)
 
-    from alla.logger import logger, reset_logger, DEBUG
+    from cristal.logger import logger, reset_logger, DEBUG
     reset_logger(DEBUG)
 
-    from alla import synthetic as synth
-    from alla.cristal import CRISTAL
-    from alla.env import PROJECT_ROOT, SYSTEM_USER
-    from alla.llm import get_llm, utils as llm_utils
+    from cristal import synthetic as synth
+    from cristal.cristal import CRISTAL
+    from cristal.env import PROJECT_ROOT, SYSTEM_USER
+    from cristal.llm import get_llm, utils as llm_utils
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Process the first asset with CRISTAL")

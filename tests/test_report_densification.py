@@ -12,12 +12,12 @@ if __name__ == '__main__':
 
     # =========
 
-    from alla.logger import DEBUG, reset_logger
+    from cristal.logger import DEBUG, reset_logger
     reset_logger(DEBUG)
 
-    from alla.llm import get_llm
-    from alla.llm import wrangling
-    from alla.env import PROJECT_ROOT, SYSTEM_USER
+    from cristal.llm import get_llm
+    from cristal.llm import wrangling
+    from cristal.env import PROJECT_ROOT, SYSTEM_USER
 
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("llama-large")

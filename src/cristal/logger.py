@@ -3,7 +3,7 @@ Call this before other scripts to use the cristal logger
 """
 import os
 
-from alla.env import LOG_PATH
+from cristal.env import LOG_PATH
 
 # From logging module
 CRITICAL = 50
