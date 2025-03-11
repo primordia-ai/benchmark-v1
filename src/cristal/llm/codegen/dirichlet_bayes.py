@@ -1,17 +1,56 @@
 import ast
+
 import numpy as np
 from pydantic import model_validator, ValidationError
 
-from cristal.llm.codegen.validator import LLMCodeGenValidator, GREEN_IMPORTS
+from cristal.llm.codegen.validator import GREEN_IMPORTS, LLMCodeGenValidator
 
 
 class DirichletBayesFunction(LLMCodeGenValidator):
     """
-    Validator for the Dirichlet bayesian update function codegen
+    Performs Bayesian update according to a Dirichlet prior (parametrized by 'alphas').
+    Input arguments include:
+        1. A 2D numpy array where rows represent probabilities across outcomes (and sum to 1);
+        2. A 1D prior of over category beliefs
+        3. Alphas that parametrize the Dirichlet prior.
+    Output:
+
     """
     is_function = True
     function_name = "tester"
-    required_args = tuple(["likelihood", "p_k", "alphas"])
+    required_args = tuple(
+        [
+            {
+                "arg": "likelihood",
+                "description": "Likelihood matrix for the indicator",
+                "datatype": np.ndarray
+            },
+            {
+                "arg": "p_k",
+                "description": "Class predictions",
+                "datatype": np.ndarray
+            },
+            {
+                "arg": "alphas",
+                "description": "Dirichlet prior alpha parameters",
+                "datatype": np.ndarray
+            },
+        ]
+    )
+    returned_data = tuple(
+        [
+            {
+                "name": "Posterior",
+                "description": "The bayesian posterior",
+                "type": np.ndarray
+            },
+            {
+                "name": "Updated alphas",
+                "description": "The alphas after updating",
+                "type": np.ndarray
+            },
+        ]
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
