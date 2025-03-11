@@ -74,7 +74,7 @@ class CRISTAL:
     stocks: xr.Dataset
     indicators: xr.Dataset
     _cached_reports: Optional[Dict[str, str]]
-    _version: str = "0.1"
+    _version: str = "0.2"
 
     def __init__(
         self,
