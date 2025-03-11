@@ -44,7 +44,7 @@ See their [docs](https://github.com/ollama/ollama) for setting up, but basically
 For external models (GPT, Claude, Gemini), set your API key in `.secrets.json` (see `template_secrets.json` for format), and yes, `.secrets.json` is gitignored.  
 
 ### Creating and registering new LLMs
-Creating and registering new LLms is easy.
+Creating and registering new LLMs is easy.
 
   1. Create your class in a logical place, and inherit the base class `LLMBaseClass`.
   2. Override the required methods

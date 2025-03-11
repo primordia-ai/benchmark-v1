@@ -1,5 +1,5 @@
 """
-Process the first asset with ALLA
+Process the first asset with CRISTAL
 """
 
 if __name__ == '__main__':
@@ -16,19 +16,19 @@ if __name__ == '__main__':
     reset_logger(DEBUG)
 
     from alla import synthetic as synth
-    from alla.alla import ALLA
+    from alla.cristal import CRISTAL
     from alla.env import PROJECT_ROOT, SYSTEM_USER
     from alla.llm import get_llm, utils as llm_utils
 
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Process the first asset with ALLA")
+    parser = argparse.ArgumentParser(description="Process the first asset with CRISTAL")
     parser.add_argument('--pre-extracted', action='store_true', help="Use pre-extracted indicators")
     args = parser.parse_args()
 
     stocks = synth.load_stocks(as_dataset=True)
 
-    # Create ALLA model
-    print("Initializing ALLA")
+    # Create CRISTAL model
+    print("Initializing CRISTAL")
     # Initialize our LLM
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("deepseek-r1:70b")
@@ -42,8 +42,8 @@ if __name__ == '__main__':
         os.remove(llm_log)
     llm.log_to_file(llm_log)
 
-    # Create ALLA model
-    m = ALLA(
+    # Create CRISTAL model
+    m = CRISTAL(
         stocks, llm, asset_memory_depth=5, budget=30
     )
 

@@ -1,5 +1,5 @@
 """
-Call this before other scripts to use the alla logger
+Call this before other scripts to use the cristal logger
 """
 import os
 
@@ -25,10 +25,10 @@ def validate_log_path(log_path: str):
 
 
 def reset_logger(level=INFO):
-    """Re-initialize ALLA logger with one of the above options"""
+    """Re-initialize CRISTAL logger with one of the above options"""
     import logging
     # Create a custom logger
-    _logger = logging.getLogger("alla")
+    _logger = logging.getLogger("cristal")
 
     # Remove any existing handlers
     _logger.handlers.clear()
@@ -50,10 +50,10 @@ def reset_logger(level=INFO):
 
 
 def get_logger():
-    """Initialize ALLA logger with one of the above options"""
+    """Initialize CRISTAL logger with one of the above options"""
     import logging
     # Create a custom logger
-    _logger = logging.getLogger("alla")
+    _logger = logging.getLogger("cristal")
 
     # Check if the logger already has handlers attached
     if not _logger.hasHandlers():
@@ -70,7 +70,7 @@ def log_to_file(log_path: str | None = None, level: str = INFO):
     """
     import logging
     # Create a custom logger
-    _logger = logging.getLogger("alla")
+    _logger = logging.getLogger("cristal")
 
     # Add a FileHandler to the logger
     global _LOG_PATH
