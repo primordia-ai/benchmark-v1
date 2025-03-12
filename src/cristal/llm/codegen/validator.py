@@ -68,12 +68,16 @@ class LLMCodeGenValidator(BaseModel):
     # Self-referencing other methods in multimethod scenarios
     sibling: 'Optional[LLMCodeGenValidator]' = None
 
+    # ---
     # Private attributes that avoid regular validation stream
     is_function: ClassVar[bool | None] = None  # Must be set to specified to declare if returned code is a function or
     # not
     function_name: ClassVar[str | None] = None
     required_args: ClassVar[tuple[CodeGenInputVar] | None] = None
     returned_data: ClassVar[tuple[CodeGenOutputVar] | None] = None
+    # Optional description to pass into LLM for codegen. We default to the validator docstring if this is null.
+    # The args and returned data objects will automatically be included in the prompt.
+    prompt_description: ClassVar[str | None] = None
 
     def __init__(self, **data):
         super().__init__(**data)

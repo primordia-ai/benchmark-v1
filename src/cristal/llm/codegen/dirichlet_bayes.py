@@ -8,16 +8,19 @@ from cristal.llm.codegen.validator import GREEN_IMPORTS, LLMCodeGenValidator
 
 class DirichletBayesFunction(LLMCodeGenValidator):
     """
-    Performs Bayesian update according to a Dirichlet prior (parametrized by 'alphas').
+    Defines a function for Bayesian updating according to a Dirichlet prior (parametrized by 'alphas').
     Input arguments include:
         1. A 2D numpy array where rows represent probabilities across outcomes (and sum to 1);
         2. A 1D prior of over category beliefs
         3. Alphas that parametrize the Dirichlet prior.
     Output:
-
+        1. Updated posterior probabilities
+        2. Updated alphas
     """
     is_function = True
-    function_name = "tester"
+    function_name = "dirichlet_bayes"
+    prompt_description = ("Perform a Bayesian update for a Dirichlet prior, given the prior, alphas, and likelihoods. "
+                          "The likelihood is a 2D numpy array where rows represent probabilities across outcomes.")
     required_args = tuple(
         [
             {
@@ -128,7 +131,8 @@ class DirichletBayesFunction(LLMCodeGenValidator):
 solution_string = '''
 import numpy
 
-def tester(likelihood: numpy.ndarray, p_k: numpy.ndarray, alphas: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+def dirichlet_bayes(likelihood: numpy.ndarray, p_k: numpy.ndarray, alphas: numpy.ndarray) -> tuple[numpy.ndarray, 
+numpy.ndarray]:
     """
     Bayesian update of the asset's class prediction.
     Does not modify p_k and alphas in place, returns updated versions.
