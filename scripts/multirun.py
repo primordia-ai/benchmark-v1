@@ -56,7 +56,7 @@ def run_multi_exp1():
     base_command = (
         f"python experiment-1.py --no-input --mode={mode} --reports-dir={reports_dir}"
     )
-    if mode != "cristal":
+    if mode != "llm":
         base_command += f" --extractor={extractor}"
 
     for name in runs:
