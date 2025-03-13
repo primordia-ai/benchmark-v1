@@ -375,6 +375,81 @@ def exp1(results_name: str):
     plt.close()
 
 
+def budget_plot(runs: list[dict]):
+    """
+    Plot mean classification accuracy for various budgets.
+    Input arg looks like:
+    [
+        {
+            "label": "llama3 70B", # Label for plotting. Also identifies the model
+            "results": [
+                (5, <dataset>),
+                (10, <dataset>),
+                ...
+            ],
+            "color": ... # Optional
+        },
+        {
+            "label": "DeepSeek-r1 70B",
+            "results": [...],
+            "color": ...
+        },
+        ...
+    ]
+    """
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+
+    #### Keeping it bespoke for now
+    run_group = "critic_200"
+
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', run_group)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Compile runs iterating over the RESULTS_DIR
+    runs = []
+    for run in os.listdir(RESULTS_DIR):
+        if os.path.isdir(os.path.join(RESULTS_DIR, run)):
+            run_config = json.load(open(os.path.join(RESULTS_DIR, run, "config.json"), 'r'))
+            runs.append({
+                "label": run_config["base_llm"]["name"],
+                "budget": run_config["budget_per_task"],
+                "results": json.load(open(os.path.join(RESULTS_DIR, run, "llm_results.json"), 'r'))
+            })
+
+    # Create figure
+    fig, ax = plt.subplots(figsize=(6, 4))
+
+    for run in runs:
+        label = run["label"]
+        results = run["results"]
+        color = run.get("color", None)
+
+        # Extract the budgets and accuracies
+        budgets = [r[0] for r in results]
+        accuracies = [r[1]["accuracy"] for r in results]
+
+        # Plot
+        ax.plot(budgets, accuracies, label=label, color=color)
+
+    # Add labels
+    ax.set_xlabel("Budget")
+    ax.set_ylabel("Mean Classification Accuracy")
+    ax.legend(title=None)
+    plt.tight_layout()
+
+    # Save
+    # Create figs directory if needed
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    save_path = os.path.join(SAVE_DIR, "budget_plot.pdf")
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
