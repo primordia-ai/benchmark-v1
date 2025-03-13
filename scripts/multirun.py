@@ -11,11 +11,11 @@ def run_multi_exp1():
     ############
     # Variables
     budget_iters = [
-        20
+        5, 10, 20, 60
     ]
     model_iters = [
-        "llama-large",
-        "llama-small",
+        # "llama-large",
+        # "llama-small",
         # "deepseek-r1-14b",
         # "deepseek-r1-70b",
         # "qwen-32b",
@@ -23,16 +23,19 @@ def run_multi_exp1():
         # CAREFUL with rated usage
         # "gpt-4o",
         # "gemini2",
+        #####
+        # Special handling for cristal
+        "cristal"
     ]
 
     ############
     # Constants
-    tag = "critic"
-    if tag:
-        tag = tag.split("-")[0] + "-"
+    tag = "critic_200/"
+    # if tag:
+    #     tag = tag.split("-")[0] + "-"
 
     extractor = "llama-small"
-    mode = "llm"
+    mode = "cristal"
     # We'll override the reports dir to 200 for this run
     reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b_200"
 
@@ -40,14 +43,21 @@ def run_multi_exp1():
     for model in model_iters:
         for budget in budget_iters:
             name = f"{tag}{model}-budget{budget}"
-            runs[name] = [
-                f"--llm-code={model}",
-                f"--budget={budget}",
-            ]
+            if model == "cristal":
+                runs[name] = [
+                    f"--budget={budget}",
+                ]
+            else:
+                runs[name] = [
+                    f"--llm-code={model}",
+                    f"--budget={budget}",
+                ]
 
     base_command = (
-        f"python experiment-1.py --no-input --extractor={extractor} --mode={mode} --reports-dir={reports_dir}"
+        f"python experiment-1.py --no-input --mode={mode} --reports-dir={reports_dir}"
     )
+    if mode != "llm":
+        base_command += f" --extractor={extractor}"
 
     for name in runs:
         command = base_command + f" --name={name}"
