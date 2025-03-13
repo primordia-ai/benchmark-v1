@@ -69,7 +69,7 @@ def main():
         "--budget", type=int, default=30, help="Budget per task in seconds. Default 30."
     )
     parser.add_argument(
-        "--extractor", type=str, default="llama3.1:8b", help="LLM code for the extractor. Default 'llama3.1:8b'."
+        "--extractor", type=str, default=None, help="LLM code for the extractor. Default is None."
     )
     parser.add_argument(
         "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
@@ -171,17 +171,22 @@ def main():
     #####################
     # Configure LLMs
     #
-    # LLM-Base
-    llm_log_path = os.path.join(results_dir, "llm.log")
-    llm = get_llm(llm_code)(temperature=temp, seed=seed)
-    # Activate logging LLM
-    logger.info(f"Piping LLM logs to {llm_log_path}")
-    llm.log_to_file(llm_log_path)
-    # Extractor LLM
-    extractor_log_path = os.path.join(results_dir, "llm-extractor.log")
-    extractor = get_llm(llm_extractor_code)(temperature=temp, seed=seed)
-    logger.info(f"Piping Extractor logs to {extractor_log_path}")
-    extractor.log_to_file(extractor_log_path)
+    llm = None
+    if mode in ['llm', 'both']:
+        # LLM-Base
+        llm_log_path = os.path.join(results_dir, "llm.log")
+        llm = get_llm(llm_code)(temperature=temp, seed=seed)
+        # Activate logging LLM
+        logger.info(f"Piping LLM logs to {llm_log_path}")
+        llm.log_to_file(llm_log_path)
+
+    extractor = None
+    if mode in ['cristal', 'both'] and llm_extractor_code:
+        # Extractor LLM if needed
+        extractor_log_path = os.path.join(results_dir, "llm-extractor.log")
+        extractor = get_llm(llm_extractor_code)(temperature=temp, seed=seed)
+        logger.info(f"Piping Extractor logs to {extractor_log_path}")
+        extractor.log_to_file(extractor_log_path)
 
     # We can just compile asset names here
     # Only for assets that we have reports for
@@ -211,8 +216,8 @@ def main():
         "description": description,
         "seed": seed,
         "test": testing,
-        "base_llm": llm.to_json(),
-        "extractor_llm": extractor.to_json(),
+        "base_llm": llm.to_json() if llm else None,
+        "extractor_llm": extractor.to_json() if llm_extractor_code else None,
         "reports_dir": REPORTS_DIR,
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
