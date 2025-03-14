@@ -374,7 +374,8 @@ class CRISTAL:
 
         for can in candidates:
             utility = 0
-
+            ### does this give CRISTAL the likelihoods we dont want it to have in exp2 anymore?
+            ### maybe iniialize a uniform prior for the likelihoods?
             class_color_matrix = self.ind_likelihood(can['name'])  # [classes, colors]
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
