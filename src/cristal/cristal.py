@@ -599,6 +599,7 @@ class CRISTAL:
                     raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
 
                 if early_stop:
+                    budget = 0
                     break
 
                 if budget <= 0:
