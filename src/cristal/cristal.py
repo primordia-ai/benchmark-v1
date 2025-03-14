@@ -579,7 +579,7 @@ class CRISTAL:
                         logger.warning(f"Asset prior for one class > 0.99. Early stopping")
                         if budget > 0:
                             logger.warning(f"Finished processing asset with budget remaining: {budget}")
-                            # return and set budget to 0 to prevent infinite recursion
+
                         early_stop = True
 
                     # Check for plateau
@@ -591,8 +591,7 @@ class CRISTAL:
                         if avg_difference < 0.1:
                             logger.debug(f"Asset prior has plateaued. Early stopping")
                             if budget > 0:
-                                logger.warning(f"Finished processing asset {self} with budget remaining: {budget}")
-                            # return and set budget to 0 to prevent infinite recursion
+                                logger.warning(f"Finished processing asset with budget remaining: {budget}")
                             early_stop = True
 
                 ###############
