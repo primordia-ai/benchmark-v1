@@ -197,6 +197,7 @@ class CRISTAL:
         )
 
         # Indicator Dataset
+        ### TODO: initialize to uniform prior IFF exp2
         self.indicators: xr.Dataset = synth.get_indicator_dataset()
         self._cached_reports = {}
 
@@ -374,8 +375,9 @@ class CRISTAL:
 
         for can in candidates:
             utility = 0
-            ### does this give CRISTAL the likelihoods we dont want it to have in exp2 anymore?
+            ### TODO: does this give CRISTAL the likelihoods we dont want it to have in exp2 anymore?
             ### maybe iniialize a uniform prior for the likelihoods?
+            ### update belief in likelihoods based on the data
             class_color_matrix = self.ind_likelihood(can['name'])  # [classes, colors]
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
@@ -570,7 +572,8 @@ class CRISTAL:
                     self.compute_growth_quantiles(asset=asset)
                     self._update_prior(asset, p_k)
                     # Early stopping if prior for one class > 0.95 or plateaus
-
+                    ### TODO: update ind_likelihoods here with a new function _update_likelihoods()
+                    ### but how?
                                         
                     if np.max(p_k) > 0.99:
                         logger.warning(f"Asset prior for one class > 0.99. Early stopping")
