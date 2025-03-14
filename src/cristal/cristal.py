@@ -569,19 +569,26 @@ class CRISTAL:
 
                     self._update_prior(asset, p_k)
                     # Early stopping if prior for one class > 0.95 or plateaus
-                    if np.max(p_k) > 0.95:
-                        logger.debug(f"Asset prior for one class > 0.95. Early stopping")
-                        break
+
+                    if np.max(p_k) > 0.99:
+                        logger.warning(f"Asset prior for one class > 0.99. Early stopping")
+                        if budget > 0:
+                            logger.warning(f"Finished processing asset with budget remaining: {budget}")
+                            # return and set budget to 0 to prevent infinite recursion
+                        return True, "Asset prior for one class > 0.99. Early stopping", 0
 
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
                     # Check the last_n isn't from the initialized values
-                    init_prior = np.ones(self.n_classes,) / self.n_classes
+                    init_prior = np.ones(self.n_classes,) / self.n_classes                    
                     if not np.allclose(last_n_priors, init_prior):
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
                             logger.debug(f"Asset prior has plateaued. Early stopping")
-                            break
+                            if budget > 0:
+                                logger.warning(f"Finished processing asset {self} with budget remaining: {budget}")
+                            # return and set budget to 0 to prevent infinite recursion
+                            return True, "Asset prior has plateaued. Early stopping", 0
 
                 ###############
                 # Update Budget
@@ -789,6 +796,7 @@ class CRISTAL:
             llm = AVAILABLE_MODELS[llm_code](
                 temperature=llm_temp
             )
+        print(llm)
         # Create the model
         m = cls(
             stocks, llm, asset_memory_depth=asset_memory_depth,

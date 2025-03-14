@@ -449,6 +449,86 @@ def prompt_critic_exp1(previous_result: str) -> str:
     "time_bomb": <float>
     """
 
+def prompt_exp2_task(report_text: str, indicators_json: str | None, n_shots: int):
+    """
+    Generates a detailed prompt for evaluating a specific financial indicator based on company reports
+    without giving the likelihoods of the indicators.
+
+    Args:
+        report_text (str):      Reports providing information on a company.
+        indicators_json (str):  Indicator data.
+    Returns:
+        str: A formatted prompt containing the description of the indicator, the company reports
+    """
+    mu_g = {cls: mu for cls, mu in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_MU)}
+    scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
+    # Sample n_shots examples from the ground truth values
+    ground_truth_samples = synth.get_ground_truth_samples(n_shots)
+    # Format the ground truth samples that are a dict for the prompt
+    ground_truth_text = "\n".join([f"{k}: {v}" for k, v in ground_truth_samples.items()])
+    
+    if indicators_json:
+
+        text_alternatives = [
+            """You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+                - Ground truth examples of the company's category for reference
+
+            The financial indicators follow a Red/Yellow/Green construction where Red indicates a negative performance,
+            yellow indicates a neutral performance, and green indicates a positive performance.
+            """,
+            f"""Below are the report data, indicators and ground truth examples.
+
+            REPORTS:
+            {report_text}
+            *************
+            INDICATORS:
+            {indicators_json} 
+            *************
+            GROUND TRUTH SAMPLES:
+            {ground_truth_text}
+            """
+        ]
+    else:
+        text_alternatives = [
+            """You have been given the following information:
+                - A compilation of various performance reports in text
+                - A list of financial indicators
+            """,
+            f"""Below is the report data.
+
+            REPORTS:
+            {report_text}
+            """,
+        ]
+
+    prompt = f"""You are a financial analyst trying to assess a company (or "asset") based on its financial performance.
+    Your goal is to evaluate this company to determine its category (class) likelihood.
+    
+    There are three categories: "high_growth", "stable", and "time_bomb".
+    The classes are self-evident: 'high_growth' companies are promising investments; 'time_bomb' companies have 
+    problematic outlooks; and 'stable' companies are the moderate.
+    
+    Your output must be a distribution of probabilities corresponding to your category beliefs for the given asset.
+    So, it will be three probabilities that sum to 1.
+    ---
+    {text_alternatives[0]}
+
+    ---
+    {text_alternatives[1]}
+    
+    ---
+    You have received all the information you need.
+    Please return your evaluation in JSON format as:
+     
+    "high_growth": <float>, 
+    "stable": <float>, 
+    "time_bomb": <float>
+    """
+
+    return prompt
+
 
 def prompt_exp1_prolog() -> str:
     """

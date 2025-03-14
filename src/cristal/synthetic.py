@@ -1126,3 +1126,28 @@ def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
         return np.load(
             f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl", allow_pickle=True
         )
+
+def get_ground_truth_samples(n_shots: int) -> dict:
+    """
+    Get a random sample of ground truth data for a specified number of shots,
+    ensuring equal class distribution between the asset ground truth classes.
+    """
+    # Load ground truth data
+    stocks = load_stocks(as_dataset=False)
+
+    # Separate assets by category
+    categories = {'high_growth': [], 'stable': [], 'time_bomb': []}
+    for asset_id, data in stocks.items():
+        categories[data['category']].append(asset_id)
+
+    # Ensure we have enough assets in each category
+    for category, assets in categories.items():
+        if n_shots > len(assets):
+            raise ValueError(f"Not enough assets in category '{category}' to sample {n_shots} shots.")
+
+    # Sample equal number of assets from each category
+    sampled_assets = []
+    for category in categories:
+        sampled_assets.extend(np.random.choice(categories[category], n_shots, replace=False))
+
+    return {asset_id: stocks[asset_id] for asset_id in sampled_assets}
