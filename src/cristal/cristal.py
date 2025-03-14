@@ -470,6 +470,7 @@ class CRISTAL:
             }
 
         qual_processed = False  # Set true on successful qual
+        early_stop = False  # Flag early stopping
         with logging_redirect_tqdm(loggers=[logger]):
             # We will at most to one evaluation for each indicator
             for i_ind in tqdm(range(Indicators.count), desc="Indicator", leave=False):
@@ -571,7 +572,7 @@ class CRISTAL:
                     # Early stopping if prior for one class > 0.95 or plateaus
                     if np.max(p_k) > 0.95:
                         logger.debug(f"Asset prior for one class > 0.95. Early stopping")
-                        break
+                        early_stop = True
 
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
@@ -581,7 +582,7 @@ class CRISTAL:
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
                             logger.debug(f"Asset prior has plateaued. Early stopping")
-                            break
+                            early_stop = True
 
                 ###############
                 # Update Budget
@@ -596,6 +597,9 @@ class CRISTAL:
                     budget -= se_cost
                 else:
                     raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
+
+                if early_stop:
+                    break
 
                 if budget <= 0:
                     logger.debug(f"Asset budget exhausted")
