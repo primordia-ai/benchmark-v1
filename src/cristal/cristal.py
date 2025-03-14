@@ -470,6 +470,7 @@ class CRISTAL:
                 ind: pre_extracted[ind] for ind in synth.Indicators.quantitative
             }
 
+        early_stop = False  # Flag early stopping
         qual_processed = False  # Set true on successful qual
         with logging_redirect_tqdm(loggers=[logger]):
             # We will at most to one evaluation for each indicator
@@ -567,16 +568,16 @@ class CRISTAL:
                     self._update_alphas(asset, alphas)
                     # TODO -- Maybe move this out for performance
                     self.compute_growth_quantiles(asset=asset)
-
                     self._update_prior(asset, p_k)
                     # Early stopping if prior for one class > 0.95 or plateaus
 
+                                        
                     if np.max(p_k) > 0.99:
                         logger.warning(f"Asset prior for one class > 0.99. Early stopping")
                         if budget > 0:
                             logger.warning(f"Finished processing asset with budget remaining: {budget}")
                             # return and set budget to 0 to prevent infinite recursion
-                        return True, "Asset prior for one class > 0.99. Early stopping", 0
+                        early_stop = True
 
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
@@ -589,7 +590,7 @@ class CRISTAL:
                             if budget > 0:
                                 logger.warning(f"Finished processing asset {self} with budget remaining: {budget}")
                             # return and set budget to 0 to prevent infinite recursion
-                            return True, "Asset prior has plateaued. Early stopping", 0
+                            early_stop = True
 
                 ###############
                 # Update Budget
@@ -604,6 +605,10 @@ class CRISTAL:
                     budget -= se_cost
                 else:
                     raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
+
+                if early_stop:
+                    budget = 0
+                    break
 
                 if budget <= 0:
                     logger.debug(f"Asset budget exhausted")
