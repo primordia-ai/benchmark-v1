@@ -72,7 +72,9 @@ def main():
         "--extractor", type=str, default=None, help="LLM code for the extractor. Default is None."
     )
     parser.add_argument(
-        "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
+        # "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
+        "--compress-reports", type=bool, default=False,
+        help="Attempt to compress the reports through recursive summarizing"
     )
     parser.add_argument(
         "--reports-dir", type=str, default=None, help="Reports directory override over env REPORTS_DIR."
