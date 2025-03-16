@@ -77,6 +77,9 @@ def main():
     parser.add_argument(
         "--reports-dir", type=str, default=None, help="Reports directory override over env REPORTS_DIR."
     )
+    parser.add_argument(
+        "--num-assets", type=int, default=None, help="Number of tasks to run. Default is all tasks in REPORTS_DIR."
+    )
 
     args = parser.parse_args()
 
@@ -115,12 +118,17 @@ def main():
     testing = args.test
     temp = args.temp
     strict = args.strict
+    n_asset = args.num_assets
     budget_per_task = args.budget
     compress_reports = args.compress_reports
     REPORTS_DIR = args.reports_dir or _REPORTS_DIR
     # Check reports is valid
     if not os.path.exists(REPORTS_DIR):
         raise ValueError(f"Reports directory '{REPORTS_DIR}' does not exist")
+
+    # If n_asset is None, then count the assets in REPORTS_DIR
+    if n_asset is None:
+        n_asset = len(os.listdir(REPORTS_DIR))
 
     pre_extract_dir = args.pre_extracted
     if pre_extract_dir:
@@ -157,11 +165,9 @@ def main():
         asset_memory_depth = 100
     else:
         # Otherwise, just run all assets
-        n_asset = 200
         n_asset_per = None
         budget_mode = BudgetMode.WALL
         total_budget = 1e8  # arbitrarily large
-        budget_per_task = 30
         max_retries = 5
         asset_memory_depth = 24
 
@@ -223,7 +229,6 @@ def main():
         "budget_per_task": budget_per_task,
         "total_budget": total_budget,
         "n_asset": n_asset,
-        "n_asset_per": n_asset_per,
         "assets": {cat: len(reports) for cat, reports in assets.items()}
     }
 
