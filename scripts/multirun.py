@@ -30,7 +30,7 @@ def run_multi_exp1():
 
     ############
     # Constants
-    tag = "critic_200/"
+    tag = "critic_200/2-"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
