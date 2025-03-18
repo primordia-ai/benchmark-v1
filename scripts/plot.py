@@ -407,14 +407,14 @@ def budget_plot():
         "cristal-budget60",
     ]
     llm_runs = [
-        "deepseek-r1-70b-budget5",
-        "deepseek-r1-70b-budget10",
-        "deepseek-r1-70b-budget20",
-        "deepseek-r1-70b-budget60",
-        "llama-large-budget5",
-        "llama-large-budget10",
-        "llama-large-budget20",
-        "llama-large-budget60",
+        "2-deepseek-r1-70b-budget5",
+        # "2-deepseek-r1-70b-budget10",
+        "2-deepseek-r1-70b-budget20",
+        "2-deepseek-r1-70b-budget60",
+        "2-llama-large-budget5",
+        "2-llama-large-budget10",
+        "2-llama-large-budget20",
+        "2-llama-large-budget60",
     ]
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', run_group)
@@ -492,19 +492,24 @@ def budget_plot():
     # Accuracy plot
     ax = axs[0]
     for name, data in results.items():
-        ax.plot(data['accuracy']['x'], data['accuracy']['y'], label=name)
-    # Add labels
-    ax.set_xlabel("Budget")
+        ax.plot(data['accuracy']['x'], data['accuracy']['y'], label=name, marker='x', linestyle=None)
+    # X-axis
+    ax.set_xticklabels([])
+    ax.set_xlabel('')
+    # Y-axis
     ax.set_ylabel("Mean Classification Accuracy")
+    ax.set_ylim(0, 1)
     ax.legend(title=None)
 
     # MCC plot
     ax = axs[1]
     for name, data in results.items():
-        ax.plot(data['mcc']['x'], data['mcc']['y'], label=name)
-    # Add labels
+        ax.plot(data['mcc']['x'], data['mcc']['y'], label=name, marker='x', linestyle=None)
+    # X-axis
     ax.set_xlabel("Budget")
+    # Y-axis
     ax.set_ylabel("Mean MCC")
+    # ax.set_ylim(-1, 1)
     ax.legend(title=None)
 
     # Tight layout
