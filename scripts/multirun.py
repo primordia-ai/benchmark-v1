@@ -11,13 +11,15 @@ def run_multi_exp1():
     ############
     # Variables
     budget_iters = [
-        10, 20, 60
+        5, 10, 20, 60
     ]
     model_iters = [
-        "llama-large",
+        # "llama-large",
         # "llama-small",
+        "mistral-small",
+        "mistral-nemo",
         # "deepseek-r1-14b",
-        "deepseek-r1-70b",
+        # "deepseek-r1-70b",
         # "qwen-32b",
         # "qwen-72b",
         # CAREFUL with rated usage
