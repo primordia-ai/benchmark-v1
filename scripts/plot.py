@@ -8,47 +8,30 @@ from sklearn.metrics import matthews_corrcoef
 from cristal.env import PROJECT_ROOT
 
 
-def exp1(results_name: str):
-    # ================
-    # Some setup
+def results_to_df(results_dir: str):
+    """
+    Return dataframe with CRISTAL, LLM, and Truth results within
+    """
+    llm_results = cristal_results = truth_results = {}
+    cristal_path: str = os.path.join(results_dir, "cristal_results.json")
+    if os.path.exists(cristal_path):
+        cristal_results: dict = json.load(open(cristal_path, 'r'))
 
-    # Initialize seaborn
-    sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
-    sns.set_context("notebook")
+    llm_path: str = os.path.join(results_dir, "llm_results.json")
+    # Load the json if it exists
+    if os.path.exists(llm_path):
+        llm_results: dict = json.load(open(llm_path, 'r'))
 
-    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
-    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
-    save_fmt = "pdf"
-
-    # Create figs directory
-    os.makedirs(SAVE_DIR, exist_ok=True)
-
-    lbl_map = {
-        "stable": "Stable",
-        "high_growth": "High Growth",
-        "time_bomb": "Time-bomb",
-        "aggregate": "Aggregate"
-    }
-
-    # ================
-    # Load data
-
-    try:
-        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "cristal_results.json"), 'r'))
-    except FileNotFoundError:
-        # Older format
-        print("cristal_results.json not found, trying older format...")
-        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
-
-    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
+    truth_path: str = os.path.join(results_dir, "truth_data.json")
+    if os.path.exists(truth_path):
+        truth_results: dict = json.load(open(truth_path, 'r'))
 
     # Combine the set of errored assets from both CRISTAL and LLM, to keep things balanced
     errors = set()
     errors |= {a_id for a_id, asset in cristal_results.items() if "error" in asset}
     errors |= {a_id for a_id, asset in llm_results.items() if "error" in asset}
 
-    # Load CRISTAL results -- filter out errors
+    # Process CRISTAL results -- filter out errors
     cristal_data = [
         {
             "asset": a_id,
@@ -79,20 +62,51 @@ def exp1(results_name: str):
     truth_data = [
         {
             "asset": a_id,
-            "category": v["truth"]["category"],
-            "growth": v["truth"]["growth"],
+            "category": asset["category"],
+            "growth": asset["growth"],
         }
-        for a_id, v in llm_results.items() if a_id not in errors
+        for a_id, asset in truth_results.items() if a_id not in errors
     ]
 
     # Create a combined pandas df of the category and growth values for llm and truth sets
-    df = pd.concat(
-        [
-            pd.DataFrame(cristal_data).assign(source="CRISTAL"),
-            pd.DataFrame(llm_data).assign(source="LLM"),
-            pd.DataFrame(truth_data).assign(source="Truth")
-        ], ignore_index=True
-    )
+    datasets = []
+    if cristal_data:
+        datasets.append(pd.DataFrame(cristal_data).assign(source="CRISTAL"))
+    if llm_data:
+        datasets.append(pd.DataFrame(llm_data).assign(source="LLM"))
+    if truth_data:
+        datasets.append(pd.DataFrame(truth_data).assign(source="Truth"))
+
+    df = pd.concat(datasets, ignore_index=True)
+    return df
+
+
+def exp1(results_name: str):
+    # ================
+    # Some setup
+
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Create figs directory
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    lbl_map = {
+        "stable": "Stable",
+        "high_growth": "High Growth",
+        "time_bomb": "Time-bomb",
+        "aggregate": "Aggregate"
+    }
+
+    # ================
+    # Load data
+    df = results_to_df(RESULTS_DIR)
 
     # Often we want to filter out the Truth data
     df_nt = df[df["source"] != "Truth"]
@@ -375,25 +389,163 @@ def exp1(results_name: str):
     plt.close()
 
 
+def budget_plot():
+    """
+    Plot mean classification accuracy for various budgets.
+    """
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+
+    #### Keeping it bespoke for now
+    run_group = "critic_200"
+    cristal_runs = [
+        "cristal-budget5",
+        "cristal-budget10",
+        "cristal-budget20",
+        "cristal-budget60",
+    ]
+    llm_runs = [
+        "2-deepseek-r1-70b-budget5",
+        # "2-deepseek-r1-70b-budget10",
+        "2-deepseek-r1-70b-budget20",
+        "2-deepseek-r1-70b-budget60",
+        "2-llama-large-budget5",
+        "2-llama-large-budget10",
+        "2-llama-large-budget20",
+        "2-llama-large-budget60",
+    ]
+
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', run_group)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Compile runs iterating over the RESULTS_DIR
+    results = {}
+    for c_run in cristal_runs:
+        run_path = os.path.join(RESULTS_DIR, c_run)
+        run_config = json.load(open(os.path.join(run_path, "config.json"), 'r'))
+        run_name = "CRISTAL"
+        budget = run_config["budget_per_task"]
+        # Load data
+        df = results_to_df(run_path)
+        y_true = df[df["source"] == "Truth"].sort_values("asset")["category"]
+        y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")["category"]
+        # Calculate accuracy and MCC
+        accuracy_cristal = (y_true.reset_index(drop=True) == y_pred_cristal.reset_index(drop=True)).mean()
+        mcc_cristal = matthews_corrcoef(y_true, y_pred_cristal)
+        # Append to data of this run name or create new
+        if run_name not in results:
+            results[run_name] = {
+                "accuracy": {
+                    "x": [float(budget)],
+                    "y": [accuracy_cristal],
+                },
+                "mcc": {
+                    "x": [float(budget)],
+                    "y": [mcc_cristal],
+                }
+            }
+        else:
+            results[run_name]['accuracy']['x'].append(budget)
+            results[run_name]['accuracy']['y'].append(accuracy_cristal)
+            results[run_name]['mcc']['x'].append(budget)
+            results[run_name]['mcc']['y'].append(mcc_cristal)
+
+    for l_run in llm_runs:
+        run_path = os.path.join(RESULTS_DIR, l_run)
+        run_config = json.load(open(os.path.join(run_path, "config.json"), 'r'))
+        run_name = run_config["base_llm"]["name"]
+        budget = run_config["budget_per_task"]
+        # Load data
+        df = results_to_df(run_path)
+        y_true = df[df["source"] == "Truth"].sort_values("asset")["category"]
+        y_pred_llm = df[df["source"] == "LLM"].sort_values("asset")["category"]
+        # Calculate accuracy and MCC
+        accuracy_llm = (y_true.reset_index(drop=True) == y_pred_llm.reset_index(drop=True)).mean()
+        mcc_llm = matthews_corrcoef(y_true, y_pred_llm)
+        # Append to data of this run name or create new
+        if run_name not in results:
+            results[run_name] = {
+                "accuracy": {
+                    "x": [float(budget)],
+                    "y": [accuracy_llm],
+                },
+                "mcc": {
+                    "x": [float(budget)],
+                    "y": [mcc_llm],
+                }
+            }
+        else:
+            results[run_name]['accuracy']['x'].append(budget)
+            results[run_name]['accuracy']['y'].append(accuracy_llm)
+            results[run_name]['mcc']['x'].append(budget)
+            results[run_name]['mcc']['y'].append(mcc_llm)
+
+    # Create two plots for the Accuracy and MCC
+    fig, axs = plt.subplots(2, 1, figsize=(6, 8))
+
+    from pprint import pprint
+    pprint(results)
+
+    # Accuracy plot
+    ax = axs[0]
+    for name, data in results.items():
+        ax.plot(data['accuracy']['x'], data['accuracy']['y'], label=name, marker='x', linestyle=None)
+    # X-axis
+    ax.set_xticklabels([])
+    ax.set_xlabel('')
+    # Y-axis
+    ax.set_ylabel("Mean Classification Accuracy")
+    ax.set_ylim(0, 1)
+    ax.legend(title=None)
+
+    # MCC plot
+    ax = axs[1]
+    for name, data in results.items():
+        ax.plot(data['mcc']['x'], data['mcc']['y'], label=name, marker='x', linestyle=None)
+    # X-axis
+    ax.set_xlabel("Budget")
+    # Y-axis
+    ax.set_ylabel("Mean MCC")
+    # ax.set_ylim(-1, 1)
+    ax.legend(title=None)
+
+    # Tight layout
+    plt.tight_layout()
+
+    # Save
+    # Create figs directory if needed
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    save_path = os.path.join(SAVE_DIR, "budget_plot.pdf")
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
     import seaborn as sns
     from sklearn.metrics import classification_report
 
-    if len(sys.argv) < 3:
-        raise ValueError(
-            "Please provide a function name to call as first argument, and results name "
-            "(relative to results/ directory) as second"
-        )
+    # if len(sys.argv) < 3:
+    #     raise ValueError(
+    #         "Please provide a function name to call as first argument, and results name "
+    #         "(relative to results/ directory) as second"
+    #     )
 
     # Accept first argument as function name to be called
     func_name = sys.argv[1]
     if func_name not in globals():
         raise ValueError(f"Function {func_name} not found")
-
-    # And second argument as the path to the results directory
-    _results_name = sys.argv[2]
-
     print(f"Calling {func_name}")
-    globals()[func_name](_results_name)
+
+    if func_name == "exp1":
+        # And second argument as the path to the results directory
+        _results_name = sys.argv[2]
+        globals()[func_name](_results_name)
+
+    elif func_name == "budget_plot":
+        globals()[func_name]()
