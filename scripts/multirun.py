@@ -11,13 +11,13 @@ def run_multi_exp1():
     ############
     # Variables
     budget_iters = [
-        5, 10, 20, 60
+        10, 20, 60
     ]
     model_iters = [
-        # "llama-large",
+        "llama-large",
         # "llama-small",
         # "deepseek-r1-14b",
-        # "deepseek-r1-70b",
+        "deepseek-r1-70b",
         # "qwen-32b",
         # "qwen-72b",
         # CAREFUL with rated usage
@@ -25,17 +25,17 @@ def run_multi_exp1():
         # "gemini2",
         #####
         # Special handling for cristal
-        "cristal"
+        # "cristal"
     ]
 
     ############
     # Constants
-    tag = "critic_200/"
+    tag = "critic_200/2-"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
     extractor = "llama-small"
-    mode = "cristal"
+    mode = "llm"
     # We'll override the reports dir to 200 for this run
     reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b_200"
 
