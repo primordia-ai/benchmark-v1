@@ -407,10 +407,10 @@ def budget_plot():
         "cristal-budget60",
     ]
     llm_runs = [
-        "2-deepseek-r1-70b-budget5",
-        # "2-deepseek-r1-70b-budget10",
-        "2-deepseek-r1-70b-budget20",
-        "2-deepseek-r1-70b-budget60",
+        "deepseek-r1-70b-budget5",
+        "deepseek-r1-70b-budget10",
+        "deepseek-r1-70b-budget20",
+        "deepseek-r1-70b-budget60",
         "2-llama-large-budget5",
         "2-llama-large-budget10",
         "2-llama-large-budget20",
