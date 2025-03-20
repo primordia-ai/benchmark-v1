@@ -7,6 +7,7 @@ from .qwen import QwenCoder, QwenCoderTiny, QwenLarge
 from .openai import GPT, GPT4o
 from .anthropic import AnthropicModel
 from .gemini import Gemini2, Gemini15
+from .mistral import MistralSmall, MistralNemo
 
 AVAILABLE_MODELS = {
     # Model codes to classes
@@ -27,6 +28,8 @@ AVAILABLE_MODELS = {
     AnthropicModel.code: AnthropicModel,
     Gemini2.code: Gemini2,
     Gemini15.code: Gemini15,
+    MistralSmall.code: MistralSmall,
+    MistralNemo.code: MistralNemo,
 }
 
 

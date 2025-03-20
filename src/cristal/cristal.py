@@ -539,6 +539,7 @@ class CRISTAL:
 
         early_stop = False  # Flag early stopping
         qual_processed = False  # Set true on successful qual
+        early_stop = False  # Flag early stopping
         with logging_redirect_tqdm(loggers=[logger]):
             # We will at most to one evaluation for each indicator
             for i_ind in tqdm(range(Indicators.count), desc="Indicator", leave=False):
@@ -637,14 +638,8 @@ class CRISTAL:
                     self.compute_growth_quantiles(asset=asset)
                     self._update_prior(asset, p_k)
                     # Early stopping if prior for one class > 0.95 or plateaus
-                    ### TODO: update ind_likelihoods here with a new function _update_likelihoods()
-                    ### but how?
-                                        
-                    if np.max(p_k) > 0.99:
-                        logger.warning(f"Asset prior for one class > 0.99. Early stopping")
-                        if budget > 0:
-                            logger.warning(f"Finished processing asset with budget remaining: {budget}")
-
+                    if np.max(p_k) > 0.95:
+                        logger.debug(f"Asset prior for one class > 0.95. Early stopping")
                         early_stop = True
 
                     # Check for plateau
@@ -655,8 +650,6 @@ class CRISTAL:
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
                             logger.debug(f"Asset prior has plateaued. Early stopping")
-                            if budget > 0:
-                                logger.warning(f"Finished processing asset with budget remaining: {budget}")
                             early_stop = True
 
                 ###############
