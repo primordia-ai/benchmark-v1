@@ -14,14 +14,14 @@ def run_multi_exp2():
         1, 5, 10, 20, 60, 80
     ]
     model_iters = [
-        #"llama-large",
+        "llama-large",
         "llama-small",
-        #"mistral-small",
-        #"mistral-nemo",
-        #"deepseek-r1-14b",
-        #"deepseek-r1-70b",
-        #"qwen-32b",
-        #"qwen-72b",
+        "mistral-small",
+        "mistral-nemo",
+        "deepseek-r1-14b",
+        "deepseek-r1-70b",
+        "qwen-32b",
+        "qwen-72b",
         # CAREFUL with rated usage
         # "gpt-4o",
         # "gemini2",
