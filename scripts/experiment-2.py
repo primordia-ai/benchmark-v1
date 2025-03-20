@@ -80,6 +80,10 @@ def main():
     parser.add_argument(
         "--n-shots", type=int, default=0, help="Number of examples to use for the LLM. Default 0."
     )
+    parser.add_argument(
+        "--train-size", type=int, default=500, help="Number of examples to use for training. Default 500."
+    )
+
 
     args = parser.parse_args()
 
@@ -195,6 +199,7 @@ def main():
     # Only for assets that we have reports for
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False)
+    stocks = {k: stocks[k] for k in list(stocks.keys())[args.train_size:]}
     financials = {}  # For use by LLM
     for asset_id in os.listdir(REPORTS_DIR):
         # Check category
@@ -241,7 +246,7 @@ def main():
             budget_mode=budget_mode, budget=total_budget,
         )
         #pretrain cristal here with the train method and n_shots
-        training_data = synth.get_ground_truth_samples(args.n_shots)
+        training_data = synth.get_ground_truth_samples(args.n_shots, args.train_size)
         logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
         logger.debug("shape of predefined likelihood matrix: %s", m.indicators.likelihood.shape)
         m.train(training_data)
@@ -386,7 +391,7 @@ def main():
 
 
                     # Modifies the prompt if indicators are provided, but they are not required
-                    prompt = llm_utils.prompt_exp2_task(reports_text, indicators, n_shots=args.n_shots)
+                    prompt = llm_utils.prompt_exp2_task(reports_text, indicators, n_shots=args.n_shots, train_size = args.train_size)
                     # For checking
                     start = time.time()
                     # We might wrap this in try-except, but the method itself does so for LLM request

@@ -449,7 +449,7 @@ def prompt_critic_exp1(previous_result: str) -> str:
     "time_bomb": <float>
     """
 
-def prompt_exp2_task(report_text: str, indicators_json: str | None, n_shots: int):
+def prompt_exp2_task(report_text: str, indicators_json: str | None, n_shots: int, train_size=500):
     """
     Generates a detailed prompt for evaluating a specific financial indicator based on company reports
     without giving the likelihoods of the indicators.
@@ -463,7 +463,7 @@ def prompt_exp2_task(report_text: str, indicators_json: str | None, n_shots: int
     mu_g = {cls: mu for cls, mu in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_MU)}
     scale_g = {cls: sigma for cls, sigma in zip(['high_growth', 'stable', 'time_bomb'], synth.GROWTH_SCALE)}
     # Sample n_shots examples from the ground truth values
-    ground_truth_samples = synth.get_ground_truth_samples(n_shots)
+    ground_truth_samples = synth.get_ground_truth_samples(n_shots, train_size)
     # Format the ground truth samples that are a dict for the prompt
     ground_truth_text = "\n".join([f"{k}: {v}" for k, v in ground_truth_samples.items()])
     
