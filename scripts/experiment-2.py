@@ -240,6 +240,13 @@ def main():
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
         )
+        #pretrain cristal here with the train method and n_shots
+        training_data = synth.get_ground_truth_samples(args.n_shots)
+        logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
+        logger.debug("shape of predefined likelihood matrix: %s", m.indicators.likelihood.shape)
+        m.train(training_data)
+        logger.debug("Updated likelihood matrix: %s", m.indicators.likelihood.values)
+        logger.debug("shape of updated likelihood matrix: %s", m.indicators.likelihood.shape)
         run_data['cristal'] = m.to_json()
 
     config_path = os.path.join(results_dir, "config.json")
@@ -281,6 +288,7 @@ def main():
 
                     try:
                         remaining_budget = budget_per_task
+
                         while remaining_budget > 0:
                             success, reason, remaining_budget = m.process_asset(
                                 asset_id, max_budget=remaining_budget, pre_extracted=extracted_colors
