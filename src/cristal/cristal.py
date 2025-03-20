@@ -329,7 +329,7 @@ class CRISTAL:
                         (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
                     )
         epsilon = 1e-20  # Small value to prevent division by zero
-        self.indicators['likelihood'] = (('class', 'indicator',  'color'), self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
+        self.indicators['likelihood'] = (('class', 'indicator', 'color'), self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
 
     def add_budget(self, budget: float):
         """
