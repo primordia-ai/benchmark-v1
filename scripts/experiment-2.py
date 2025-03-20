@@ -198,10 +198,13 @@ def main():
     # We can just compile asset names here
     # Only for assets that we have reports for
     truth_data = {}
-    stocks = synth.load_stocks(as_dataset=False)
-    stocks = {k: stocks[k] for k in list(stocks.keys())[args.train_size:]}
+    stocks = synth.load_stocks(as_dataset=False, test=True, train_size=args.train_size)
     financials = {}  # For use by LLM
     for asset_id in os.listdir(REPORTS_DIR):
+        if asset_id not in stocks:
+            logger.debug(f"Asset ID '{asset_id}' not found in stocks. Skipping.")
+            continue
+
         # Check category
         category = stocks[asset_id]['category']
         if n_asset_per and len(assets[category]) >= n_asset_per:
@@ -238,7 +241,7 @@ def main():
     #####################
     # Configure CRISTAL
     #
-    stocks = synth.stocks_to_xarray(stocks)
+    stocks = synth.load_stocks(test=True, train_size=args.train_size)#synth.stocks_to_xarray(stocks)
     if mode in ['cristal', 'both']:
         # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(

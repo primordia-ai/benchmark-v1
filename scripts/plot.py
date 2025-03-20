@@ -391,7 +391,7 @@ def exp1(results_name: str):
 def exp2(results_name: str):
     # ================
     # Some setup
-
+    print("Running exp2")
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
@@ -911,6 +911,11 @@ if __name__ == '__main__':
     print(f"Calling {func_name}")
 
     if func_name == "exp1":
+        # And second argument as the path to the results directory
+        _results_name = sys.argv[2]
+        globals()[func_name](_results_name)
+
+    if func_name == "exp2":
         # And second argument as the path to the results directory
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)

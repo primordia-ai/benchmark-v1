@@ -1022,7 +1022,7 @@ def print_stock_summary(stock_data: Dict[str, Any]) -> None:
     print("\nQuality Score:", f"{fin['verification']['quality_score']:.1%}")
 
 
-def stocks_to_xarray(stocks) -> xr.Dataset:
+def stocks_to_xarray(stocks, train_size=500) -> xr.Dataset:
     """
     Convert list of synthetic stocks into an xarray Dataset with both financial and soft indicators.
     """
@@ -1054,7 +1054,7 @@ def stocks_to_xarray(stocks) -> xr.Dataset:
     asset_coords = []
     categories = []
     for asset_num in range(n_stocks):
-        asset_id = f'asset_{asset_num}'
+        asset_id = f'asset_{asset_num+train_size}'
         asset_coords.append(asset_id)
         data = stocks[asset_id]
         categories.append(data['category'])
@@ -1114,18 +1114,38 @@ def load_indicators() -> xr.Dataset:
     # return np.load(f"{cristal.env.PROJECT_ROOT}/data/ground-truth/stock_indicators.pkl", allow_pickle=True)
 
 
-def load_stocks(as_dataset: bool = True) -> dict | xr.Dataset:
+def load_stocks(as_dataset: bool = True, train: bool = False, test: bool = False, train_size: int = None) -> dict | xr.Dataset:
+    stocks = np.load(
+        f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl",
+        allow_pickle=True
+    )
+    
+    if train:
+        stocks = {k: stocks[k] for i, k in enumerate(stocks) if i < train_size}
+    elif test:
+        stocks = {k: stocks[k] for i, k in enumerate(stocks) if i >= train_size}
+    
     if as_dataset:
-        return stocks_to_xarray(
-            np.load(
-                f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl",
-                allow_pickle=True
-            )
-        )
+        if train_size is None:
+            train_size = len(stocks)
+        return stocks_to_xarray(stocks, train_size)
     else:
-        return np.load(
-            f"{cristal.env.PROJECT_ROOT}/data/ground-truth/assets_1k/stock_all_ground_truth_dict.pkl", allow_pickle=True
-        )
+        return stocks
+
+def split_dataset(dataset: xr.Dataset, train_size: int = 500) -> tuple[xr.Dataset, xr.Dataset]:
+    """
+    Split the dataset into training and testing subsets.
+
+    Args:
+        dataset: The xarray Dataset to split.
+        train_size: Number of assets to include in the training set.
+
+    Returns:
+        A tuple containing the training and testing datasets.
+    """
+    train_dataset = dataset.isel(asset=slice(0, train_size))
+    test_dataset = dataset.isel(asset=slice(train_size, None))
+    return train_dataset, test_dataset
 
 def get_ground_truth_samples(n_shots: int, train_size: int = 500) -> dict:
     """
@@ -1133,10 +1153,10 @@ def get_ground_truth_samples(n_shots: int, train_size: int = 500) -> dict:
     ensuring equal class distribution between the asset ground truth classes.
     Only takes the first 500 assets from 
     """
-    # Load ground truth data
-    stocks = load_stocks(as_dataset=False)
+    
     # Limit the number of assets to the first n default 500
-    stocks = {k: stocks[k] for k in list(stocks.keys())[:train_size]}
+    #train_dataset, test_dataset = split_dataset(load_stocks(as_dataset=False), train_size=train_size)
+    stocks = load_stocks(as_dataset=False, train=True, train_size=train_size)
     # Separate assets by category
     categories = {'high_growth': [], 'stable': [], 'time_bomb': []}
     for asset_id, data in stocks.items():
