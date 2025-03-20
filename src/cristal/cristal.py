@@ -273,6 +273,20 @@ class CRISTAL:
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
+    def _update_likelihoods(self, indicator_name: str, color_pred: np.ndarray):
+        """
+        Update the likelihoods for the given indicator based on the observed color prediction
+
+        :param indicator_name: Name of the indicator
+        :param color_pred: Observed color prediction as a one-hot encoded array
+        """
+        # TODO: to be implemented
+        # @michael did you want a shot at that? i cant get my head around it for some reason
+        #self.indicators.likelihood = self.ind_likelihood(indicator_name) + color_pred
+
+
+        
+
     def initialize_priors(self):
         """
         Initialize the alpha and beta priors to be uniform.
@@ -482,6 +496,7 @@ class CRISTAL:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
+
     def process_asset(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
     ) -> tuple[bool, Optional[str], float]:
@@ -579,7 +594,8 @@ class CRISTAL:
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
                     self.compute_growth_quantiles(asset=asset)
-
+                    # update beta (the likelihood matrix here)
+                    self._update_likelihoods(ind['name'], color_pred)
                     continue
 
                 ###################
