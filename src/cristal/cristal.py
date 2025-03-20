@@ -320,8 +320,7 @@ class CRISTAL:
                 x_ij = asset_data['sampled_colors'][indicator]
                 x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2	# Convert color to integer
                 X[i, j] = x_ij
-        # Initialize beta posterior (likelihood matrix) with the same shape as beta prior and a uniform distribution
-        
+
         # Update beta (likelihood matrix).
         for j in range(J):  # Iterate over indicators
             for k_val, category in enumerate(self.classes.keys()):  # Iterate over classes
