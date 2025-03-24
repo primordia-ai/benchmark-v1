@@ -18,7 +18,7 @@ def run_multi_exp2():
         #"llama-small",
         #"mistral-small",
         #"mistral-nemo",
-        #"deepseek-r1-14b",
+        "deepseek-r1-14b",
         "deepseek-r1-70b",
         "qwen-32b",
         "qwen-72b",

@@ -895,11 +895,12 @@ def budget_plot():
     plt.savefig(save_path)
     plt.close()
 
+
 def n_shot_plot():
     """
     Plot mean classification accuracy for various n-shot values.
     """
-    
+
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("Set2")
@@ -1029,7 +1030,7 @@ def n_shot_plot():
         )
 
     ax.set_xticks(sorted(set(x for data in results.values() for x in data['accuracy']['x'])))
-    ax.set_xlabel("N-shot")
+    ax.set_xlabel("N-shot examples of each category")
     ax.set_ylabel("Classification Accuracy")
     ax.set_ylim(0, 1)
 
@@ -1058,7 +1059,7 @@ def n_shot_plot():
         )
 
     ax.set_xticks(sorted(set(x for data in results.values() for x in data['mcc']['x'])))
-    ax.set_xlabel("N-shot")
+    ax.set_xlabel("N-shot examples of each category")
     ax.set_ylabel("MCC")
 
     # Add legends outside the plots
@@ -1073,6 +1074,100 @@ def n_shot_plot():
     print(f"Saving to {save_path}")
     plt.savefig(save_path, bbox_inches="tight")
     plt.close()
+
+    # Convert results to a pandas DataFrame and generate a LaTeX table
+    results_df = pd.DataFrame()
+
+    # Process LLM results
+    for name, data in results.items():
+        for i, x in enumerate(data["accuracy"]["x"]):
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": [name],
+                    "n-shots": [int(x)],
+                    "Accuracy": [data["accuracy"]["llm_y"][i]],
+                    "MCC": [data["mcc"]["llm_y"][i]]
+                })
+            ], ignore_index=True)
+
+    # Process CRISTAL results (calculate means over runs)
+    cristal_data = {
+        "n-shots": [],
+        "Accuracy": [],
+        "MCC": []
+    }
+    for name, data in results.items():
+        cristal_data["n-shots"].extend(data["accuracy"]["x"])
+        cristal_data["Accuracy"].extend(data["accuracy"]["cristal_y"])
+        cristal_data["MCC"].extend(data["mcc"]["cristal_y"])
+
+    if cristal_data:
+        unique_n_shots = sorted(set(cristal_data["n-shots"]))
+        for n_shot in unique_n_shots:
+            accuracy_mean = pd.Series(
+                [acc for n, acc in zip(cristal_data["n-shots"], cristal_data["Accuracy"]) if n == n_shot]
+            ).mean()
+            mcc_mean = pd.Series(
+                [mcc for n, mcc in zip(cristal_data["n-shots"], cristal_data["MCC"]) if n == n_shot]
+            ).mean()
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": ["CRISTAL"],
+                    "n-shots": [int(n_shot)],
+                    "Accuracy": [accuracy_mean],
+                    "MCC": [mcc_mean]
+                })
+            ], ignore_index=True)
+
+    # Save the DataFrame as a LaTeX table
+    latex_table_path = os.path.join(SAVE_DIR, "results_table.tex")
+    print(f"Saving LaTeX table to {latex_table_path}")
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Highlight the highest values per numerical column with bold font
+    for col in ["Accuracy", "MCC"]:
+        if col in results_df.columns:
+            max_values = results_df.groupby(["n-shots"])[col].transform("max")
+            results_df[col] = results_df.apply(
+                lambda row: f"\\textbf{{{row[col]:.4f}}}" if row[col] == max_values[row.name] else f"{row[col]:.4f}",
+                axis=1
+            )
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df[["n-shots", "Model", "Accuracy", "MCC"]]
+
+    # Create a multirow design for n-shots
+    results_df["n-shots"] = results_df["n-shots"].astype(str)  # Ensure n-shots is treated as a string for grouping
+
+    with open(latex_table_path, "w") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\begin{tabular}{|l|l|r|r|}\n")
+        f.write("\\hline\n")
+        f.write("\\textbf{n-shots} & \\textbf{Model} & \\textbf{Accuracy} & \\textbf{MCC} \\\\ \n")
+        f.write("\\noalign{\\hrule height 2pt}\n")
+        current_n_shots = None
+        n_shots_counts = results_df['n-shots'].value_counts().to_dict()  # Count occurrences of each n-shot value
+        for _, row in results_df.iterrows():
+            if row['n-shots'] != current_n_shots:
+                current_n_shots = row['n-shots']
+                row_span = n_shots_counts[current_n_shots]  # Get the number of rows for this n-shot value
+                if current_n_shots != list(n_shots_counts.keys())[0]:
+                    f.write("\\noalign{\\hrule height 2pt}\n")  # Use noalign with hrule for a thicker horizontal line for new multirow, except for the first one
+                f.write(f"\\multirow{{{row_span}}}{{*}}{{{current_n_shots}}} & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+            else:
+                f.write(f" & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+
+        f.write("\\hline\n")  # Add final \hline at the end of the table
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Results Table for N-shot Analysis}\n")
+        f.write("\\label{tab:results_table}\n")
+        f.write("\\end{table}\n")
+
+
+    
     
 
 
