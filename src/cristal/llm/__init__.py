@@ -6,7 +6,7 @@ from .deepseek import DeepseekSmall, DeepseekMedium, DeepseekLarge, DeepseekMini
 from .qwen import QwenCoder, QwenCoderTiny, QwenLarge
 from .openai import GPT, GPT4o
 from .anthropic import AnthropicModel
-from .gemini import Gemini2, Gemini15
+from .gemini import Gemini2, Gemini15, Gemini25
 from .mistral import MistralSmall, MistralNemo
 
 AVAILABLE_MODELS = {
@@ -28,6 +28,7 @@ AVAILABLE_MODELS = {
     AnthropicModel.code: AnthropicModel,
     Gemini2.code: Gemini2,
     Gemini15.code: Gemini15,
+    Gemini25.code: Gemini25,
     MistralSmall.code: MistralSmall,
     MistralNemo.code: MistralNemo,
 }

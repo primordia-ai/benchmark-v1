@@ -932,7 +932,7 @@ def n_shot_plot():
 
         run_name = run_config["base_llm"]["name"]
         # Load data
-
+        print(run_path)
         df = results_to_df(run_path)
         # For LLM
         y_true_llm = df[df["source"] == "Truth"].sort_values("asset")[["category"]]

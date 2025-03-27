@@ -64,3 +64,21 @@ class Gemini2(Gemini15):
         "gemini2",
         "gemini-2",
     ]
+
+class Gemini25(Gemini15):
+    """
+    Gemini2 class inherits from Gemini15 and represents the Gemini 2.0 model.
+    Attributes:
+        name (str): The name of the model.
+        code (str): The code identifier for the model.
+        api_key (str): The API key for accessing the model.
+        aliases (list): A list of alternative names for the model.
+    """
+
+    name = "gemini_2.5"
+    code = "models/gemini-2.5-pro-exp-03-25"
+    api_key = get_api_key()
+    aliases = [
+        "gemini25",
+        "gemini-25",
+    ]

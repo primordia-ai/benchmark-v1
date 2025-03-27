@@ -7,11 +7,15 @@ from cristal.env import PROJECT_ROOT
 
 
 def run_multi_exp2():
-
     ############
     # Variables
     n_shot_iters = [
-        1, 5, 10, 20, 60, 80
+        1,
+        #5,
+        10,
+        #20,
+        #60,
+        80
     ]
     model_iters = [
         #"llama-large",
@@ -19,12 +23,13 @@ def run_multi_exp2():
         #"mistral-small",
         #"mistral-nemo",
         "deepseek-r1-14b",
-        "deepseek-r1-70b",
+        #"deepseek-r1-70b",
         "qwen-32b",
         "qwen-72b",
         # CAREFUL with rated usage
-        # "gpt-4o",
-        # "gemini2",
+        "gpt-4o",
+        "gemini2",
+        #"gemini25",
         #####
         # Special handling for cristal
         # "cristal"
@@ -37,7 +42,7 @@ def run_multi_exp2():
     #     tag = tag.split("-")[0] + "-"
 
     extractor = "llama-small"
-    mode = "both"
+    mode = "llm"
     # We'll override the reports dir to 200 for this run
     #reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b"
 
