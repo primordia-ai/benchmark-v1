@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import matthews_corrcoef, accuracy_score, classification_report, confusion_matrix
-
+import numpy as np
 from cristal.env import PROJECT_ROOT
 
 
@@ -963,6 +963,8 @@ def n_shot_plot():
             accuracy_cristal = accuracy_score(y_true_cristal, y_pred_cristal)
             mcc_cristal = matthews_corrcoef(y_true_cristal.values.ravel(), y_pred_cristal.values.ravel())
         except ValueError as e:
+            accuracy_cristal = np.nan
+            mcc_cristal = np.nan
             print(f"Skipping {run_path}, unable to calculate accuracy or MCC for CRISTAL: {e}")
             continue
 
