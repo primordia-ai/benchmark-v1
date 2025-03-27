@@ -21,7 +21,8 @@ class Gemini15(LLMBaseClass):
     Gemini15 is a class that extends LLMBaseClass and provides functionality for interacting with the Gemini 1.5 model.
     """
     name = "gemini_1.5"
-    code = "models/gemini-1.5-flash-latest"
+    code = "gemini-1.5-flash-latest"
+    path_code = "gemini-1_5-flash-latest"
     api_key = get_api_key()
     aliases = [
         "gemini1.5",
@@ -39,9 +40,10 @@ class Gemini15(LLMBaseClass):
     def init_client(self) -> None:
         # TODO -- GEMINI seems to be treated differently.
         # TODO -- From these deviations, we are not currently passing in the temp and seed anywhere
+        # It also seems that it prefers having "models/" prepended
         self._client = instructor.from_gemini(
             client=genai.GenerativeModel(
-                model_name=self.code,
+                model_name=f"models/{self.code}",
             ),
             mode=instructor.Mode.GEMINI_JSON,
         )
@@ -58,7 +60,8 @@ class Gemini2(Gemini15):
     """
 
     name = "gemini_2.0"
-    code = "models/gemini-2.0-flash-exp"
+    code = "gemini-2.0-flash-exp"
+    path_code = "gemini-2_0-flash-exp"
     api_key = get_api_key()
     aliases = [
         "gemini2",
