@@ -552,7 +552,6 @@ class CRISTAL:
                 ind: pre_extracted[ind] for ind in synth.Indicators.quantitative
             }
 
-        early_stop = False  # Flag early stopping
         qual_processed = False  # Set true on successful qual
         early_stop = False  # Flag early stopping
         with logging_redirect_tqdm(loggers=[logger]):
@@ -878,7 +877,7 @@ class CRISTAL:
             llm = AVAILABLE_MODELS[llm_code](
                 temperature=llm_temp
             )
-        print(llm)
+
         # Create the model
         m = cls(
             stocks, llm, asset_memory_depth=asset_memory_depth,
