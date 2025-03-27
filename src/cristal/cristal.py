@@ -594,7 +594,7 @@ class CRISTAL:
                     self._update_prior(asset, p_k)
                     self.compute_growth_quantiles(asset=asset)
                     # update beta (the likelihood matrix here)
-                    self._update_likelihoods(ind['name'], color_pred)
+                    # self._update_likelihoods(ind['name'], color_pred)
                     continue
 
                 ###################
