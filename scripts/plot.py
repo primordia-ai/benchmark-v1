@@ -779,13 +779,22 @@ def budget_plot():
     ]
     llm_runs = [
         "deepseek-r1-70b-budget5",
-        "deepseek-r1-70b-budget10",
+        # "deepseek-r1-70b-budget10",
         "deepseek-r1-70b-budget20",
         "deepseek-r1-70b-budget60",
-        "2-llama-large-budget5",
-        "2-llama-large-budget10",
-        "2-llama-large-budget20",
-        "2-llama-large-budget60",
+        # "deepseek-r1-70b-budget120",
+        "llama-large-budget5",
+        "llama-large-budget10",
+        "llama-large-budget20",
+        "llama-large-budget60",
+        "2-mistral-small-budget5",
+        "2-mistral-small-budget10",
+        "2-mistral-small-budget20",
+        "2-mistral-small-budget60",
+        "2-mistral-nemo-budget5",
+        "2-mistral-nemo-budget10",
+        "2-mistral-nemo-budget20",
+        "2-mistral-nemo-budget60",
     ]
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', run_group)
