@@ -949,11 +949,15 @@ def n_shot_plot():
             continue
 
         # For CRISTAL
-        y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
-        y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")[["category"]]
-        # Calculate accuracy and MCC for CRISTAL
-        y_true_cristal = y_true_cristal.reset_index(drop=True)
-        y_pred_cristal = y_pred_cristal.reset_index(drop=True)
+        if "CRISTAL" in df["source"].unique():
+            y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
+            y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")[["category"]]
+            # Calculate accuracy and MCC for CRISTAL
+            y_true_cristal = y_true_cristal.reset_index(drop=True)
+            y_pred_cristal = y_pred_cristal.reset_index(drop=True)
+        else:
+            y_true_cristal = pd.DataFrame(columns=["category"])
+            y_pred_cristal = pd.DataFrame(columns=["category"])
 
         try:
             accuracy_cristal = accuracy_score(y_true_cristal, y_pred_cristal)
