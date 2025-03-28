@@ -154,3 +154,29 @@ numpy.ndarray]:
     _alphas = alphas + posterior
     return posterior, _alphas
 '''
+
+
+
+# add skeleton code for codegen for the functions we want to generate
+# this is the code that will be used to generate the function with trace
+
+def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Bayesian update of the asset's class prediction.
+    Does not modify p_k and alphas in place, returns updated versions.
+
+    :param likelihood:      Likelihood matrix for the indicator
+    :param p_k:             Class predictions
+    :param alphas:          Dirichlet prior alpha parameters
+    :return:                Updated class prediction posterior, and alphas
+    """
+    ###
+    # MAP method.
+    # From some brief experimenting, is essentially same outcome but very slightly worse variance
+    # alphas_star = alphas + posterior - 1
+    # alphas += alphas_star / np.sum(alphas_star)
+    ###
+    posterior = np.ndarray()  # Placeholder for the generated code
+    # Avoiding modifying in place, just in case
+    _alphas = np.ndarray() # Placeholder for the generated code
+    return posterior, _alphas

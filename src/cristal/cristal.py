@@ -273,6 +273,8 @@ class CRISTAL:
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
+
+
     def _update_likelihoods(self, indicator_name: str, color_pred: np.ndarray):
         """
         Update the likelihoods for the given indicator based on the observed color prediction
@@ -702,6 +704,217 @@ class CRISTAL:
         # self.refresh_indicator_rank()
 
         return True, "", budget
+    
+    def _compute_growth_quantiles_codegen(self, asset: xr.Dataset):
+        """ load the generated code from cristal.llm.codegen.compute_growth_quantiles_codegen and use it for the return statement """
+        return raise NotImplementedError("This method is not implemented in the current codegen version of CRISTAL")
+    
+    # maintain the whole structure of our process assets function for partial codegen so nothing breaks downstream
+    def process_asset_partial_codegen(
+        self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
+    ) -> tuple[bool, Optional[str], float]:
+        """
+        Process an asset to infer its class and growth forecast
+
+        :param asset:               xr.Dataset for the selected asset
+        :param max_budget:          Max budget to use for this asset
+        :param pre_extracted:       Optional dictionary of extracted indicators colors for this asset,
+                                    {<indicator>: <value>}
+
+        :return:    Boolean indicating success, and an optional string reason on failure, and remaining budget
+        """
+        start = iter_start = time.time()
+        budget = min(max_budget, self.budget) if max_budget is not None else self.budget
+
+        if isinstance(asset, str):
+            # Get the asset by its name
+            asset = self.stocks.sel(asset=asset)
+
+        asset_id = str(asset.asset.values)
+
+        # Get most recent alphas
+        alphas = self.stocks.alphas.sel(asset=asset.asset).values[:, -1].copy()
+        p_k = self.stocks.prior.sel(asset=asset.asset).values[:, -1].copy()
+
+        # Special ranking index sorts by quant vs. qual, then utility within.
+        indicator_items = [
+            {
+                "idx": idx,
+                "name": self.indicators.indicator[idx].item(),
+                "qualitative": self.indicators.qualitative[idx].item(),
+                "cost": self.indicators.cost[idx].item(),
+                "utility": self.indicators.utility[idx].item(),
+            }
+            for idx in self.sp_ranking_idx
+        ]
+        candidates = copy.deepcopy(indicator_items)  # For modification and removal during iteration
+
+        # Shorthand
+        color_to_ind = {
+            "red": 0, "yellow": 1, "green": 2
+        }
+
+        # Generate hard indicators from asset financials
+        # Uses the synth.INDEPENDENT_INDICATOR_INTERVALS to map from float to color
+        if not pre_extracted:
+            quant_indicators = synth.indicators_from_financials(
+                self.stocks_json[asset_id]['financials'], as_colors=True
+            )
+        else:
+            quant_indicators = {
+                ind: pre_extracted[ind] for ind in synth.Indicators.quantitative
+            }
+
+        qual_processed = False  # Set true on successful qual
+        early_stop = False  # Flag early stopping
+        with logging_redirect_tqdm(loggers=[logger]):
+            # We will at most to one evaluation for each indicator
+            for i_ind in tqdm(range(Indicators.count), desc="Indicator", leave=False):
+                logger.debug(f"Remaining asset budget: {budget}")
+
+                # Filter candidates based on remaining budget
+                for c in candidates.copy():
+                    if c['cost'] > budget:
+                        logger.debug(
+                            f"Skipping '{c['name']}' due to expected cost: {c['cost']}"
+                        )
+                        candidates.remove(c)
+
+                if not candidates:
+                    break
+
+                ####################
+                # Quantitative stage
+
+                # We first see if the next-up indicator is quantitative
+                # If it is, we can skip the ranking algorithm and immediately process
+                ind = indicator_items[i_ind]
+
+                if ind['qualitative'] is False:
+                    # Quickly process the quant indicator
+                    try:
+                        candidates.remove(ind)  # pop
+                    except ValueError:
+                        # Removed from budget filter
+                        continue
+                    color = quant_indicators[ind['name']]
+                    color_pred = np.eye(3)[color_to_ind[color]]
+                    likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
+                    likelihood = likelihood.reshape(3, )
+                    p_k, alphas = cristal_stats.dirichlet_bayes_codegen(likelihood, p_k, alphas)
+                    # Update
+                    self._update_alphas(asset, alphas)
+                    self._update_prior(asset, p_k)
+                    self._compute_growth_quantiles_codegen(asset=asset)
+                    # update beta (the likelihood matrix here)
+                    # self._update_likelihoods(ind['name'], color_pred)
+                    continue
+
+                ###################
+                # Qualitative stage
+
+                # Rank the remaining indicator candidates that are qualitative and within budget
+                next_ranking = self.rank_indicators(p_k, candidates)
+                # This shouldn't occur, but...
+                assert next_ranking, "Failed to rank indicators"
+
+                # Select best
+                selected = next_ranking[0]
+                selected_name = selected['name']
+                # Assert it isn't quantitative
+                assert selected['qualitative'], (f"Quantitative indicator '{selected_name}' leaked into Qualitative "
+                                                 "evaluation stage")
+
+                candidates.remove(selected)
+                logger.debug(
+                    f"Selecting '{selected_name}' | Expected cost {selected['cost']} | Remaining budget {budget})"
+                )
+                extraction_failed = False
+
+                if pre_extracted:
+                    # Convert from point estimate to distribution, like the synthetics
+                    extracted_color_pred = np.eye(3)[color_to_ind[pre_extracted[selected_name]]]  # one-hot
+                    se_cost = synth.synthetic_indicator_cost(selected['cost'])
+                else:
+                    # Call soft extractor
+                    # Get report for this indicator, returns cached if available
+                    reports_text = self.get_report(asset_id)
+                    try:
+                        extr_color, se_cost = self._call_soft_extractor(
+                            asset, selected_name, budget, reports_text
+                         )
+                    except SoftIndicatorExtractionError as e:
+                        logger.warning(f"Failed to extract indicator '{selected_name}'")
+                        logger.debug(f"Failure Reason: {e}")
+                        extraction_failed = True
+                    else:
+                        # Convert to one-hot distribution
+                        extracted_color_pred = np.eye(3)[color_to_ind[extr_color]]
+                        # if fails we should take the next indicator
+                        # Update this indicators soft-extraction cost
+                        # TODO -- Could be improved with an expected cost (same approach as for 'utility')
+                        self.indicators.cost.loc[selected_name] = se_cost
+
+                if not extraction_failed:
+                    likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
+                    likelihood = likelihood.reshape(3, )
+                    p_k, alphas = cristal_stats.dirichlet_bayes_codegen(likelihood, p_k, alphas)
+                    # Update
+                    qual_processed = True
+                    self._update_alphas(asset, alphas)
+                    # TODO -- Maybe move this out for performance
+                    self._compute_growth_quantiles_codegen(asset=asset)
+                    self._update_prior(asset, p_k)
+                    # Early stopping if prior for one class > 0.95 or plateaus
+                    if np.max(p_k) > 0.95:
+                        logger.debug(f"Asset prior for one class > 0.95. Early stopping")
+                        early_stop = True
+
+                    # Check for plateau
+                    last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
+                    # Check the last_n isn't from the initialized values
+                    init_prior = np.ones(self.n_classes,) / self.n_classes                    
+                    if not np.allclose(last_n_priors, init_prior):
+                        avg_difference = np.mean(abs(p_k - last_n_priors))
+                        if avg_difference < 0.1:
+                            logger.debug(f"Asset prior has plateaued. Early stopping")
+                            early_stop = True
+
+                ###############
+                # Update Budget
+
+                if self.budget_mode == BudgetMode.WALL:
+                    cost = time.time() - iter_start
+                    iter_start = time.time()
+                    self.budget -= cost
+                    budget -= cost
+                elif self.budget_mode == BudgetMode.SYNTH:
+                    self.budget -= se_cost
+                    budget -= se_cost
+                else:
+                    raise NotImplementedError(f"Budget mode {self.budget_mode} not implemented")
+
+                if early_stop:
+                    budget = 0
+                    break
+
+                if budget <= 0:
+                    logger.debug(f"Asset budget exhausted")
+                    break
+
+
+        if not qual_processed:
+            logger.warning("No qualitative indicators were within budget.")
+            # Zero out the budget to prevent infinite recursion
+            budget = 0
+
+        if budget > 0:
+            logger.warning(f"Finished processing asset with budget remaining: {budget}")
+
+        # Refresh indicator rank at the end
+        # self.refresh_indicator_rank()
+
+        return True, "", budget
 
     def _call_soft_extractor(
         self, asset: xr.Dataset, indicator_name: str, budget: float, reports_text: str | None = None
@@ -779,6 +992,7 @@ class CRISTAL:
             prior = self.stocks.prior.sel(asset=asset.asset).values[:, -1]
             quantile_values = synth.compute_growth_quantiles(prior, list(quantiles))
             self._update_quantile_pred(asset, quantile_values)
+    
 
     def save_model(
         self,

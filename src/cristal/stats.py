@@ -331,3 +331,8 @@ def dirichlet_bayes(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray)
     # Avoiding modifying in place, just in case
     _alphas = alphas + posterior
     return posterior, _alphas
+
+def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    load the codegen function from cristal.llm.codegen.dirichlet_bayes and return it
+    """
