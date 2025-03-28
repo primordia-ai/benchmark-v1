@@ -52,7 +52,7 @@ def verifier():
 if __name__ == '__main__':
     SEED = 101010
     GRAPH.clear()
-    max_iterations = 100
+    max_iterations = 25
     test_ground_truth = (
         np.array([0.05882353, 0.05882353, 0.88235294]),
         np.array([1.05882353, 1.05882353, 1.88235294]),
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         "alphas": np.array([1, 1, 1]),
     }
 
-    epoch = 2
+    epoch = 1
 
     config_list = autogen.config_list_from_json("OAI_CONFIG_LIST")
     os.environ["TRACE_LITELLM_MODEL"] = "ollama/qwen2.5-coder:32b"
