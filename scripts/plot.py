@@ -974,8 +974,7 @@ def n_shot_plot():
         except ValueError as e:
             accuracy_cristal = np.nan
             mcc_cristal = np.nan
-            print(f"Skipping {run_path}, unable to calculate accuracy or MCC for CRISTAL: {e}")
-            continue
+            print(f" {run_path}, unable to calculate accuracy or MCC for CRISTAL: {e}, assigning NaN")
 
         # Append to data of this run name or create new
         if run_name not in results:
