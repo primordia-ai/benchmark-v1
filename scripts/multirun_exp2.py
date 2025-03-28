@@ -13,7 +13,8 @@ def run_multi_exp2():
         1,
         #5,
         10,
-        #20,
+        20,
+        #40,
         #60,
         80
     ]
@@ -22,13 +23,13 @@ def run_multi_exp2():
         #"llama-small",
         #"mistral-small",
         #"mistral-nemo",
-        "deepseek-r1-14b",
+        #"deepseek-r1-14b",
         #"deepseek-r1-70b",
-        "qwen-32b",
-        "qwen-72b",
+        #"qwen-32b",
+        #"qwen-72b",
         # CAREFUL with rated usage
-        "gpt-4o",
-        "gemini2",
+        #"gpt-4o",
+        #"gemini2",
         #"gemini25",
         #####
         # Special handling for cristal
