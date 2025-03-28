@@ -3,8 +3,8 @@ import os
 
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.metrics import matthews_corrcoef
-
+from sklearn.metrics import matthews_corrcoef, accuracy_score, classification_report, confusion_matrix
+import numpy as np
 from cristal.env import PROJECT_ROOT
 
 
@@ -77,8 +77,11 @@ def results_to_df(results_dir: str):
     if truth_data:
         datasets.append(pd.DataFrame(truth_data).assign(source="Truth"))
 
-    df = pd.concat(datasets, ignore_index=True)
-    return df
+    if datasets:
+        df = pd.concat(datasets, ignore_index=True)
+        return df
+    else:
+        raise ValueError("No valid data to concatenate. Ensure the input files are not empty or missing.")
 
 
 def exp1(results_name: str):
@@ -388,6 +391,374 @@ def exp1(results_name: str):
     plt.savefig(save_path)
     plt.close()
 
+def exp2(results_name: str):
+    # ================
+    # Some setup
+    print("Running exp2")
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', results_name)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Create figs directory
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    lbl_map = {
+        "stable": "Stable",
+        "high_growth": "High Growth",
+        "time_bomb": "Time-bomb",
+        "aggregate": "Aggregate"
+    }
+
+    # ================
+    # Load data
+
+    try:
+        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "cristal_results.json"), 'r'))
+    except FileNotFoundError:
+        # Older format
+        print("cristal_results.json not found, trying older format...")
+        cristal_results = json.load(open(os.path.join(RESULTS_DIR, "alla_results.json"), 'r'))
+
+    llm_results: dict = json.load(open(os.path.join(RESULTS_DIR, "llm_results.json"), 'r'))
+
+    # Combine the set of errored assets from both CRISTAL and LLM, to keep things balanced
+    errors = set()
+    errors |= {a_id for a_id, asset in cristal_results.items() if "error" in asset}
+    errors |= {a_id for a_id, asset in llm_results.items() if "error" in asset}
+
+    # Load CRISTAL results -- filter out errors
+    cristal_data = [
+        {
+            "asset": a_id,
+            "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "true_category": asset['truth']['category'],
+            "growth": asset['growth'][2][1],  # p_50
+            "true_growth": asset['truth']['growth'],
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
+        }
+        for a_id, asset in cristal_results.items() if a_id not in errors
+    ]
+    # LLM data
+    llm_data = [
+        {
+            "asset": a_id,
+            "category": max(asset['category'], key=lambda x: asset['category'][x]),
+            "true_category": asset['truth']['category'],
+            "growth": asset['growth'][2][1],  # p_50
+            "true_growth": asset['truth']['growth'],
+            "class_loss": asset['class_loss'],
+            "parametric_score": asset['parametric_score'],
+            "non_parametric_loss": asset['non_parametric_loss']
+        }
+        for a_id, asset in llm_results.items() if a_id not in errors
+    ]
+    truth_data = [
+        {
+            "asset": a_id,
+            "category": v["truth"]["category"],
+            "growth": v["truth"]["growth"],
+        }
+        for a_id, v in llm_results.items() if a_id not in errors
+    ]
+
+    # Create a combined pandas df of the category and growth values for llm and truth sets
+    df = pd.concat(
+        [
+            pd.DataFrame(cristal_data).assign(source="CRISTAL"),
+            pd.DataFrame(llm_data).assign(source="LLM"),
+            pd.DataFrame(truth_data).assign(source="Truth")
+        ], ignore_index=True
+    )
+
+    # Often we want to filter out the Truth data
+    df_nt = df[df["source"] != "Truth"]
+
+    # We can also create an aggregate category that duplicates the data but is helpful
+    # for plotting alongside the individual categories
+    df_aggregate = df_nt.copy()
+    df_aggregate["true_category"] = "aggregate"
+    df_aggregate["category"] = "aggregate"
+
+    # ================
+    # On to figures
+
+    # <><>< 1. Category Count ><><>
+    save_path = os.path.join(SAVE_DIR, f"cat-dist.{save_fmt}")
+    plt.figure(figsize=(4, 4))
+    sns.countplot(
+        data=df, x="category", hue="source", order=["high_growth", "stable", "time_bomb"]
+    )
+    # Remove x label
+    plt.xlabel("")
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in plt.gca().get_xticklabels()]
+    plt.xticks(ticks=[0, 1, 2], labels=labels)
+    plt.ylabel("")
+    plt.legend(title=None)
+    plt.tight_layout()
+    # Save and close
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 2. Growth Distribution ><><>
+    # We plot the growth distributions for each category, and compare the sources
+    save_path = os.path.join(SAVE_DIR, f"growth-dist.{save_fmt}")
+
+    g = sns.FacetGrid(
+        df,
+        col="category",
+        hue="source",
+        sharex=True,
+        sharey=True,
+        height=4,
+        aspect=1.2,
+    )
+
+    # Map the growth distribution (using histplot or kdeplot)
+    g.map(sns.histplot, "growth", alpha=0.5, kde=False, bins=20)
+    g.add_legend()
+    # Improve the titles
+    for ax, title in zip(g.axes.flat, ["High Growth", "Stable", "Time-bomb"]):
+        ax.set_title(title)
+        ax.set_xlabel("Growth")
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 3. Confusion Matrix, LLM ><><>
+    # Create a confusion matrix for the category predictions for LLM vs Truth sources
+    save_path = os.path.join(SAVE_DIR, f"confusion-llm.{save_fmt}")
+
+    # We need to sort by 'asset' column
+    y_true = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred = df[df["source"] == "LLM"].sort_values("asset")["category"]
+
+    cm = confusion_matrix(y_true, y_pred)
+    cm_df = pd.DataFrame(
+        cm, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm_df, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    ### Latex export ###
+    # Classification report for LLM results
+    report_llm = classification_report(
+        y_true, y_pred, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
+    report_llm_df = pd.DataFrame(report_llm).transpose()
+    # Calculate accuracy and MCC
+    accuracy_llm = (y_true.reset_index(drop=True) == y_pred.reset_index(drop=True)).mean()
+    mcc_llm = matthews_corrcoef(y_true, y_pred)
+    # Save the updated report to LaTeX
+    save_path_llm_report = os.path.join(RESULTS_DIR, "figs/classification_report_llm.tex")
+    caption = f"Classification report for LLM results. Accuracy: {accuracy_llm:.2f}, MCC: {mcc_llm:.2f}"
+    print(f"Saving LLM classification report to {save_path_llm_report}")
+    with open(save_path_llm_report, 'w') as f:
+        f.write(report_llm_df.to_latex(caption=caption, label="tab:classification_report_llm"))
+
+    # <><>< 4. Confusion Matrix, CRISTAL ><><>
+    save_path = os.path.join(SAVE_DIR, f"confusion-cristal.{save_fmt}")
+
+    y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")["category"]
+    y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")["category"]
+
+    cm_cristal = confusion_matrix(y_true_cristal, y_pred_cristal)
+    cm_cristal_df = pd.DataFrame(
+        cm_cristal, index=["High Growth", "Stable", "Time-bomb"], columns=["High Growth", "Stable", "Time-bomb"]
+    )
+
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(cm_cristal_df, annot=True, fmt="d", cmap="Blues")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix for CRISTAL")
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    ### Latex export ###
+    report_cristal = classification_report(
+        y_true_cristal, y_pred_cristal, target_names=["High Growth", "Stable", "Time-bomb"], output_dict=True
+    )
+    report_cristal_df = pd.DataFrame(report_cristal).transpose()
+    # Calculate accuracy and MCC
+    accuracy_cristal = (y_true_cristal.reset_index(drop=True) == y_pred_cristal.reset_index(drop=True)).mean()
+    mcc_cristal = matthews_corrcoef(y_true_cristal, y_pred_cristal)
+
+    # Save the updated report to LaTeX with caption
+    save_path_cristal_report = os.path.join(RESULTS_DIR, "figs/classification_report_cristal.tex")
+    caption = f"Classification report for CRISTAL results. Accuracy: {accuracy_cristal:.2f}, MCC: {mcc_cristal:.2f}"
+    print(f"Saving CRISTAL classification report to {save_path_cristal_report}")
+    with open(save_path_cristal_report, 'w') as f:
+        f.write(report_cristal_df.to_latex(caption=caption, label="tab:classification_report_cristal"))
+
+    # <><>< 5. Class Loss Boxplot ><><>
+    # Create a boxplot of the class loss for each source (except for Truth), grouped by the corresponding
+    # true category. Includes "Aggregate" group as well
+    save_path = os.path.join(SAVE_DIR, f"class-loss-box.{save_fmt}")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
+
+    # --- Main categories ---
+    sns.boxplot(
+        data=df_nt, x="true_category", y="class_loss", hue="source",
+        log_scale=True, showfliers=False, ax=ax1
+    )
+    sns.stripplot(
+        data=df_nt, x="true_category", y="class_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax1
+    )
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Class Loss")
+    ax1.legend(title=None)
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+
+    # --- Aggregate category ---
+    sns.boxplot(
+        data=df_aggregate, x="true_category", y="class_loss", hue="source",
+        log_scale=True, showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_aggregate, x="true_category", y="class_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 6. Parametric Score Boxplot ><><>
+    # Similar to above
+    save_path = os.path.join(SAVE_DIR, f"parametric-score-box.{save_fmt}")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
+
+    # --- Main categories ---
+    sns.boxplot(
+        data=df_nt, x="true_category", y="parametric_score", hue="source",
+        showfliers=False, ax=ax1
+    )
+    sns.stripplot(
+        data=df_nt, x="true_category", y="parametric_score", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax1
+    )
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Parametric Score")
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+    ax1.legend(title=None)
+
+    # --- Aggregate category ---
+    sns.boxplot(
+        data=df_aggregate, x="true_category", y="parametric_score", hue="source",
+        showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_aggregate, x="true_category", y="parametric_score", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+    # <><>< 7. Non-Parametric Loss Boxplot ><><>
+    # Similar to above
+    save_path = os.path.join(SAVE_DIR, f"non-parametric-loss-box.{save_fmt}")
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 4), gridspec_kw={'width_ratios': [3, 1]})
+
+    # --- Main categories ---
+    sns.boxplot(
+        data=df_nt, x="true_category", y="non_parametric_loss", hue="source",
+        showfliers=False, ax=ax1
+    )
+    sns.stripplot(
+        data=df_nt, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax1
+    )
+    ax1.set_xlabel("")
+    ax1.set_ylabel("Non-Parametric Loss")
+    # Reformat tick labels using lbl_map
+    labels = [lbl_map[l.get_text()] for l in ax1.get_xticklabels()]
+    ax1.set_xticks(ticks=[0, 1, 2], labels=labels)
+    ax1.legend(title=None)
+
+    # --- Aggregate category ---
+    sns.boxplot(
+        data=df_aggregate, x="true_category", y="non_parametric_loss", hue="source",
+        showfliers=False, ax=ax2
+    )
+    sns.stripplot(
+        data=df_aggregate, x="true_category", y="non_parametric_loss", hue="source", size=3.2,
+        dodge=True, jitter=True, edgecolor="auto", linewidth=1,
+        legend=False, ax=ax2
+    )
+    ax2.set_xlabel("")
+    ax2.set_ylabel("")  # Remove y-label
+    ax2.set_yticklabels([])  # Remove y-ticks
+    ax2.set_xticks(ticks=[0], labels=["Aggregate"])
+    ax2.get_legend().remove()
+    # Align y-axis limits between both plots
+    ax2.set_ylim(ax1.get_ylim())
+
+    # Improve layout
+    plt.tight_layout()
+
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
+
+
+
 
 def budget_plot():
     """
@@ -494,6 +865,7 @@ def budget_plot():
 
     # Create two plots for the Accuracy and MCC
     fig, axs = plt.subplots(2, 1, figsize=(6, 8))
+    fig.suptitle("N-shot Analysis", fontsize=16)  # Add a title to the figure
 
     from pprint import pprint
     pprint(results)
@@ -533,6 +905,287 @@ def budget_plot():
     plt.close()
 
 
+def n_shot_plot():
+    """
+    Plot mean classification accuracy for various n-shot values.
+    """
+
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', 'multirun')
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Compile runs iterating over the RESULTS_DIR
+    results = {}
+    for run_dir in os.listdir(RESULTS_DIR):
+        run_path = os.path.join(RESULTS_DIR, run_dir)
+        if not os.path.isdir(run_path):
+            continue
+        # Infer n_shot from the directory name if not present in config.json
+        try:
+            run_config = json.load(open(os.path.join(run_path, "config.json"), 'r'))
+        except FileNotFoundError:
+            print(f"Skipping {run_path}, no config.json found.")
+            continue
+        n_shot = run_config.get("n_shot", None)
+        if n_shot is None:
+            # Attempt to extract n_shot from the directory name
+            try:
+                n_shot = int(run_dir.split("n_shots")[1])
+            except (ValueError, IndexError):
+                print(f"Skipping {run_path}, unable to infer n_shot value.")
+                continue
+
+        run_name = run_config["base_llm"]["name"]
+        # Load data
+        print(run_path)
+        df = results_to_df(run_path)
+        # For LLM
+        y_true_llm = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
+        y_pred_llm = df[df["source"] == "LLM"].sort_values("asset")[["category"]]
+        # Calculate accuracy and MCC for LLM
+        y_true_llm = y_true_llm.reset_index(drop=True)
+        y_pred_llm = y_pred_llm.reset_index(drop=True)
+
+        try:
+            accuracy_llm = accuracy_score(y_true_llm, y_pred_llm)
+            mcc_llm = matthews_corrcoef(y_true_llm.values.ravel(), y_pred_llm.values.ravel())
+        except ValueError as e:
+            print(f"Skipping {run_path}, unable to calculate accuracy or MCC for LLM: {e}")
+            continue
+
+        # For CRISTAL
+        if "CRISTAL" in df["source"].unique():
+            y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
+            y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")[["category"]]
+            # Calculate accuracy and MCC for CRISTAL
+            y_true_cristal = y_true_cristal.reset_index(drop=True)
+            y_pred_cristal = y_pred_cristal.reset_index(drop=True)
+        else:
+            y_true_cristal = pd.DataFrame(columns=["category"])
+            y_pred_cristal = pd.DataFrame(columns=["category"])
+
+        try:
+            accuracy_cristal = accuracy_score(y_true_cristal, y_pred_cristal)
+            mcc_cristal = matthews_corrcoef(y_true_cristal.values.ravel(), y_pred_cristal.values.ravel())
+        except ValueError as e:
+            accuracy_cristal = np.nan
+            mcc_cristal = np.nan
+            print(f"Skipping {run_path}, unable to calculate accuracy or MCC for CRISTAL: {e}")
+            continue
+
+        # Append to data of this run name or create new
+        if run_name not in results:
+            results[run_name] = {
+            "accuracy": {
+                "x": [float(n_shot)],
+                "llm_y": [accuracy_llm],
+                "cristal_y": [accuracy_cristal],
+            },
+            "mcc": {
+                "x": [float(n_shot)],
+                "llm_y": [mcc_llm],
+                "cristal_y": [mcc_cristal],
+            }
+            }
+        else:
+            results[run_name]['accuracy']['x'].append(n_shot)
+            results[run_name]['accuracy']['llm_y'].append(accuracy_llm)
+            results[run_name]['accuracy']['cristal_y'].append(accuracy_cristal)
+            results[run_name]['mcc']['x'].append(n_shot)
+            results[run_name]['mcc']['llm_y'].append(mcc_llm)
+            results[run_name]['mcc']['cristal_y'].append(mcc_cristal)
+
+        # Create two plots for the Accuracy and MCC
+        # Sort the results by n_shot for consistent plotting
+
+
+    fig, axs = plt.subplots(2, 1, figsize=(6, 8))
+
+    # Accuracy plot
+    ax = axs[0]
+    for name, data in results.items():
+        # Sort the results by x values (n_shot) for consistent plotting
+        sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
+        x_sorted, llm_y_sorted = zip(*sorted_data)
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--')
+
+    # Extract CRISTAL data
+    cristal_data = {
+        "accuracy": {
+            "x": [],
+            "cristal_y": []
+        },
+        "mcc": {
+            "x": [],
+            "cristal_y": []
+        }
+    }
+    for name, data in results.items():
+        cristal_data["accuracy"]["x"].extend(data["accuracy"]["x"])
+        cristal_data["accuracy"]["cristal_y"].extend(data["accuracy"]["cristal_y"])
+        cristal_data["mcc"]["x"].extend(data["mcc"]["x"])
+        cristal_data["mcc"]["cristal_y"].extend(data["mcc"]["cristal_y"])
+    if cristal_data:
+        sorted_cristal_data = sorted(zip(cristal_data['accuracy']['x'], cristal_data['accuracy']['cristal_y']))
+        x_sorted_cristal = [x for x, _ in sorted_cristal_data]
+        cristal_means = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).mean() for x in sorted(set(x_sorted_cristal))]
+        cristal_stds = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).std() for x in sorted(set(x_sorted_cristal))]
+        x_unique = sorted(set(x_sorted_cristal))
+        ax.errorbar(x=x_unique, y=cristal_means, yerr=cristal_stds, marker='+', linestyle='-', label="CRISTAL", color="blue")
+        ax.fill_between(
+            x_unique,
+            [m - s for m, s in zip(cristal_means, cristal_stds)],
+            [m + s for m, s in zip(cristal_means, cristal_stds)],
+            alpha=0.2,
+            color="blue"
+        )
+
+    ax.set_xticks(sorted(set(x for data in results.values() for x in data['accuracy']['x'])))
+    ax.set_xlabel("N-shot examples of each category")
+    ax.set_ylabel("Classification Accuracy")
+    ax.set_ylim(0, 1)
+
+    # MCC plot
+    ax = axs[1]
+    for name, data in results.items():
+        # Sort the results by x values (n_shot) for consistent plotting
+        sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
+        x_sorted, llm_y_sorted = zip(*sorted_data)
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--')
+
+    # Add CRISTAL results with error bands
+    if cristal_data:
+        sorted_cristal_data = sorted(zip(cristal_data['mcc']['x'], cristal_data['mcc']['cristal_y']))
+        x_sorted_cristal = [x for x, _ in sorted_cristal_data]
+        cristal_means = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).mean() for x in sorted(set(x_sorted_cristal))]
+        cristal_stds = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).std() for x in sorted(set(x_sorted_cristal))]
+        x_unique = sorted(set(x_sorted_cristal))
+        ax.errorbar(x=x_unique, y=cristal_means, yerr=cristal_stds, marker='+', linestyle='-', label="CRISTAL", color="blue")
+        ax.fill_between(
+            x_unique,
+            [m - s for m, s in zip(cristal_means, cristal_stds)],
+            [m + s for m, s in zip(cristal_means, cristal_stds)],
+            alpha=0.2,
+            color="blue"
+        )
+
+    ax.set_xticks(sorted(set(x for data in results.values() for x in data['mcc']['x'])))
+    ax.set_xlabel("N-shot examples of each category")
+    ax.set_ylabel("MCC")
+
+    # Add legends outside the plots
+    handles, labels = axs[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="center right", title=None, bbox_to_anchor=(1.25, 0.5))
+
+    # Tight layout
+    plt.tight_layout(rect=[0, 0, 0.8, 1])  # Adjust layout to make space for the legend
+    # Save
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    save_path = os.path.join(SAVE_DIR, "n_shot_plot.pdf")
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path, bbox_inches="tight")
+    plt.close()
+
+    # Convert results to a pandas DataFrame and generate a LaTeX table
+    results_df = pd.DataFrame()
+
+    # Process LLM results
+    for name, data in results.items():
+        for i, x in enumerate(data["accuracy"]["x"]):
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": [name],
+                    "n-shots": [int(x)],
+                    "Accuracy": [data["accuracy"]["llm_y"][i]],
+                    "MCC": [data["mcc"]["llm_y"][i]]
+                })
+            ], ignore_index=True)
+
+    # Process CRISTAL results (calculate means over runs)
+    cristal_data = {
+        "n-shots": [],
+        "Accuracy": [],
+        "MCC": []
+    }
+    for name, data in results.items():
+        cristal_data["n-shots"].extend(data["accuracy"]["x"])
+        cristal_data["Accuracy"].extend(data["accuracy"]["cristal_y"])
+        cristal_data["MCC"].extend(data["mcc"]["cristal_y"])
+
+    if cristal_data:
+        unique_n_shots = sorted(set(cristal_data["n-shots"]))
+        for n_shot in unique_n_shots:
+            accuracy_mean = pd.Series(
+                [acc for n, acc in zip(cristal_data["n-shots"], cristal_data["Accuracy"]) if n == n_shot]
+            ).mean()
+            mcc_mean = pd.Series(
+                [mcc for n, mcc in zip(cristal_data["n-shots"], cristal_data["MCC"]) if n == n_shot]
+            ).mean()
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": ["CRISTAL"],
+                    "n-shots": [int(n_shot)],
+                    "Accuracy": [accuracy_mean],
+                    "MCC": [mcc_mean]
+                })
+            ], ignore_index=True)
+
+    # Save the DataFrame as a LaTeX table
+    latex_table_path = os.path.join(SAVE_DIR, "results_table.tex")
+    print(f"Saving LaTeX table to {latex_table_path}")
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Highlight the highest values per numerical column with bold font
+    for col in ["Accuracy", "MCC"]:
+        if col in results_df.columns:
+            max_values = results_df.groupby(["n-shots"])[col].transform("max")
+            results_df[col] = results_df.apply(
+                lambda row: f"\\textbf{{{row[col]:.4f}}}" if row[col] == max_values[row.name] else f"{row[col]:.4f}",
+                axis=1
+            )
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df[["n-shots", "Model", "Accuracy", "MCC"]]
+
+    # Create a multirow design for n-shots
+    results_df["n-shots"] = results_df["n-shots"].astype(str)  # Ensure n-shots is treated as a string for grouping
+
+    with open(latex_table_path, "w") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\begin{tabular}{|l|l|r|r|}\n")
+        f.write("\\hline\n")
+        f.write("\\textbf{n-shots} & \\textbf{Model} & \\textbf{Accuracy} & \\textbf{MCC} \\\\ \n")
+        f.write("\\noalign{\\hrule height 2pt}\n")
+        current_n_shots = None
+        n_shots_counts = results_df['n-shots'].value_counts().to_dict()  # Count occurrences of each n-shot value
+        for _, row in results_df.iterrows():
+            if row['n-shots'] != current_n_shots:
+                current_n_shots = row['n-shots']
+                row_span = n_shots_counts[current_n_shots]  # Get the number of rows for this n-shot value
+                if current_n_shots != list(n_shots_counts.keys())[0]:
+                    f.write("\\noalign{\\hrule height 2pt}\n")  # Use noalign with hrule for a thicker horizontal line for new multirow, except for the first one
+                f.write(f"\\multirow{{{row_span}}}{{*}}{{{current_n_shots}}} & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+            else:
+                f.write(f" & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+
+        f.write("\\hline\n")  # Add final \hline at the end of the table
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Results Table for N-shot Analysis}\n")
+        f.write("\\label{tab:results_table}\n")
+        f.write("\\end{table}\n")
+
+
+    
+    
+
+
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
@@ -556,5 +1209,13 @@ if __name__ == '__main__':
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)
 
+    if func_name == "exp2":
+        # And second argument as the path to the results directory
+        _results_name = sys.argv[2]
+        globals()[func_name](_results_name)
+
     elif func_name == "budget_plot":
+        globals()[func_name]()
+
+    elif func_name == "n_shot_plot":
         globals()[func_name]()

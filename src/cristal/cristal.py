@@ -84,6 +84,8 @@ class CRISTAL:
         budget: float = 100,
         budget_mode: BudgetMode = BudgetMode.WALL,
     ):
+        self.alpha_posterior = None
+        self.beta_posterior = None
         """
         Copy the stocks Dataset, and add new dimensions for CRISTAL's class prediction, and quantile predictions
 
@@ -121,7 +123,12 @@ class CRISTAL:
         self.sigma_g = synth.GROWTH_SCALE
         # Shorthand
         self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
-
+        # Initialize indicators dataset
+        self.indicators: xr.Dataset = synth.get_indicator_dataset()
+        
+        # Initialize priors
+        self.initialize_priors()
+        self.initialize_posteriors()
         # Also initializes a couple attributes
         self.reset()
 
@@ -197,6 +204,7 @@ class CRISTAL:
         )
 
         # Indicator Dataset
+        ### TODO: initialize to uniform prior IFF exp2
         self.indicators: xr.Dataset = synth.get_indicator_dataset()
         self._cached_reports = {}
 
@@ -265,6 +273,78 @@ class CRISTAL:
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
+    def _update_likelihoods(self, indicator_name: str, color_pred: np.ndarray):
+        """
+        Update the likelihoods for the given indicator based on the observed color prediction
+
+        :param indicator_name: Name of the indicator
+        :param color_pred: Observed color prediction as a one-hot encoded array
+        """
+        # TODO: to be implemented
+        # @michael did you want a shot at that? i cant get my head around it for some reason
+        #self.indicators.likelihood = self.ind_likelihood(indicator_name) + color_pred
+
+
+        
+
+    def initialize_priors(self):
+        """
+        Initialize the alpha and beta priors to be uniform.
+        """
+        # Uniform alpha prior: equal probability for each class
+        self.alpha_prior = np.ones(self.n_classes)
+
+        # Uniform beta prior: equal likelihood for each color across all indicators and classes
+        num_indicators = self.indicators.indicator.size
+        num_colors = self.indicators.likelihood.shape[2]
+        self.beta_prior = np.ones((self.n_classes, num_indicators,  num_colors))
+
+    def initialize_posteriors(self):
+        """
+        Initialize the alpha and beta posteriors to be uniform.
+        """
+        # Uniform alpha posterior: equal probability for each class
+        self.alpha_posterior = np.ones(self.n_classes)/self.n_classes
+
+        # Uniform beta posterior: equal likelihood for each color across all indicators and classes
+        num_indicators = self.indicators.indicator.size
+        num_colors = self.indicators.likelihood.shape[2]
+        self.beta_posterior = np.ones((self.n_classes, num_indicators, num_colors))/num_colors
+
+    def train(self, data: dict):
+        """
+        Updates the likelihood matrix based on the observed data.
+
+        Args:
+            data: A dictionary containing the observed data for each asset. The keys are the asset names, and the values are dictionaries with 'category'
+             and 'indicators' keys. The 'category' key contains the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed indicators their their true colors.
+        """
+        if not hasattr(self, "alpha_prior") or not hasattr(self, "beta_prior"):
+            raise AttributeError("Required attributes 'alpha_prior' or 'beta_prior' are not defined.")
+
+        # Reshape the dictionary input data to a NumPy array
+        # N: number of observations, J: number of indicators
+        indicators = list(data.values())[0]['sampled_colors'].keys()
+        N = len(data)
+        J = len(indicators)
+        X = np.zeros((N, J), dtype=int)
+
+        for i, (asset_name, asset_data) in enumerate(data.items()):
+            for j, indicator in enumerate(indicators):
+                x_ij = asset_data['sampled_colors'][indicator]
+                x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2	# Convert color to integer
+                X[i, j] = x_ij
+
+        # Update beta (likelihood matrix).
+        for j in range(J):  # Iterate over indicators
+            for k_val, category in enumerate(self.classes.keys()):  # Iterate over classes
+                for c in range(self.beta_prior.shape[2]):  # Iterate over colors
+                    self.beta_posterior[k_val, j, c] = self.beta_prior[k_val, j, c] + np.sum(
+                        (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
+                    )
+        epsilon = 1e-20  # Small value to prevent division by zero
+        self.indicators['likelihood'] = (('class', 'indicator', 'color'), self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
+
     def add_budget(self, budget: float):
         """
         Add budget to the model
@@ -305,7 +385,7 @@ class CRISTAL:
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
             color_likelihoods = color_likelihoods.reshape(-1, )
-
+            logger.debug(f"Current likelihood matrix: {self.indicators.likelihood.values}")
             # TODO -- optimize
             for ic, c in enumerate(["red", "yellow", "green"]):
                 # P(c | p_k)
@@ -374,7 +454,9 @@ class CRISTAL:
 
         for can in candidates:
             utility = 0
-
+            ### TODO: does this give CRISTAL the likelihoods we dont want it to have in exp2 anymore?
+            ### maybe iniialize a uniform prior for the likelihoods?
+            ### update belief in likelihoods based on the data
             class_color_matrix = self.ind_likelihood(can['name'])  # [classes, colors]
             # Sum over the colors for each asset-class
             color_likelihoods = prior.reshape(1, -1) @ class_color_matrix  # [p(r|p), p(y|p), p(g|p)]
@@ -413,6 +495,7 @@ class CRISTAL:
 
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
+
 
     def process_asset(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
@@ -510,7 +593,8 @@ class CRISTAL:
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
                     self.compute_growth_quantiles(asset=asset)
-
+                    # update beta (the likelihood matrix here)
+                    # self._update_likelihoods(ind['name'], color_pred)
                     continue
 
                 ###################
@@ -567,7 +651,6 @@ class CRISTAL:
                     self._update_alphas(asset, alphas)
                     # TODO -- Maybe move this out for performance
                     self.compute_growth_quantiles(asset=asset)
-
                     self._update_prior(asset, p_k)
                     # Early stopping if prior for one class > 0.95 or plateaus
                     if np.max(p_k) > 0.95:
@@ -577,7 +660,7 @@ class CRISTAL:
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
                     # Check the last_n isn't from the initialized values
-                    init_prior = np.ones(self.n_classes,) / self.n_classes
+                    init_prior = np.ones(self.n_classes,) / self.n_classes                    
                     if not np.allclose(last_n_priors, init_prior):
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
@@ -794,6 +877,7 @@ class CRISTAL:
             llm = AVAILABLE_MODELS[llm_code](
                 temperature=llm_temp
             )
+
         # Create the model
         m = cls(
             stocks, llm, asset_memory_depth=asset_memory_depth,
