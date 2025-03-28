@@ -707,7 +707,7 @@ class CRISTAL:
     
     def _compute_growth_quantiles_codegen(self, asset: xr.Dataset):
         """ load the generated code from cristal.llm.codegen.compute_growth_quantiles_codegen and use it for the return statement """
-        return raise NotImplementedError("This method is not implemented in the current codegen version of CRISTAL")
+        raise NotImplementedError("This method is not implemented in the current codegen version of CRISTAL")
     
     # maintain the whole structure of our process assets function for partial codegen so nothing breaks downstream
     def process_asset_partial_codegen(

@@ -336,3 +336,4 @@ def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.
     """
     load the codegen function from cristal.llm.codegen.dirichlet_bayes and return it
     """
+    raise NotImplementedError("dirichlet_bayes_codegen not implemented yet")
