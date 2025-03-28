@@ -1,10 +1,10 @@
 """
 Validators and formatting models for LLM codegen
 """
-from typing import Optional, ClassVar
 import ast
+from typing import Any, ClassVar, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError
+from pydantic import BaseModel, Field, field_validator, ValidationError
 
 
 class LLMCodeGenException(ValidationError):
@@ -37,7 +37,27 @@ GREEN_IMPORTS = {
 }
 
 
-class LLMCodeGen(BaseModel):
+class CodeGenInputVar(BaseModel):
+    """
+    Defines the formatting of a codegen function input argument.
+    Helps the LLM understand what data is incoming.
+    """
+    arg: str
+    description: str
+    datatype: Any
+
+
+class CodeGenOutputVar(BaseModel):
+    """
+    Defines the formatting of a codegen function output argument.
+    Helps the LLM understand what data to return.
+    """
+    name: str
+    description: str
+    datatype: Any
+
+
+class LLMCodeGenValidator(BaseModel):
     """
     Base validator for LLM-generated code
     """
@@ -46,13 +66,18 @@ class LLMCodeGen(BaseModel):
         description="Python code for execution."
     )
     # Self-referencing other methods in multimethod scenarios
-    sibling: 'Optional[LLMCodeGen]' = None
+    sibling: 'Optional[LLMCodeGenValidator]' = None
 
+    # ---
     # Private attributes that avoid regular validation stream
     is_function: ClassVar[bool | None] = None  # Must be set to specified to declare if returned code is a function or
     # not
     function_name: ClassVar[str | None] = None
-    required_args: ClassVar[tuple | None] = None  # Tuple
+    required_args: ClassVar[tuple[CodeGenInputVar] | None] = None
+    returned_data: ClassVar[tuple[CodeGenOutputVar] | None] = None
+    # Optional description to pass into LLM for codegen. We default to the validator docstring if this is null.
+    # The args and returned data objects will automatically be included in the prompt.
+    prompt_description: ClassVar[str | None] = None
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -109,7 +134,25 @@ class LLMCodeGen(BaseModel):
         # Validate required argument names
         actual_args = tuple([arg.arg for arg in func.args.args])
 
-        if actual_args != cls.required_args:
-            raise ValueError(f"Expected arguments {cls.required_args}, got {actual_args}.")
+        arg_names = tuple([arg['arg'] for arg in cls.required_args])
+        if actual_args != arg_names:
+            raise ValueError(f"Expected arguments {arg_names}, got {actual_args}.")
+
+        # Much less clear how to validate output data, but we can at least check the number of returns
+        for stmt in func.body:
+            if isinstance(stmt, ast.Return):
+                if stmt.value is None:
+                    raise ValueError("Explicit 'return' with no value is not allowed.")
+
+                elif isinstance(stmt.value, ast.Tuple):
+                    if len(stmt.value.elts) != len(cls.returned_data):
+                        raise ValueError(
+                            f"Expected {len(cls.returned_data)} return values, got {len(stmt.value.elts)}."
+                        )
+
+                elif len(cls.returned_data) != 1:
+                    raise ValueError(
+                        f"Expected {len(cls.returned_data)} return values, got 1."
+                    )
 
         return code
