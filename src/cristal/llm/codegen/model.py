@@ -57,4 +57,4 @@ class LLMCodeGen:
                 Returns: {returns}
                 """
 
-        return None
+        raise NotImplementedError("The generate_function method is not yet implemented.")
