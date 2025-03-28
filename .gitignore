@@ -172,3 +172,5 @@ tmp.*
 .secrets.json
 tests/OAI_CONFIG_LIST
 manuscript/
+poetry.lock
+pyproject.toml
