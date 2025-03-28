@@ -23,7 +23,7 @@ def get_feedback(predict, target):
         feedback1 = """
         Expected {}, but got {}. Please check the implementation.
         """.format(target.data, predict.data)
-        if predict.shape != target.shape:
+        if predict.data.shape != target.data.shape:
             feedback2 = """
             test case failed! Shape mismatch: Expected shape {}, but got shape {}. Please ensure the implementation returns the correct shape.
             """.format(target.data.shape, predict.data.shape)
