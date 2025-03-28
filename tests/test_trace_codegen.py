@@ -23,15 +23,8 @@ def get_feedback(predict, target):
         feedback1 = """
         Expected {}, but got {}. Please check the implementation.
         """.format(target.data, predict.data)
-        if predict.data.shape != target.data.shape:
-            feedback2 = """
-            test case failed! Shape mismatch: Expected shape {}, but got shape {}. Please ensure the implementation returns the correct shape.
-            """.format(target.data.shape, predict.data.shape)
-        else:
-            feedback2 = """
-            test case failed! Expected {}, but got {}. Please check the implementation.
-            """.format(target.data, predict.data)
-        return "test case failed! \n"+feedback0+feedback1+feedback2
+        
+        return "test case failed! \n"+feedback0+feedback1
 
 
 @bundle(trainable=True)
