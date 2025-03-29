@@ -17,7 +17,7 @@ if __name__ == '__main__':
     reset_logger(DEBUG)
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("qwen-medium")
+        llm_cls = get_llm("qwen-large")
     else:
         llm_cls = get_llm("qwen-tiny")
 
