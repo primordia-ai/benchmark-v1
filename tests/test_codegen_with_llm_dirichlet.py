@@ -18,10 +18,8 @@ if __name__ == '__main__':
 
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("qwen-large")
-        max_retries, budget = 10, 120
     else:
         llm_cls = get_llm("qwen-tiny")
-        max_retries, budget = 6, 60
 
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
@@ -33,7 +31,7 @@ if __name__ == '__main__':
     llm.log_to_file(llm_log)
 
     codegen_llm = LLMCodeGen(llm)
-
+    max_retries, budget = 5, 60
     try:
         code = codegen_llm.generate_function(DirichletBayesFunction, max_retries, budget)
     except LLMCodeGenException as e:
