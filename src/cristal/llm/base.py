@@ -3,13 +3,14 @@ Consolidate LLM models, and LLM utils etc.
 """
 import time
 from abc import ABC
+from typing import Type
 
 import instructor
 from instructor.exceptions import InstructorRetryException
-from tenacity import (RetryCallState, Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random)
 from tqdm import tqdm
 
 from cristal.llm import utils as llm_utils
+from cristal.llm.codegen.validator import LLMCodeGenValidator
 from cristal.llm.wrangling import read_reports
 from cristal.logger import logger
 from cristal.utils import BudgetMode
@@ -62,6 +63,9 @@ class LLMBaseClass(ABC):
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.
         """,  # Inserting the cristal.utils.describe_class(CRISTAL) would be a circular import
+        "codegen": """
+        You are a masterful Python developer and excel at writing precise, efficient code for any task.
+        """,
     }
 
     def __init__(
@@ -297,6 +301,63 @@ class LLMBaseClass(ABC):
             return predictions[-1], True
         else:
             return error_result, False
+
+    def generate_codegen_function(
+        self, prompt: str,
+        validator: Type[LLMCodeGenValidator],
+        max_retries: int | None = None,
+        budget: float | None = None
+    ) -> tuple[str | dict, bool]:
+        """
+        Generate a codegen function
+
+        Note, both max_retries and budget can be passed in as valid terminating conditions.
+
+        :param prompt:          The prompt to use for the code generation.
+        :param validator:       The validator to use against the proposed code string.
+        :param max_retries:     The maximum number of retries to attempt.
+        :param budget:          Budget to perform the evaluation within.
+        :return:                The validated code string, and a boolean indicating success
+        """
+        client = self.get_client()
+        error_result = None
+        start = time.time()
+        if "gemini" in self.code.lower():
+            additional_kwargs = {}
+        else:
+            additional_kwargs = {
+                "model": self.code,
+                "temperature": self.temperature,
+                "seed": self.seed,
+            }
+
+        retry_ctrl = llm_utils.get_retry_control(max_retries, budget, wait_range=(0.1, 0.3))
+        try:
+            response, completion = client.chat.completions.create_with_completion(
+                **additional_kwargs,
+                messages=[
+                    {
+                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        # back-compatible
+                        "content": self.system_roles["codegen"],
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    },
+                ],
+                response_model=validator,
+                max_retries=retry_ctrl,
+            )
+        except InstructorRetryException as e:
+            # Could not manage to produce a response
+            error_result = {
+                "error": str(e),
+                "last_completion": e.last_completion,  # e.messages[-1]
+            }
+            return error_result, False
+
+        return response.model_dump()["code"], True
 
     def __str__(self):
         """Return name and class dot notation"""

@@ -1,11 +1,11 @@
 import ast
 
 import numpy as np
+from opto.trace import bundle
 from pydantic import model_validator, ValidationError
 
 from cristal.llm.codegen.validator import GREEN_IMPORTS, LLMCodeGenValidator
 
-from opto.trace import node, bundle
 
 class DirichletBayesFunction(LLMCodeGenValidator):
     """
@@ -61,7 +61,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
 
     # "after"-model validators have 'self' argument and act on the instance object
     @model_validator(mode="after")
-    def test_array_shapes(self):
+    def test_successful_inference(self):
         """
         Validate that the shapes of the arrays are correct
         """
@@ -77,6 +77,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
                 for alias in node.names:
                     if alias.name.split(".")[0] in GREEN_IMPORTS:
                         # Add the import to the namespace
+                        # TODO -- Why did I comment this out...
                         # namespace[alias.name.split(".")[0]] = __import__(alias.name)
                         continue
 
@@ -156,10 +157,12 @@ numpy.ndarray]:
     return posterior, _alphas
 '''
 
+
 # add skeleton code for codegen for the functions we want to generate
 # this is the code that will be used to generate the function with trace
 @bundle(trainable=True)
-def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[
+    np.ndarray, np.ndarray]:
     """
     Bayesian update of the asset's class prediction.
     Does not modify p_k and alphas in place, returns updated versions.
@@ -172,6 +175,5 @@ def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.
 
     posterior = np.ndarray()  # Placeholder for the generated code
     # Avoiding modifying in place, just in case
-    _alphas = np.ndarray() # Placeholder for the generated code
+    _alphas = np.ndarray()  # Placeholder for the generated code
     return posterior, _alphas
-

@@ -2,7 +2,7 @@
 Validators and formatting models for LLM codegen
 """
 import ast
-from typing import Any, ClassVar, Optional
+from typing import Any, Callable, ClassVar
 
 from pydantic import BaseModel, Field, field_validator, ValidationError
 
@@ -10,14 +10,14 @@ from pydantic import BaseModel, Field, field_validator, ValidationError
 class LLMCodeGenException(ValidationError):
     """
     Custom error for LLM codegen
-    TODO -- Doesn't work atm...
     """
 
-    def __init__(self, message: str, exception: Exception):
-        # Format the message
-        message = f"LLMCodeGenException: {message}\nSource Exception: {exception}"
-        super().__init__(message)
-        self.exception = exception
+    # TODO -- Doesn't work atm
+    # def __init__(self, message: str, exception: Exception):
+    #     # Format the message
+    #     message = f"LLMCodeGenException: {message}\nSource Exception: {exception}"
+    #     super().__init__(message)
+    #     self.exception = exception
 
 
 INSECURE_METHODS = {
@@ -57,6 +57,30 @@ class CodeGenOutputVar(BaseModel):
     datatype: Any
 
 
+def load_code(code: str, func_name) -> Callable:
+    """
+    Load code into AST and add to the namespace. Return the function.
+    """
+    tree = ast.parse(code)
+    # Check for green imports and add them to the namespace
+    # Also provide some standards
+    namespace = {}
+    # The following is to try and import green libs on the fly,
+    # but it seems to be a bit buggy and the internal function fails to use them
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            for alias in node.names:
+                if alias.name.split(".")[0] in GREEN_IMPORTS:
+                    # Add the import to the namespace
+                    # TODO -- Why did I comment this out...
+                    # namespace[alias.name.split(".")[0]] = __import__(alias.name)
+                    continue
+
+    # Create local namespace for this function
+    exec(code, {}, namespace)
+    return namespace[func_name]
+
+
 class LLMCodeGenValidator(BaseModel):
     """
     Base validator for LLM-generated code
@@ -66,7 +90,8 @@ class LLMCodeGenValidator(BaseModel):
         description="Python code for execution."
     )
     # Self-referencing other methods in multimethod scenarios
-    sibling: 'Optional[LLMCodeGenValidator]' = None
+    # Disable this for now
+    # sibling: 'Optional[LLMCodeGenValidator]' = None
 
     # ---
     # Private attributes that avoid regular validation stream
