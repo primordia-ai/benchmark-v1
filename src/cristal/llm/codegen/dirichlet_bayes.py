@@ -11,7 +11,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
     """
     Defines a function for Bayesian updating according to a Dirichlet prior (parametrized by 'alphas').
     Input arguments include:
-        1. A 2D numpy array where rows represent probabilities across outcomes (and sum to 1);
+        1. A 1D likelihood of the observed data
         2. A 1D prior of over category beliefs
         3. Alphas that parametrize the Dirichlet prior.
     Output:
@@ -20,13 +20,12 @@ class DirichletBayesFunction(LLMCodeGenValidator):
     """
     is_function = True
     function_name = "dirichlet_bayes"
-    prompt_description = ("Perform a Bayesian update for a Dirichlet prior, given the prior, alphas, and likelihoods. "
-                          "The likelihood is a 2D numpy array where rows represent probabilities across outcomes.")
+    prompt_description = "Perform a Bayesian update for a Dirichlet prior, given the prior, alphas, and likelihood."
     required_args = tuple(
         [
             {
                 "arg": "likelihood",
-                "description": "Likelihood matrix for the indicator",
+                "description": "Likelihood of the data",
                 "datatype": np.ndarray
             },
             {
@@ -98,6 +97,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
                 [0.5, 0.4, 0.01],
             ]
         )
+        # Reduce the likelihood given the observed color
         likelihood = likelihood @ color_pred.reshape(-1, 1)
         likelihood = likelihood.reshape(3, )
         p_k = np.array([0.2, 0.2, 0.6])
