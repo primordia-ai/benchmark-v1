@@ -61,7 +61,7 @@ class LLMCodeGen:
                 {{
                     "code": <str>
                 }}
-                where the "code" string the entire function code.
+                where the "code" string is the entire function code.
                 """
 
         logger.debug(f"Codegen prompt:\n{prompt}")
