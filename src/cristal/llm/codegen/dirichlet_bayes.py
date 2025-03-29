@@ -63,7 +63,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
     @model_validator(mode="after")
     def test_successful_inference(self):
         """
-        Validate that the shapes of the arrays are correct
+        Validate the it performs the inference correctly
         """
         tree = ast.parse(self.code)
 
