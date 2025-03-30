@@ -68,6 +68,9 @@ class LLMCodeGen:
         # Submit this to the LLM
         code, success = self.llm.generate_codegen_function(prompt, validator, max_retries, budget)
         if not success:
+            logger.debug(f"Codegen failed for function {validator.function_name}. Last attempt:\n"
+                         f"{code['last_completion']}")
+
             raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}")
 
         # Successful code string
