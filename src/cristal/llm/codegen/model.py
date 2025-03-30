@@ -71,4 +71,5 @@ class LLMCodeGen:
             raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}")
 
         # Successful code string
+        logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
         return load_code(code, validator.function_name)
