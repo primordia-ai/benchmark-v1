@@ -158,8 +158,7 @@ numpy.ndarray]:
 '''
 
 
-# add skeleton code for codegen for the functions we want to generate
-# this is the code that will be used to generate the function with trace
+# Add skeleton code for trace for the functions we want to generate
 @bundle(trainable=True)
 def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[
     np.ndarray, np.ndarray]:
