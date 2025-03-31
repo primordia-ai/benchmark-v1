@@ -1,11 +1,11 @@
 """
 LLMCodeGen model
 """
-from typing import Callable
+from typing import Callable, Type
 
-from cristal.llm.codegen.validator import LLMCodeGenValidator, LLMCodeGenException
 from cristal.llm.base import LLMBaseClass
-from cristal.llm.utils import get_retry_control
+from cristal.llm.codegen.validator import LLMCodeGenException, LLMCodeGenValidator, load_code
+from cristal.logger import logger
 
 
 class LLMCodeGen:
@@ -15,12 +15,13 @@ class LLMCodeGen:
     Provides an interface for LLM code generation.
     Initialization requires an initialized LLMBaseClass object.
     """
+
     def __init__(self, llm: LLMBaseClass):
         self.llm: LLMBaseClass = llm
 
     def generate_function(
         self,
-        validator: LLMCodeGenValidator,
+        validator: Type[LLMCodeGenValidator],
         max_retries: int | None = None,
         budget: float | None = None,
         prompt_override: str | None = None,
@@ -55,6 +56,23 @@ class LLMCodeGen:
                 Purpose: {validator.prompt_description}
                 Args: {args}
                 Returns: {returns}
+                
+                Return your response in JSON format as:
+                {{
+                    "code": <str>
+                }}
+                where the "code" string is the entire function code.
                 """
 
-        raise NotImplementedError("The generate_function method is not yet implemented.")
+        logger.debug(f"Codegen prompt:\n{prompt}")
+        # Submit this to the LLM
+        code, success = self.llm.generate_codegen_function(prompt, validator, max_retries, budget)
+        if not success:
+            logger.debug(f"Codegen failed for function {validator.function_name}. Last attempt:\n"
+                         f"{code['last_completion']}")
+
+            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}")
+
+        # Successful code string
+        logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
+        return load_code(code, validator.function_name)
