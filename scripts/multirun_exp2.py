@@ -26,7 +26,7 @@ def run_multi_exp2():
         #"deepseek-r1-14b",
         #"deepseek-r1-70b",
         #"qwen-32b",
-        #"qwen-72b",
+        "qwen-72b",
         # CAREFUL with rated usage
         #"gpt-4o",
         #"gemini2",
