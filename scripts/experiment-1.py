@@ -237,7 +237,7 @@ def main():
     #####################
     # Configure CRISTAL
     #
-    stocks = synth.stocks_to_xarray(stocks)
+    stocks = synth.stocks_to_xarray(stocks, train_size=500) # idk y 500
     if mode in ['cristal', 'both']:
         # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(

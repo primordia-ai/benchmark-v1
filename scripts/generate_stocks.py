@@ -26,7 +26,7 @@ if __name__ == '__main__':
             print("\nWarning: Low quality score, check verification metrics.")
 
     # As xarray
-    ds = synth.stocks_to_xarray(stocks)
+    ds = synth.stocks_to_xarray(stocks, train_size=500) # default is 500...
 
     # Print summary
     print(f"\n{'-' * 50}")

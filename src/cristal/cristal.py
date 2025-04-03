@@ -5,10 +5,9 @@ import copy
 import datetime
 import json
 import os
-import random
 import sys
 import time
-from typing import Dict, Optional, Union, List
+from typing import Dict, List, Optional, Union, Any, Type
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,11 +21,14 @@ from cristal import stats as cristal_stats, synthetic as synth
 from cristal.env import PROJECT_ROOT, REPORTS_DIR
 from cristal.llm import AVAILABLE_MODELS
 from cristal.llm.base import LLMBaseClass, SoftIndicatorExtractionError
+from cristal.llm.codegen.model import LLMCodeGen
+from cristal.llm.codegen.validator import LLMCodeGenException, LLMCodeGenValidator, load_code
 from cristal.llm.wrangling import read_reports
 from cristal.logger import logger
 from cristal.utils import BudgetMode, describe_class
 
 Indicators = synth.Indicators
+
 
 class CRISTAL:
     """
@@ -55,6 +57,8 @@ class CRISTAL:
         llm (LLMBaseClass): Loaded LLM at CRISTAL's disposal for various tasks.
         stocks (xarray.Dataset): Dataset for the assets/stocks. Also where CRISTAL's belief model parameters are stored.
         indicators (xarray.Dataset): Indicator dataset of likelihoods of a color given class.
+        use_codegen (bool): Use our codegen module instead of the hardcoded functions in stats
+        codegen_llm (LLMCodeGen): Optional LLMCodeGen instance if using codegen
         _cached_reports (Optional[Dict[str, str]]): Cached reports.
         _version (str): Version.
     """
@@ -73,8 +77,12 @@ class CRISTAL:
     llm: LLMBaseClass
     stocks: xr.Dataset
     indicators: xr.Dataset
+    use_codegen: bool
+    codegen_llm: Optional[LLMCodeGen]
     _cached_reports: Optional[Dict[str, str]]
     _version: str = "0.2"
+
+
 
     def __init__(
         self,
@@ -83,6 +91,7 @@ class CRISTAL:
         asset_memory_depth: int = 20,
         budget: float = 100,
         budget_mode: BudgetMode = BudgetMode.WALL,
+        use_codegen: bool = False,
     ):
         self.alpha_posterior = None
         self.beta_posterior = None
@@ -94,6 +103,7 @@ class CRISTAL:
         :param asset_memory_depth:  How many inference updates to remember for each asset
         :param budget:              Budget for CRISTAL to spend on inference
         :param budget_mode:         Budget mode
+        :param use_codegen:         Use the codegen module instead of hardcoded functions from our stats lib
         """
         # Copy the stocks Dataset and add new dimension for CRISTAL's class prediction, and quantile predictions
         self.stocks: xr.Dataset = stocks_dataset.copy()
@@ -104,6 +114,16 @@ class CRISTAL:
         self.budget_mode = budget_mode
         assert budget_mode in BudgetMode, f"Invalid budget mode {budget_mode}"
         self.llm = llm
+
+        # Codegen
+        self.use_codegen = use_codegen
+        self.codegen_llm = None
+        # Track loaded codegen functions with this
+        # Call the run_codegen_suite method to populate this lookup
+        self.loaded_codegens = {}
+        if use_codegen:
+            # Init and assign LLMCodeGen instance
+            self.codegen_llm = LLMCodeGen(self.llm)
 
         self.n_assets = len(self.stocks.asset)
         self.classes = {
@@ -125,7 +145,7 @@ class CRISTAL:
         self.quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
         # Initialize indicators dataset
         self.indicators: xr.Dataset = synth.get_indicator_dataset()
-        
+
         # Initialize priors
         self.initialize_priors()
         self.initialize_posteriors()
@@ -273,8 +293,6 @@ class CRISTAL:
         )
         self.stocks['prior'].loc[asset.asset][:, -1] = posterior
 
-
-
     def _update_likelihoods(self, indicator_name: str, color_pred: np.ndarray):
         """
         Update the likelihoods for the given indicator based on the observed color prediction
@@ -284,10 +302,51 @@ class CRISTAL:
         """
         # TODO: to be implemented
         # @michael did you want a shot at that? i cant get my head around it for some reason
-        #self.indicators.likelihood = self.ind_likelihood(indicator_name) + color_pred
+        # self.indicators.likelihood = self.ind_likelihood(indicator_name) + color_pred
 
+    def run_codegen_suite(self, validators: list[Type[LLMCodeGenValidator]]) -> None:
+        """
+        Query the LLM to load all the codegen functions based on the provided validators
 
-        
+        :param validators:  Codegen functions to generate
+        :return:            None
+        """
+        for val in validators:
+            logger.info(f"Loading codegen function '{val.function_name}'...")
+            if val.function_name in self.loaded_codegens:
+                logger.warning(f"Already loaded codegen function '{val.function_name}'. Continuing")
+                continue
+
+            try:
+                result = self.codegen_llm.generate_function(
+                    val, max_retries=5, budget=60
+                )
+            except LLMCodeGenException as e:
+                # Raise this again
+                raise e
+            else:
+                # Add to our lookup
+                self.loaded_codegens[val.function_name] = result
+
+        logger.info(f"Finished Codegen suite")
+
+    def codegen_pipe(self, function_name: str, function_kwargs: dict) -> Any:
+        """
+        Hacky interim solution to pipe a potential codegen function to the
+        """
+        if not self.loaded_codegens:
+            raise RuntimeError("Codegen function requested but it has not been initialized.")
+
+        if function_name not in self.loaded_codegens:
+            raise ValueError(f"Function '{function_name}' not in loaded codegen functions")
+
+        if self.use_codegen:
+            return self.loaded_codegens[function_name](**function_kwargs)
+        else:
+            if function_name == "dirichlet_bayes":
+                return cristal_stats.dirichlet_bayes(**function_kwargs)
+            else:
+                raise ValueError(f"Undefined method '{function_name}' passed into codegen_pipe")
 
     def initialize_priors(self):
         """
@@ -299,27 +358,29 @@ class CRISTAL:
         # Uniform beta prior: equal likelihood for each color across all indicators and classes
         num_indicators = self.indicators.indicator.size
         num_colors = self.indicators.likelihood.shape[2]
-        self.beta_prior = np.ones((self.n_classes, num_indicators,  num_colors))
+        self.beta_prior = np.ones((self.n_classes, num_indicators, num_colors))
 
     def initialize_posteriors(self):
         """
         Initialize the alpha and beta posteriors to be uniform.
         """
         # Uniform alpha posterior: equal probability for each class
-        self.alpha_posterior = np.ones(self.n_classes)/self.n_classes
+        self.alpha_posterior = np.ones(self.n_classes) / self.n_classes
 
         # Uniform beta posterior: equal likelihood for each color across all indicators and classes
         num_indicators = self.indicators.indicator.size
         num_colors = self.indicators.likelihood.shape[2]
-        self.beta_posterior = np.ones((self.n_classes, num_indicators, num_colors))/num_colors
+        self.beta_posterior = np.ones((self.n_classes, num_indicators, num_colors)) / num_colors
 
-    def train(self, data: dict):
+    def likelihood_inference(self, data: dict):
         """
         Updates the likelihood matrix based on the observed data.
 
         Args:
-            data: A dictionary containing the observed data for each asset. The keys are the asset names, and the values are dictionaries with 'category'
-             and 'indicators' keys. The 'category' key contains the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed indicators their their true colors.
+            data: A dictionary containing the observed data for each asset. The keys are the asset names,
+                and the values are dictionaries with 'category' and 'indicators' keys. The 'category' key contains
+                the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed
+                indicators their their true colors.
         """
         if not hasattr(self, "alpha_prior") or not hasattr(self, "beta_prior"):
             raise AttributeError("Required attributes 'alpha_prior' or 'beta_prior' are not defined.")
@@ -334,7 +395,7 @@ class CRISTAL:
         for i, (asset_name, asset_data) in enumerate(data.items()):
             for j, indicator in enumerate(indicators):
                 x_ij = asset_data['sampled_colors'][indicator]
-                x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2	# Convert color to integer
+                x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
                 X[i, j] = x_ij
 
         # Update beta (likelihood matrix).
@@ -345,7 +406,8 @@ class CRISTAL:
                         (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
                     )
         epsilon = 1e-20  # Small value to prevent division by zero
-        self.indicators['likelihood'] = (('class', 'indicator', 'color'), self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
+        self.indicators['likelihood'] = (('class', 'indicator', 'color'),
+        self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
 
     def add_budget(self, budget: float):
         """
@@ -498,7 +560,6 @@ class CRISTAL:
         # Return the sorted list of candidates, descending
         return [tup[0] for tup in sorted(indicator_tuples, key=lambda x: x[1], reverse=True)]
 
-
     def process_asset(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
     ) -> tuple[bool, Optional[str], float]:
@@ -590,7 +651,15 @@ class CRISTAL:
                     color_pred = np.eye(3)[color_to_ind[color]]
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+
+                    # p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    codegen_input = {
+                        "likelihood": likelihood,
+                        "p_k": p_k,
+                        "alphas": alphas,
+                    }
+                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+
                     # Update
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
@@ -631,7 +700,7 @@ class CRISTAL:
                     try:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
-                         )
+                        )
                     except SoftIndicatorExtractionError as e:
                         logger.warning(f"Failed to extract indicator '{selected_name}'")
                         logger.debug(f"Failure Reason: {e}")
@@ -647,7 +716,12 @@ class CRISTAL:
                 if not extraction_failed:
                     likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    codegen_input = {
+                        "likelihood": likelihood,
+                        "p_k": p_k,
+                        "alphas": alphas,
+                    }
+                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
                     # Update
                     qual_processed = True
                     self._update_alphas(asset, alphas)
@@ -662,7 +736,7 @@ class CRISTAL:
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
                     # Check the last_n isn't from the initialized values
-                    init_prior = np.ones(self.n_classes,) / self.n_classes                    
+                    init_prior = np.ones(self.n_classes, ) / self.n_classes
                     if not np.allclose(last_n_priors, init_prior):
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
@@ -691,7 +765,6 @@ class CRISTAL:
                     logger.debug(f"Asset budget exhausted")
                     break
 
-
         if not qual_processed:
             logger.warning("No qualitative indicators were within budget.")
             # Zero out the budget to prevent infinite recursion
@@ -704,11 +777,11 @@ class CRISTAL:
         # self.refresh_indicator_rank()
 
         return True, "", budget
-    
+
     def _compute_growth_quantiles_codegen(self, asset: xr.Dataset):
         """ load the generated code from cristal.llm.codegen.compute_growth_quantiles_codegen and use it for the return statement """
         raise NotImplementedError("This method is not implemented in the current codegen version of CRISTAL")
-    
+
     # maintain the whole structure of our process assets function for partial codegen so nothing breaks downstream
     def process_asset_partial_codegen(
         self, asset: Union[xr.Dataset, str], max_budget: float = None, pre_extracted: dict | None = None
@@ -842,7 +915,7 @@ class CRISTAL:
                     try:
                         extr_color, se_cost = self._call_soft_extractor(
                             asset, selected_name, budget, reports_text
-                         )
+                        )
                     except SoftIndicatorExtractionError as e:
                         logger.warning(f"Failed to extract indicator '{selected_name}'")
                         logger.debug(f"Failure Reason: {e}")
@@ -873,7 +946,7 @@ class CRISTAL:
                     # Check for plateau
                     last_n_priors = self.stocks['prior'].loc[asset.asset][:, -5].values
                     # Check the last_n isn't from the initialized values
-                    init_prior = np.ones(self.n_classes,) / self.n_classes                    
+                    init_prior = np.ones(self.n_classes, ) / self.n_classes
                     if not np.allclose(last_n_priors, init_prior):
                         avg_difference = np.mean(abs(p_k - last_n_priors))
                         if avg_difference < 0.1:
@@ -901,7 +974,6 @@ class CRISTAL:
                 if budget <= 0:
                     logger.debug(f"Asset budget exhausted")
                     break
-
 
         if not qual_processed:
             logger.warning("No qualitative indicators were within budget.")
@@ -992,7 +1064,6 @@ class CRISTAL:
             prior = self.stocks.prior.sel(asset=asset.asset).values[:, -1]
             quantile_values = synth.compute_growth_quantiles(prior, list(quantiles))
             self._update_quantile_pred(asset, quantile_values)
-    
 
     def save_model(
         self,
@@ -1230,4 +1301,3 @@ def prompt_cristal_briefing() -> str:
     prompt += describe_class(CRISTAL)
 
     return prompt
-

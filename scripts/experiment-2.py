@@ -252,7 +252,7 @@ def main():
         training_data = synth.get_ground_truth_samples(args.n_shots, args.train_size)
         logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
         logger.debug("shape of predefined likelihood matrix: %s", m.indicators.likelihood.shape)
-        m.train(training_data)
+        m.likelihood_inference(training_data)
         logger.debug("Updated likelihood matrix: %s", m.indicators.likelihood.values)
         logger.debug("shape of updated likelihood matrix: %s", m.indicators.likelihood.shape)
         run_data['cristal'] = m.to_json()
