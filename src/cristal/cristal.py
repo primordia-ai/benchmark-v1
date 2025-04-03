@@ -340,7 +340,13 @@ class CRISTAL:
         if function_name not in self.loaded_codegens:
             raise ValueError(f"Function '{function_name}' not in loaded codegen functions")
 
-        return self.loaded_codegens[function_name](**function_kwargs)
+        if self.use_codegen:
+            return self.loaded_codegens[function_name](**function_kwargs)
+        else:
+            if function_name == "dirichlet_bayes":
+                return cristal_stats.dirichlet_bayes(**function_kwargs)
+            else:
+                raise ValueError(f"Undefined method '{function_name}' passed into codegen_pipe")
 
     def initialize_priors(self):
         """
@@ -646,7 +652,14 @@ class CRISTAL:
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
 
-                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    # p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    codegen_input = {
+                        "likelihood": likelihood,
+                        "p_k": p_k,
+                        "alphas": alphas,
+                    }
+                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+
                     # Update
                     self._update_alphas(asset, alphas)
                     self._update_prior(asset, p_k)
@@ -703,7 +716,12 @@ class CRISTAL:
                 if not extraction_failed:
                     likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
+                    codegen_input = {
+                        "likelihood": likelihood,
+                        "p_k": p_k,
+                        "alphas": alphas,
+                    }
+                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
                     # Update
                     qual_processed = True
                     self._update_alphas(asset, alphas)
