@@ -1026,7 +1026,7 @@ def stocks_to_xarray(stocks, train_size=None) -> xr.Dataset:
     """
     Convert list of synthetic stocks into an xarray Dataset with both financial and soft indicators.
     """
-    if not train_size:
+    if train_size is None:
         raise ValueError(f"Need to define a train size")
 
     # Get list of all indicators

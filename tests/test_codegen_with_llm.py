@@ -43,7 +43,7 @@ class SquareIntFunction(LLMCodeGenValidator):
     )
 
     @model_validator(mode="after")
-    def test_array_shapes(self):
+    def test_output(self):
         func = load_code(self.code, self.function_name)
         inputs = [134, 234, 214, 99, 999]
         answers = [x ** 2 for x in inputs]
