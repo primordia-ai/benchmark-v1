@@ -992,7 +992,7 @@ def generate_synthetic_stocks(n_stocks: int, as_dataset: bool = True) -> List[Di
         stocks[asset_id] = stock_data
 
     if as_dataset:
-        return stocks_to_xarray(stocks)
+        return stocks_to_xarray(stocks, train_size=500)  # default is 500
 
     return stocks
 
@@ -1022,10 +1022,13 @@ def print_stock_summary(stock_data: Dict[str, Any]) -> None:
     print("\nQuality Score:", f"{fin['verification']['quality_score']:.1%}")
 
 
-def stocks_to_xarray(stocks, train_size=500) -> xr.Dataset:
+def stocks_to_xarray(stocks, train_size=None) -> xr.Dataset:
     """
     Convert list of synthetic stocks into an xarray Dataset with both financial and soft indicators.
     """
+    if not train_size:
+        raise ValueError(f"Need to define a train size")
+
     # Get list of all indicators
     financial_indicators = list(INDEPENDENT_INDICATOR_INTERVALS.keys())
     soft_indicators = ['disruptor_stagnant',

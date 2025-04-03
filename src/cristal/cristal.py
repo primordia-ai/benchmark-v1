@@ -7,7 +7,7 @@ import json
 import os
 import sys
 import time
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional, Union, Any, Type
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -304,7 +304,7 @@ class CRISTAL:
         # @michael did you want a shot at that? i cant get my head around it for some reason
         # self.indicators.likelihood = self.ind_likelihood(indicator_name) + color_pred
 
-    def run_codegen_suite(self, validators: list[LLMCodeGenValidator]) -> None:
+    def run_codegen_suite(self, validators: list[Type[LLMCodeGenValidator]]) -> None:
         """
         Query the LLM to load all the codegen functions based on the provided validators
 
