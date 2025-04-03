@@ -1,5 +1,5 @@
 # benchmark-v1
-Benchmarking ALLA architecture vs LLM-based analysts.
+Benchmarking CRISTAL architecture vs LLM-based analysts.
 
 
 ## Setup
@@ -9,8 +9,8 @@ Setup is straightforward with [poetry](https://python-poetry.org/docs/).
 # In project root
 poetry install
 ```
-This will install our `src` modules (`alla`, ...).  
-You can then use simply import our src structures as `alla.llm`, `alla.utils` , etc.
+This will install our `src` modules (`CRISTAL`, ...).  
+You can then use simply import our src structures as `CRISTAL.llm`, `CRISTAL.utils` , etc.
 
 ### Env and Package management
 
@@ -48,7 +48,7 @@ Creating and registering new LLMs is easy.
 
   1. Create your class in a logical place, and inherit the base class `LLMBaseClass`.
   2. Override the required methods
-  3. Register it by adding it to `AVAILABLE_MODELS` in `src/alla/llm/__init__.py`
+  3. Register it by adding it to `AVAILABLE_MODELS` in `src/CRISTAL/llm/__init__.py`
   4. Bonus points for setting its `context_window`, but this isn't necessary at the moment.
 
 ## `nltk`
