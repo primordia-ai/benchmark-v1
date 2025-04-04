@@ -171,10 +171,10 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
 
 # For testing
 solution_string = '''
-import numpy
+import numpy as np
 
 
-def indicator_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarray:
+def indicator_likelihood_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarray:
     """
     Update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors
 
@@ -196,7 +196,7 @@ def indicator_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarr
         for j in range(J):  # Iterate over indicators
             for c in range(n_color):  # Iterate over colors
                 posterior[k_val, j, c] = prior[k_val, j, c] + np.sum(
-                    (observations[:, j+1] == c) & (observations[:, 0] == k_val)
+                    (observations[:, j + 1] == c) & (observations[:, 0] == k_val)
                 )
     epsilon = 1e-10  # Small value to prevent division by zero
     normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
