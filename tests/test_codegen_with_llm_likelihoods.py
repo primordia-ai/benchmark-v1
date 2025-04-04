@@ -8,7 +8,7 @@ from cristal.env import SYSTEM_USER
 from cristal.llm import get_llm
 from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference, solution_string
 from cristal.llm.codegen.model import LLMCodeGen
-from cristal.llm.codegen.validator import LLMCodeGenException
+from cristal.llm.codegen.validator import LLMCodeGenException, load_code
 from cristal import synthetic as synth
 from cristal.logger import logger
 
@@ -71,7 +71,8 @@ if __name__ == '__main__':
     logger.info("Testing on sample training data")
 
     print(f"MW TEST WITH SOLN STRING DEBUG")
-    code = solution_string
+    code = load_code(solution_string, IndicatorLikelihoodInference.function_name)
+
 
     # Test on some training samples
     n_shots, train_size = 5, 100
