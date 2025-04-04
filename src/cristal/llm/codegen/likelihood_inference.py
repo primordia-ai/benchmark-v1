@@ -126,7 +126,8 @@ def outer_indicator_inference(data: dict) -> np.ndarray:
 
 class IndicatorLikelihoodInference(LLMCodeGenValidator):
     """
-    Function for performing inference on a set of data to determine a likelihood matrix for indicators
+    Function for performing inference on a set of data to determine a likelihood matrix for indicators.
+    Each indicator has a different set of likelihoods given category.
 
     Args:
         prior: Array of shape (n_category, n_indicator, n_color) for the indicator likelihoods across
@@ -139,8 +140,10 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
     """
     is_function = True
     function_name = "indicator_likelihood_inference"
-    prompt_description = ("Update an indicator likelihood prior using Bayesian inference, from N observations of "
-                          "indicator colors and categories")
+    prompt_description = (
+        "Update an indicator likelihood prior using Bayesian inference, from N observations of "
+        "indicator colors and categories. Each indicator has a different set of likelihoods given classes."
+    )
     required_args = tuple(
         [
             {

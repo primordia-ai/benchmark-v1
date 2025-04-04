@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # Test on some training samples
     logger.info("Testing on sample training data")
-    n_shots, train_size = 5, 100
+    n_shots, train_size = 100,500
     training_data = synth.get_ground_truth_samples(n_shots, train_size)
     prior, observations = format_training_data(training_data)
     # Test the generated code
