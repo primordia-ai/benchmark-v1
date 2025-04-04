@@ -36,7 +36,7 @@ def format_training_data(data: dict) -> tuple[np.ndarray, np.ndarray]:
             x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
             observations[i, j + 1] = x_ij
 
-    prior = np.ones((n_category, J, n_color))
+    prior = np.ones((n_category, J, n_color)) / n_color
     return prior, observations
 
 
