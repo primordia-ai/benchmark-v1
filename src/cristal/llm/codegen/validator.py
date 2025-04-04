@@ -73,13 +73,14 @@ def load_code(code: str, func_name) -> Callable:
             for alias in node.names:
                 if alias.name.split(".")[0] in GREEN_IMPORTS:
                     # Add the import to the namespace
-                    # TODO -- Why did I comment this out...
-                    logger.debug(f"Importing {alias.name} into codegen namespace")
                     namespace[alias.name.split(".")[0]] = __import__(alias.name)
-                    continue
+                else:
+                    raise LLMCodeGenException(f"Import '{alias.name}' is not allowed in codegen")
 
     # Create local namespace for this function
-    exec(code, {}, namespace)
+    # exec(code, {}, namespace)
+    exec(code, namespace)
+    # Load the imports in from the namespace (those that are func_name)
     return namespace[func_name]
 
 

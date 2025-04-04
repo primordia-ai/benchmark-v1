@@ -73,7 +73,6 @@ if __name__ == '__main__':
     print(f"MW TEST WITH SOLN STRING DEBUG")
     code = load_code(solution_string, IndicatorLikelihoodInference.function_name)
 
-
     # Test on some training samples
     n_shots, train_size = 5, 100
     training_data = synth.get_ground_truth_samples(n_shots, train_size)
