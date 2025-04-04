@@ -84,7 +84,6 @@ def main():
         "--train-size", type=int, default=500, help="Number of examples to use for training. Default 500."
     )
 
-
     args = parser.parse_args()
 
     mode = args.mode
@@ -241,14 +240,14 @@ def main():
     #####################
     # Configure CRISTAL
     #
-    stocks = synth.load_stocks(test=True, train_size=args.train_size)#synth.stocks_to_xarray(stocks)
+    stocks = synth.load_stocks(test=True, train_size=args.train_size)  # synth.stocks_to_xarray(stocks)
     if mode in ['cristal', 'both']:
         # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
         )
-        #pretrain cristal here with the train method and n_shots
+        # pretrain cristal here with the train method and n_shots
         training_data = synth.get_ground_truth_samples(args.n_shots, args.train_size)
         logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
         logger.debug("shape of predefined likelihood matrix: %s", m.indicators.likelihood.shape)
@@ -392,9 +391,10 @@ def main():
                         else:
                             reports_text = summaries[-1]
 
-
                     # Modifies the prompt if indicators are provided, but they are not required
-                    prompt = llm_utils.prompt_exp2_task(reports_text, indicators, n_shots=args.n_shots, train_size = args.train_size)
+                    prompt = llm_utils.prompt_exp2_task(
+                        reports_text, indicators, n_shots=args.n_shots, train_size=args.train_size
+                    )
                     # For checking
                     start = time.time()
                     # We might wrap this in try-except, but the method itself does so for LLM request
@@ -435,7 +435,6 @@ if __name__ == '__main__':
 
     import argparse
     import json
-    from datetime import timedelta
     import os
     import time
     import sys

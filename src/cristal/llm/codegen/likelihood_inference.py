@@ -1,0 +1,204 @@
+import numpy as np
+
+from cristal.llm.codegen.validator import LLMCodeGenValidator
+
+
+def indicator_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarray:
+    """
+    Update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors
+
+    Args:
+        prior: Array of shape (n_category, n_indicator, n_color) for the indicator likelihoods across
+            category, indicator, and color.
+        observations: Array of shape (N, 1 + n_indicator), where the i-th row observation is n integer
+            vector, where j=0 is the category (integer), and j=1:n_indicator is the indicator color (as integer)
+
+    Returns:
+        np.ndarray: the updated prior.
+    """
+    posterior = prior.copy()
+    n_cat = prior.shape[0]
+    J = prior.shape[1]
+    n_color = prior.shape[2]
+
+    for k_val in range(n_cat):
+        for j in range(J):  # Iterate over indicators
+            for c in range(n_color):  # Iterate over colors
+                posterior[k_val, j, c] = prior[k_val, j, c] + np.sum(
+                    (observations[:, j + 1] == c) & (observations[:, 0] == k_val)
+                )
+    epsilon = 1e-10  # Small value to prevent division by zero
+    normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
+    return normalized
+
+
+def outer_indicator_inference(data: dict) -> np.ndarray:
+    """
+    Updates the likelihood matrix based on the observed data.
+
+    Args:
+        data: A dictionary containing the observed data for each asset. The keys are the asset names,
+            and the values are dictionaries with 'category' and 'indicators' keys. The 'category' key contains
+            the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed
+            indicators their their true colors.
+
+    Returns:
+        np.ndarray: The likelihood matrix with dimensions (n_category, n_indicator, n_color)
+    """
+    # Reshape the dictionary input data to a NumPy array
+    # N: number of observations, J: number of indicators
+    indicators: list[str] = list(data.values())[0]['sampled_colors'].keys()
+    categories = ["high_growth", "stable", "time_bomb"]
+    n_category = len(categories)
+    n_color = 3
+
+    N = len(data)
+    J = len(indicators)
+    # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
+    # j=0 is category
+    observations = np.zeros((N, J + 1), dtype=int)
+
+    for i, (asset_name, asset_data) in enumerate(data.items()):
+        # First column is the category
+        observations[i, 0] = categories.index(asset_data['category'])
+        # Remaining columns are the indicators
+        for j, indicator in enumerate(indicators):
+            x_ij = asset_data['sampled_colors'][indicator]
+            x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
+            observations[i, j + 1] = x_ij
+
+    # Update beta (likelihood matrix).
+    prior = np.ones((n_category, J, n_color))
+    posterior = indicator_inference(prior, observations)
+    return posterior
+
+
+#
+# def compute_indicator_likelihood_old(data: dict) -> np.ndarray:
+#     """
+#     Updates the likelihood matrix based on the observed data.
+#
+#     Args:
+#         data: A dictionary containing the observed data for each asset. The keys are the asset names,
+#             and the values are dictionaries with 'category' and 'indicators' keys. The 'category' key contains
+#             the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed
+#             indicators their their true colors.
+#
+#     Returns:
+#         np.ndarray: The likelihood matrix with dimensions (n_category, n_indicator, n_color)
+#     """
+#     # Reshape the dictionary input data to a NumPy array
+#     # N: number of observations, J: number of indicators
+#     indicators: list[str] = list(data.values())[0]['sampled_colors'].keys()
+#     categories = ["high_growth", "stable", "time_bomb"]
+#     n_category = len(categories)
+#     n_color = 3
+#
+#     N = len(data)
+#     J = len(indicators)
+#     # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
+#     X = np.zeros((N, J), dtype=int)
+#
+#     for i, (asset_name, asset_data) in enumerate(data.items()):
+#         for j, indicator in enumerate(indicators):
+#             x_ij = asset_data['sampled_colors'][indicator]
+#             x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
+#             X[i, j] = x_ij
+#
+#     # Update beta (likelihood matrix).
+#     prior = np.ones((n_category, J, n_color))
+#     posterior = prior.copy()
+#     for j in range(J):  # Iterate over indicators
+#         for k_val, category in enumerate(categories):  # Iterate over categories
+#             for c in range(prior.shape[2]):  # Iterate over colors
+#                 posterior[k_val, j, c] = prior[k_val, j, c] + np.sum(
+#                     (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
+#                 )
+#     epsilon = 1e-10  # Small value to prevent division by zero
+#     normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
+#     return normalized
+#
+#     self.indicators['likelihood'] = (('class', 'indicator', 'color'),
+#     posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon))
+#
+#
+
+
+class IndicatorLikelihoodInference(LLMCodeGenValidator):
+    """
+    Function for performing inference on a set of data to determine a likelihood matrix for indicators
+
+    Args:
+        prior: Array of shape (n_category, n_indicator, n_color) for the indicator likelihoods across
+            category, indicator, and color.
+        observations: Array of shape (N, 1 + n_indicator), where the i-th row observation is n integer
+            vector, where j=0 is the category (integer), and j=1:n_indicator is the indicator color (as integer)
+
+    Returns:
+        np.ndarray: the updated prior.
+    """
+    is_function = True
+    function_name = "indicator_likelihood_inference"
+    prompt_description = ("Update an indicator likelihood prior using Bayesian inference, from N observations of "
+                          "indicator colors and categories")
+    required_args = tuple(
+        [
+            {
+                "arg": "prior",
+                "description": "Prior matrix",
+                "datatype": np.ndarray
+            },
+            {
+                "arg": "observations",
+                "description": "Observations matrix",
+                "datatype": np.ndarray
+            },
+        ]
+    )
+    returned_data = tuple(
+        [
+            {
+                "name": "Posterior",
+                "description": "The bayesian posterior",
+                "type": np.ndarray
+            }
+        ]
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+# For testing
+solution_string = '''
+import numpy
+
+
+def indicator_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarray:
+    """
+    Update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors
+
+    Args:
+        prior: Array of shape (n_category, n_indicator, n_color) for the indicator likelihoods across
+            category, indicator, and color.
+        observations: Array of shape (N, 1 + n_indicator), where the i-th row observation is n integer
+            vector, where j=0 is the category (integer), and j=1:n_indicator is the indicator color (as integer)
+
+    Returns:
+        np.ndarray: the updated prior.
+    """
+    posterior = prior.copy()
+    n_cat = prior.shape[0]
+    J = prior.shape[1]
+    n_color = prior.shape[2]
+
+    for k_val in range(n_cat):
+        for j in range(J):  # Iterate over indicators
+            for c in range(n_color):  # Iterate over colors
+                posterior[k_val, j, c] = prior[k_val, j, c] + np.sum(
+                    (observations[:, j+1] == c) & (observations[:, 0] == k_val)
+                )
+    epsilon = 1e-10  # Small value to prevent division by zero
+    normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
+    return normalized
+'''

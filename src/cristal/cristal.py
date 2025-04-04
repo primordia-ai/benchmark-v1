@@ -382,33 +382,9 @@ class CRISTAL:
                 the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed
                 indicators their their true colors.
         """
-        if not hasattr(self, "alpha_prior") or not hasattr(self, "beta_prior"):
-            raise AttributeError("Required attributes 'alpha_prior' or 'beta_prior' are not defined.")
-
-        # Reshape the dictionary input data to a NumPy array
-        # N: number of observations, J: number of indicators
-        indicators = list(data.values())[0]['sampled_colors'].keys()
-        N = len(data)
-        J = len(indicators)
-        X = np.zeros((N, J), dtype=int)
-
-        for i, (asset_name, asset_data) in enumerate(data.items()):
-            for j, indicator in enumerate(indicators):
-                x_ij = asset_data['sampled_colors'][indicator]
-                x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
-                X[i, j] = x_ij
-
-        # Update beta (likelihood matrix).
-        for j in range(J):  # Iterate over indicators
-            for k_val, category in enumerate(self.classes.keys()):  # Iterate over classes
-                for c in range(self.beta_prior.shape[2]):  # Iterate over colors
-                    self.beta_posterior[k_val, j, c] = self.beta_prior[k_val, j, c] + np.sum(
-                        (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
-                    )
-        epsilon = 1e-20  # Small value to prevent division by zero
+        likelihoods = cristal_stats.outer_indicator_inference(data)
         # TODO -- @Felix, this should be "category" not "class"
-        self.indicators['likelihood'] = (('class', 'indicator', 'color'),
-        self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
+        self.indicators['likelihood'] = (('class', 'indicator', 'color'), likelihoods)
 
     def add_budget(self, budget: float):
         """
