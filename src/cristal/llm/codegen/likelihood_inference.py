@@ -1,6 +1,7 @@
 import numpy as np
+from pydantic import model_validator, ValidationError
 
-from cristal.llm.codegen.validator import LLMCodeGenValidator
+from cristal.llm.codegen.validator import LLMCodeGenValidator, load_code
 
 
 def indicator_inference(prior: np.ndarray, observations: np.ndarray) -> np.ndarray:
@@ -187,6 +188,30 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    @model_validator(mode="after")
+    def test_output(self):
+        """
+        Verify some aspects of the return value
+        """
+        # Create a dummy prior and observations
+        prior = np.ones((3, 2, 3)) / 3
+        observations = np.array([
+            [0, 1, 2],
+            [1, 2, 2],
+            [2, 1, 0]
+        ])
+
+        # Call the function
+        func = load_code(self.code, self.function_name)
+        posterior = func(prior, observations)
+
+        print(f"MW DEBUG RESULT -- {posterior}")
+        assert posterior.shape == (3, 2, 3), "Output shape is incorrect"
+        assert np.allclose(posterior.sum(axis=2), 1), "Posterior probabilities do not sum to 1"
+        assert not np.allclose(posterior, prior), "Function is identity operation"
+
+        return self
 
 
 # For testing
