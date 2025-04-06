@@ -153,6 +153,8 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
 
     Update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors and 
     categories. Each indicator has a different set of likelihoods given classes.
+    Recall that the Bayesian update formula is
+    posterior = likelihood * prior
 
     Tip:
         First work out the closed-form Bayesian update for the class probability vector p.
