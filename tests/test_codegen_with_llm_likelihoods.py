@@ -62,17 +62,21 @@ if __name__ == '__main__':
 
     codegen_llm = LLMCodeGen(llm)
     max_retries, budget = 5, 60
+
+    # Get training samples
+    logger.info("Testing on sample training data")
+    n_shots, train_size = 5, 100
+    training_data = synth.get_ground_truth_samples(n_shots, train_size)
+    prior, observations = format_training_data(training_data)
+    print(f"MW prior:\n{prior}")
+    print(f"MW observations:\n{observations}")
+
     try:
         code = codegen_llm.generate_function(IndicatorLikelihoodInference, max_retries, budget)
     except LLMCodeGenException as e:
         logger.error(f"Failed to generate code: {e}")
         raise e
 
-    # Test on some training samples
-    logger.info("Testing on sample training data")
-    n_shots, train_size = 20, 500
-    training_data = synth.get_ground_truth_samples(n_shots, train_size)
-    prior, observations = format_training_data(training_data)
     # Test the generated code
     try:
         posterior = code(prior, observations)

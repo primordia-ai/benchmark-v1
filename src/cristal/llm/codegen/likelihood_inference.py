@@ -140,10 +140,25 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
     """
     is_function = True
     function_name = "indicator_likelihood_inference"
-    prompt_description = (
-        "Update an indicator likelihood prior using Bayesian inference, from N observations of "
-        "indicator colors and categories. Each indicator has a different set of likelihoods given classes."
-    )
+
+    # Ok the prompt here is a bit more involved
+    prompt_description = """
+    Consider the following statistical model and code its solution. 
+    We are trying to categorize a company into one of K classes and we observe J categorical indicators, 
+    with the same number of categories (colors) C. 
+    Each indicator has a different set of likelihoods given classes. We represent the sampling distributions as
+
+    k ~ Categorical(p)
+    x_j ~ Categorical(A_{j,:,k}) # The array A (J x C x K) contains the likelihoods of each indicator given each of the latent company class k.
+
+    Update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors and 
+    categories. Each indicator has a different set of likelihoods given classes.
+
+    Tip:
+        First work out the closed-form Bayesian update for the class probability vector p.
+        Then extend this to assume the likelihood matrix is also unknown and we must simultaneously infer its parameters.
+    """
+
     required_args = tuple(
         [
             {
