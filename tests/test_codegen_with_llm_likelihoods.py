@@ -68,8 +68,6 @@ if __name__ == '__main__':
     n_shots, train_size = 5, 100
     training_data = synth.get_ground_truth_samples(n_shots, train_size)
     prior, observations = format_training_data(training_data)
-    print(f"MW prior:\n{prior}")
-    print(f"MW observations:\n{observations}")
 
     try:
         code = codegen_llm.generate_function(IndicatorLikelihoodInference, max_retries, budget)
