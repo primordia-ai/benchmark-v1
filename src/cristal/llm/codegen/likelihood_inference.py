@@ -222,7 +222,6 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
         func = load_code(self.code, self.function_name)
         posterior = func(prior, observations)
 
-        print(f"MW DEBUG RESULT -- {posterior}")
         assert posterior.shape == (3, 2, 3), "Output shape is incorrect"
         assert np.allclose(posterior.sum(axis=2), 1), "Posterior probabilities do not sum to 1"
         assert not np.allclose(posterior, prior), "Function is identity operation"
