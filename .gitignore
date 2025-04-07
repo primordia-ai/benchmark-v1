@@ -172,3 +172,5 @@ tmp.*
 .secrets.json
 
 manuscript/
+
+tests/OAI_CONFIG_LIST
