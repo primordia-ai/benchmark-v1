@@ -83,6 +83,9 @@ def main():
     parser.add_argument(
         "--train-size", type=int, default=500, help="Number of examples to use for training. Default 500."
     )
+    parser.add_argument(
+        "--use-codegen", action="store_true", help="Use codegen for CRISTAL. Default False. Uses the extractor LLM."
+    )
 
     args = parser.parse_args()
 
@@ -123,6 +126,7 @@ def main():
     strict = args.strict
     budget_per_task = args.budget
     compress_reports = args.compress_reports
+    use_codegen = args.use_codegen
     REPORTS_DIR = args.reports_dir or _REPORTS_DIR
     # Check reports is valid
     if not os.path.exists(REPORTS_DIR):
@@ -187,6 +191,9 @@ def main():
         llm.log_to_file(llm_log_path)
 
     extractor = None
+    if use_codegen and not llm_extractor_code:
+        raise ValueError("Codegen uses the Extractor LLM provided the CRISTAL.")
+
     if mode in ['cristal', 'both'] and llm_extractor_code:
         # Extractor LLM if needed
         extractor_log_path = os.path.join(results_dir, "llm-extractor.log")
@@ -228,6 +235,7 @@ def main():
         "test": testing,
         "base_llm": llm.to_json() if llm else None,
         "extractor_llm": extractor.to_json() if llm_extractor_code else None,
+        "use_codegen": use_codegen,
         "reports_dir": REPORTS_DIR,
         "budget_mode": str(budget_mode),
         "budget_per_task": budget_per_task,
@@ -246,7 +254,16 @@ def main():
         m = CRISTAL(
             stocks, extractor, asset_memory_depth=asset_memory_depth,
             budget_mode=budget_mode, budget=total_budget,
+            use_codegen=use_codegen,
         )
+
+        if use_codegen:
+            # Attempt the codegen suite with the following functions
+            codegen_functions = [
+                codegen.IndicatorLikelihoodInference,
+            ]
+            m.run_codegen_suite(codegen_functions)
+
         # pretrain cristal here with the train method and n_shots
         training_data = synth.get_ground_truth_samples(args.n_shots, args.train_size)
         logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
@@ -451,6 +468,7 @@ if __name__ == '__main__':
     from cristal.env import PROJECT_ROOT, REPORTS_DIR as _REPORTS_DIR
     from cristal.llm import get_llm, utils as llm_utils
     from cristal.llm.wrangling import read_reports, summarize_document
+    from cristal.llm import codegen as codegen
     import pytensor
 
     pytensor.config.exception_verbosity = 'high'
