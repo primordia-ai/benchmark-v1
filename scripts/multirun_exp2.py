@@ -10,13 +10,13 @@ def run_multi_exp2():
     ############
     # Variables
     n_shot_iters = [
-        1,
+        # 1,
         #5,
         10,
-        20,
+        # 20,
         #40,
         #60,
-        80
+        # 80
     ]
     model_iters = [
         #"llama-large",
@@ -26,24 +26,25 @@ def run_multi_exp2():
         #"deepseek-r1-14b",
         #"deepseek-r1-70b",
         #"qwen-32b",
-        "qwen-72b",
+        # "qwen-72b",
         # CAREFUL with rated usage
         #"gpt-4o",
         #"gemini2",
         #"gemini25",
         #####
         # Special handling for cristal
-        # "cristal"
+        "cristal"
     ]
 
     ############
     # Constants
-    tag = "multirun/"
+    tag = "ex2-cg-"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
-    extractor = "llama-small"
-    mode = "llm"
+    extractor = "qwen-large"
+    mode = "cristal"
+    use_codegen = True
     # We'll override the reports dir to 200 for this run
     #reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b"
 
@@ -54,11 +55,13 @@ def run_multi_exp2():
             if model == "cristal":
                 runs[name] = [
                     f"--n-shots={n_shots}",
+                    f"--use-codegen={use_codegen}",
                 ]
             else:
                 runs[name] = [
                     f"--llm-code={model}",
                     f"--n-shots={n_shots}",
+                    f"--use-codegen={use_codegen}",
                 ]
 
     base_command = (
