@@ -81,7 +81,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
                         continue
 
         # Create local namespace for this function
-        exec(self.code, {}, namespace)
+        exec(self.code, namespace)
         dirichlet_bayes = namespace[DirichletBayesFunction.function_name]
         # Import any green modules the code requires, and inject them into the function's globals
         for name, module in namespace.items():

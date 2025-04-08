@@ -332,7 +332,7 @@ class CRISTAL:
 
     def codegen_pipe(self, function_name: str, function_kwargs: dict) -> Any:
         """
-        Hacky interim solution to pipe a potential codegen function to the
+        Hacky interim solution to pipe centralize codegen function calls
         """
         if not self.loaded_codegens:
             raise RuntimeError("Codegen function requested but it has not been initialized.")
@@ -340,13 +340,10 @@ class CRISTAL:
         if function_name not in self.loaded_codegens:
             raise ValueError(f"Function '{function_name}' not in loaded codegen functions")
 
-        if self.use_codegen:
-            return self.loaded_codegens[function_name](**function_kwargs)
-        else:
-            if function_name == "dirichlet_bayes":
-                return cristal_stats.dirichlet_bayes(**function_kwargs)
-            else:
-                raise ValueError(f"Undefined method '{function_name}' passed into codegen_pipe")
+        if not self.use_codegen:
+            raise RuntimeError("Attempted to use codegen pipe while use_codegen = False.")
+
+        return self.loaded_codegens[function_name](**function_kwargs)
 
     def initialize_priors(self):
         """
@@ -382,32 +379,44 @@ class CRISTAL:
                 the class label of the asset, and the 'sampled_colors' key contains a dictionary of the observed
                 indicators their their true colors.
         """
-        if not hasattr(self, "alpha_prior") or not hasattr(self, "beta_prior"):
-            raise AttributeError("Required attributes 'alpha_prior' or 'beta_prior' are not defined.")
-
         # Reshape the dictionary input data to a NumPy array
         # N: number of observations, J: number of indicators
-        indicators = list(data.values())[0]['sampled_colors'].keys()
+        indicators: list[str] = list(data.values())[0]['sampled_colors'].keys()
+        categories = ["high_growth", "stable", "time_bomb"]
+        n_category = len(categories)
+        n_color = 3
+
         N = len(data)
         J = len(indicators)
-        X = np.zeros((N, J), dtype=int)
-
+        # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
+        # j=0 is category
+        observations = np.zeros((N, J + 1), dtype=int)
         for i, (asset_name, asset_data) in enumerate(data.items()):
+            # First column is the category
+            observations[i, 0] = categories.index(asset_data['category'])
+            # Remaining columns are the indicators
             for j, indicator in enumerate(indicators):
                 x_ij = asset_data['sampled_colors'][indicator]
                 x_ij = 0 if x_ij == 'red' else 1 if x_ij == 'yellow' else 2  # Convert color to integer
-                X[i, j] = x_ij
+                observations[i, j + 1] = x_ij
 
-        # Update beta (likelihood matrix).
-        for j in range(J):  # Iterate over indicators
-            for k_val, category in enumerate(self.classes.keys()):  # Iterate over classes
-                for c in range(self.beta_prior.shape[2]):  # Iterate over colors
-                    self.beta_posterior[k_val, j, c] = self.beta_prior[k_val, j, c] + np.sum(
-                        (X[:, j] == c) & (np.array([asset['category'] for asset in data.values()]) == category)
-                    )
-        epsilon = 1e-20  # Small value to prevent division by zero
-        self.indicators['likelihood'] = (('class', 'indicator', 'color'),
-        self.beta_posterior / (np.sum(self.beta_posterior, axis=2, keepdims=True) + epsilon))
+        prior = np.ones((n_category, J, n_color))
+        # Use codegen function if available
+        if self.use_codegen and "indicator_likelihood_inference" in self.loaded_codegens:
+            codegen_input = {
+                "prior": prior,
+                "observations": observations
+            }
+            posterior = self.codegen_pipe(
+                function_name="indicator_likelihood_inference",
+                function_kwargs=codegen_input
+            )
+        else:
+            # Update beta (likelihood matrix).
+            posterior = cristal_stats.indicator_inference(prior, observations)
+
+        # # TODO -- @Felix, this should be "category" not "class"
+        self.indicators['likelihood'] = (('class', 'indicator', 'color'), posterior)
 
     def add_budget(self, budget: float):
         """
@@ -652,13 +661,15 @@ class CRISTAL:
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
 
-                    # p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
-                    codegen_input = {
-                        "likelihood": likelihood,
-                        "p_k": p_k,
-                        "alphas": alphas,
-                    }
-                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+                    if self.use_codegen and "dirichlet_bayes" in self.loaded_codegens:
+                        codegen_input = {
+                            "likelihood": likelihood,
+                            "p_k": p_k,
+                            "alphas": alphas,
+                        }
+                        p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+                    else:
+                        p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
 
                     # Update
                     self._update_alphas(asset, alphas)
@@ -716,12 +727,15 @@ class CRISTAL:
                 if not extraction_failed:
                     likelihood = self.ind_likelihood(selected_name) @ extracted_color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    codegen_input = {
-                        "likelihood": likelihood,
-                        "p_k": p_k,
-                        "alphas": alphas,
-                    }
-                    p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+                    if self.use_codegen and "dirichlet_bayes" in self.loaded_codegens:
+                        codegen_input = {
+                            "likelihood": likelihood,
+                            "p_k": p_k,
+                            "alphas": alphas,
+                        }
+                        p_k, alphas = self.codegen_pipe("dirichlet_bayes", codegen_input)
+                    else:
+                        p_k, alphas = cristal_stats.dirichlet_bayes(likelihood, p_k, alphas)
                     # Update
                     qual_processed = True
                     self._update_alphas(asset, alphas)

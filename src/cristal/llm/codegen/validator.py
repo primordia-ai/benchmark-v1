@@ -4,6 +4,7 @@ Validators and formatting models for LLM codegen
 import ast
 from typing import Any, Callable, ClassVar
 
+from cristal.logger import logger
 from pydantic import BaseModel, Field, field_validator, ValidationError
 
 
@@ -72,12 +73,14 @@ def load_code(code: str, func_name) -> Callable:
             for alias in node.names:
                 if alias.name.split(".")[0] in GREEN_IMPORTS:
                     # Add the import to the namespace
-                    # TODO -- Why did I comment this out...
-                    # namespace[alias.name.split(".")[0]] = __import__(alias.name)
-                    continue
+                    namespace[alias.name.split(".")[0]] = __import__(alias.name)
+                else:
+                    raise LLMCodeGenException(f"Import '{alias.name}' is not allowed in codegen")
 
     # Create local namespace for this function
-    exec(code, {}, namespace)
+    # exec(code, {}, namespace)
+    exec(code, namespace)
+    # Load the imports in from the namespace (those that are func_name)
     return namespace[func_name]
 
 
