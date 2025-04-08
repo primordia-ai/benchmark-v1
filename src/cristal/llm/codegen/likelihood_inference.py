@@ -172,7 +172,7 @@ class IndicatorLikelihoodInference(LLMCodeGenValidator):
     for k_val in range(n_cat):
         for j in range(J):  # Iterate over indicators
             for c in range(n_color):  # Iterate over colors
-                posterior[k_val, j, c] = prior[k_val, j, c] + ...
+                posterior[k_val, j, c] = prior[k_val, j, c] ...
     epsilon = 1e-10  # Small value to prevent division by zero
     normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
     return normalized
