@@ -332,7 +332,7 @@ class CRISTAL:
 
     def codegen_pipe(self, function_name: str, function_kwargs: dict) -> Any:
         """
-        Hacky interim solution to pipe centralize codegen function calls
+        Hacky interim solution for calling codegen functions
         """
         if not self.loaded_codegens:
             raise RuntimeError("Codegen function requested but it has not been initialized.")
