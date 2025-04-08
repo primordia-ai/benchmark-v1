@@ -49,7 +49,7 @@ if __name__ == '__main__':
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("mistral-nemo")
     else:
-        llm_cls = get_llm("qwen-tiny")
+        llm_cls = get_llm("llama-small")
 
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
