@@ -55,13 +55,13 @@ def run_multi_exp2():
             if model == "cristal":
                 runs[name] = [
                     f"--n-shots={n_shots}",
-                    f"--use-codegen={use_codegen}",
                 ]
+                if use_codegen:
+                    runs[name].append("--use-codegen")
             else:
                 runs[name] = [
                     f"--llm-code={model}",
                     f"--n-shots={n_shots}",
-                    f"--use-codegen={use_codegen}",
                 ]
 
     base_command = (
