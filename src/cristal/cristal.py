@@ -326,6 +326,7 @@ class CRISTAL:
                 raise e
             else:
                 # Add to our lookup
+                logger.info(f"Loaded '{val.function_name}'")
                 self.loaded_codegens[val.function_name] = result
 
         logger.info(f"Finished Codegen suite")

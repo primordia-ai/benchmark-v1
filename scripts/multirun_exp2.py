@@ -10,13 +10,13 @@ def run_multi_exp2():
     ############
     # Variables
     n_shot_iters = [
-        # 1,
-        #5,
+        1,
+        5,
         10,
-        # 20,
+        20,
         #40,
-        #60,
-        # 80
+        60,
+        80
     ]
     model_iters = [
         #"llama-large",
@@ -38,11 +38,11 @@ def run_multi_exp2():
 
     ############
     # Constants
-    tag = "ex2-cg-"
+    extractor = "mistral-nemo"
+    tag = f"cg-{extractor}"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
-    extractor = "qwen-large"
     mode = "cristal"
     use_codegen = True
     # We'll override the reports dir to 200 for this run
