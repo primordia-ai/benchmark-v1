@@ -100,5 +100,7 @@ if __name__ == '__main__':
 
     print("MW DEBUG LIKELIHOOD")
     print(m.indicators.likelihood.sel(indicator='brand_strength').values)
+    print("---")
+    print(m.ind_likelihood("brand_strength"))
 
 
