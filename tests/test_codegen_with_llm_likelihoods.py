@@ -8,6 +8,7 @@ import numpy as np
 from cristal import synthetic as synth
 from cristal.env import SYSTEM_USER
 from cristal.cristal import CRISTAL
+from cristal.synthetic import Indicators
 from cristal.llm import get_llm
 from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference
 from cristal.llm.codegen.model import LLMCodeGen
@@ -98,9 +99,8 @@ if __name__ == '__main__':
     # Perform the inference stage
     m.likelihood_inference(training_data)
 
-    print("MW DEBUG LIKELIHOOD")
-    print(m.indicators.likelihood.sel(indicator='brand_strength').values)
-    print("---")
-    print(m.ind_likelihood("brand_strength"))
+    # Test likelihoods
+    for ind in Indicators.names:
+        print(m.ind_likelihood(ind))
 
 
