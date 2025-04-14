@@ -104,12 +104,13 @@ if __name__ == '__main__':
     p_k = m.stocks.prior.values[-1, :, -1].copy()
     indi = m.ind_likelihood("brand_strength")
     print(f"MW INDI: {indi.shape} | {indi}")
-    for ind in Indicators.names:
-        l_pre = m.ind_likelihood(ind).copy()
-        color_pred = np.eye(3)[0]
-        likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
-        likelihood = likelihood.reshape(3, )
-        print(f"MW DEBUG: {ind} | {l_pre} | {likelihood}")
 
+    # Process an asset
+    m.process_asset("asset_0")
 
-
+    # for ind in Indicators.names:
+    #     l_pre = m.ind_likelihood(ind).copy()
+    #     color_pred = np.eye(3)[0]
+    #     likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
+    #     likelihood = likelihood.reshape(3, )
+    #     print(f"MW DEBUG: {ind} | {l_pre} | {likelihood}")
