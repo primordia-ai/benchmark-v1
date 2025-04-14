@@ -98,6 +98,7 @@ if __name__ == '__main__':
     # Perform the inference stage
     m.likelihood_inference(training_data)
 
-    print(f"MW DEBUG LIKELIHOOD -- {m.indicators.likelihoods.sel('brand_strength')}")
+    print("MW DEBUG LIKELIHOOD")
+    print(m.indicators.likelihood.sel(indicator='brand_strength').values)
 
 
