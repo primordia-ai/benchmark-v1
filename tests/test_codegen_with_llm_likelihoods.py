@@ -100,7 +100,14 @@ if __name__ == '__main__':
     m.likelihood_inference(training_data)
 
     # Test likelihoods
+    alphas = m.stocks.alphas.values[-1, :, -1].copy()
+    p_k = m.stocks.prior.values[-1, :, -1].copy()
+    print(f"MW DEBUG 1 {alphas}")
     for ind in Indicators.names:
-        print(m.ind_likelihood(ind))
+        color_pred = np.eye(3)[0]
+        likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
+        likelihood = likelihood.reshape(3, )
+        print(f"MW DEBUG: {ind} | {likelihood}")
+
 
 
