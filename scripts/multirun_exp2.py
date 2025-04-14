@@ -10,12 +10,12 @@ def run_multi_exp2():
     ############
     # Variables
     n_shot_iters = [
-        1,
+        # 1,
         5,
-        10,
+        # 10,
         20,
         #40,
-        60,
+        # 60,
         80
     ]
     model_iters = [
