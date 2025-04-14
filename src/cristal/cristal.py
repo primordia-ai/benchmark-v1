@@ -420,7 +420,7 @@ class CRISTAL:
             posterior = cristal_stats.indicator_inference(prior, observations)
 
         # # TODO -- @Felix, this should be "category" not "class"
-        self.indicators['likelihood'] = (('class', 'indicator', 'color'), posterior)
+        self.indicators['likelihood'] = (('category', 'indicator', 'color'), posterior)
 
     def add_budget(self, budget: float):
         """

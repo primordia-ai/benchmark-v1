@@ -102,7 +102,7 @@ if __name__ == '__main__':
     # Test likelihoods
     alphas = m.stocks.alphas.values[-1, :, -1].copy()
     p_k = m.stocks.prior.values[-1, :, -1].copy()
-    print(f"MW DEBUG 1 {alphas}")
+    print(f"MW DEBUG 1 {p_k}")
     for ind in Indicators.names:
         color_pred = np.eye(3)[0]
         likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
