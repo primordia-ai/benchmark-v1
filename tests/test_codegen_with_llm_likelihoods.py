@@ -2,14 +2,16 @@
 Test an LLM actually trying to generate codegen code.
 """
 import os
+
 import numpy as np
 
-from cristal.env import SYSTEM_USER
-from cristal.llm import get_llm
-from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference, solution_string
-from cristal.llm.codegen.model import LLMCodeGen
-from cristal.llm.codegen.validator import LLMCodeGenException, load_code
 from cristal import synthetic as synth
+from cristal.env import SYSTEM_USER
+from cristal.cristal import CRISTAL
+from cristal.llm import get_llm
+from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference
+from cristal.llm.codegen.model import LLMCodeGen
+from cristal.llm.codegen.validator import LLMCodeGenException
 from cristal.logger import logger
 
 
@@ -84,3 +86,18 @@ if __name__ == '__main__':
 
     # Print output
     logger.info(f"Resulting posterior:\n{posterior}")
+
+    # Now test with the CRISTAL likelihood bit
+    stocks = synth.load_stocks(test=True, train_size=train_size)  # synth.stocks_to_xarray(stocks)
+    m = CRISTAL(
+        stocks, llm, asset_memory_depth=3, use_codegen=True,
+    )
+    # Instead of loading again we just directly add it
+    m.loaded_codegens[IndicatorLikelihoodInference.function_name] = code
+
+    # Perform the inference stage
+    m.likelihood_inference(training_data)
+
+    print(f"MW DEBUG LIKELIHOOD -- {m.indicators.likelihoods.sel('brand_strength')}")
+
+

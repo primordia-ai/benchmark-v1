@@ -412,6 +412,9 @@ class CRISTAL:
                 function_name="indicator_likelihood_inference",
                 function_kwargs=codegen_input
             )
+            # Ensure the shape is correct
+            assert posterior.shape == prior.shape, \
+                f"Expected posterior shape {prior.shape}, received {posterior.shape}"
         else:
             # Update beta (likelihood matrix).
             posterior = cristal_stats.indicator_inference(prior, observations)
@@ -661,6 +664,7 @@ class CRISTAL:
                     color_pred = np.eye(3)[color_to_ind[color]]
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
+                    print(f"MW DEBUG -- {likelihood}")
 
                     if self.use_codegen and "dirichlet_bayes" in self.loaded_codegens:
                         codegen_input = {
