@@ -39,7 +39,7 @@ def run_multi_exp2():
     ############
     # Constants
     extractor = "llama-small"
-    tag = f"cg-{extractor}"
+    tag = f"cg-{extractor}-"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
