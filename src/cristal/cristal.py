@@ -549,9 +549,13 @@ class CRISTAL:
                     cls_likelihood = class_color_matrix[:, ic]
                     gamma = prior * cls_likelihood
                     if np.sum(gamma) > 1e-6:
-                        gamma = gamma / np.sum(gamma)
+                        gamma /= np.sum(gamma)
                         # Expected log Bayes factor
-                        utility += p_col * np.sum(gamma * np.log(cls_likelihood) - np.log(p_col))
+                        try:
+                            utility += p_col * np.sum(gamma * np.log(cls_likelihood) - np.log(p_col))
+                        except RuntimeWarning:
+                            # Handle log(0) case
+                            continue
 
             # Add to list
             indicator_tuples.append((can, utility))
