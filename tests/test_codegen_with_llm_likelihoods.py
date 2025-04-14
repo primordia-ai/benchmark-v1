@@ -102,7 +102,8 @@ if __name__ == '__main__':
     # Test likelihoods
     alphas = m.stocks.alphas.values[-1, :, -1].copy()
     p_k = m.stocks.prior.values[-1, :, -1].copy()
-    print(f"MW DEBUG 1 {p_k}")
+    indi = m.ind_likelihood("brand_strength")
+    print(f"MW INDI: {indi.shape} | {indi}")
     for ind in Indicators.names:
         l_pre = m.ind_likelihood(ind).copy()
         color_pred = np.eye(3)[0]
