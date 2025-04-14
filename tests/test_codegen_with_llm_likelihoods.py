@@ -103,7 +103,6 @@ if __name__ == '__main__':
     alphas = m.stocks.alphas.values[-1, :, -1].copy()
     p_k = m.stocks.prior.values[-1, :, -1].copy()
     indi = m.ind_likelihood("brand_strength")
-    print(f"MW INDI: {indi.shape} | {indi}")
 
     # Process an asset
     first_asset = m.stocks.asset.values[0]
@@ -114,4 +113,4 @@ if __name__ == '__main__':
     #     color_pred = np.eye(3)[0]
     #     likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
     #     likelihood = likelihood.reshape(3, )
-    #     print(f"MW DEBUG: {ind} | {l_pre} | {likelihood}")
+    #     print(f"DEBUG: {ind} | {l_pre} | {likelihood}")

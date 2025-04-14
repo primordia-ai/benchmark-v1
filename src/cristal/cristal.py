@@ -668,7 +668,6 @@ class CRISTAL:
                     color_pred = np.eye(3)[color_to_ind[color]]
                     likelihood = self.ind_likelihood(ind['name']) @ color_pred.reshape(-1, 1)
                     likelihood = likelihood.reshape(3, )
-                    print(f"MW DEBUG NUMERATOR -- {p_k} * {likelihood} = {p_k * likelihood}")
 
                     if self.use_codegen and "dirichlet_bayes" in self.loaded_codegens:
                         codegen_input = {
