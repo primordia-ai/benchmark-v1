@@ -327,7 +327,12 @@ def dirichlet_bayes(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray)
     # alphas += alphas_star / np.sum(alphas_star)
     ###
     posterior = p_k * likelihood
-    posterior /= np.sum(posterior)
+    if np.sum(posterior) > 0:
+        posterior /= np.sum(posterior)
+    else:
+        logger.warning("prior * likelihood is zero, assigning uniform posterior")
+        posterior = np.ones_like(p_k) / len(p_k)
+
     # Avoiding modifying in place, just in case
     _alphas = alphas + posterior
     return posterior, _alphas

@@ -262,6 +262,7 @@ def main():
             codegen_functions = [
                 codegen.IndicatorLikelihoodInference,
             ]
+            logger.info("Running codegen suite...")
             m.run_codegen_suite(codegen_functions)
 
         # pretrain cristal here with the train method and n_shots

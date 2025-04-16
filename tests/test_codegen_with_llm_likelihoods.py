@@ -2,14 +2,17 @@
 Test an LLM actually trying to generate codegen code.
 """
 import os
+
 import numpy as np
 
-from cristal.env import SYSTEM_USER
-from cristal.llm import get_llm
-from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference, solution_string
-from cristal.llm.codegen.model import LLMCodeGen
-from cristal.llm.codegen.validator import LLMCodeGenException, load_code
 from cristal import synthetic as synth
+from cristal.env import SYSTEM_USER
+from cristal.cristal import CRISTAL
+from cristal.synthetic import Indicators
+from cristal.llm import get_llm
+from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference
+from cristal.llm.codegen.model import LLMCodeGen
+from cristal.llm.codegen.validator import LLMCodeGenException
 from cristal.logger import logger
 
 
@@ -47,14 +50,14 @@ if __name__ == '__main__':
     reset_logger(DEBUG)
 
     if SYSTEM_USER == "dsfhswf":
-        llm_cls = get_llm("qwen-large")
+        llm_cls = get_llm("mistral-nemo")
     else:
-        llm_cls = get_llm("qwen-tiny")
+        llm_cls = get_llm("llama-small")
 
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
 
-    llm_log = "./tmp/test_codegen_with_llm_dirichlet.log"
+    llm_log = "./tmp/test_codegen_with_llm_likelihoods.log"
     # Remove if exists
     if os.path.exists(llm_log):
         os.remove(llm_log)
@@ -84,3 +87,30 @@ if __name__ == '__main__':
 
     # Print output
     logger.info(f"Resulting posterior:\n{posterior}")
+
+    # Now test with the CRISTAL likelihood bit
+    stocks = synth.load_stocks(test=True, train_size=train_size)  # synth.stocks_to_xarray(stocks)
+    m = CRISTAL(
+        stocks, llm, asset_memory_depth=3, use_codegen=True,
+    )
+    # Instead of loading again we just directly add it
+    m.loaded_codegens[IndicatorLikelihoodInference.function_name] = code
+
+    # Perform the inference stage
+    m.likelihood_inference(training_data)
+
+    # Test likelihoods
+    alphas = m.stocks.alphas.values[-1, :, -1].copy()
+    p_k = m.stocks.prior.values[-1, :, -1].copy()
+    indi = m.ind_likelihood("brand_strength")
+
+    # Process an asset
+    first_asset = m.stocks.asset.values[0]
+    m.process_asset(first_asset)
+
+    # for ind in Indicators.names:
+    #     l_pre = m.ind_likelihood(ind).copy()
+    #     color_pred = np.eye(3)[0]
+    #     likelihood = m.ind_likelihood(ind) @ color_pred.reshape(-1, 1)
+    #     likelihood = likelihood.reshape(3, )
+    #     print(f"DEBUG: {ind} | {l_pre} | {likelihood}")

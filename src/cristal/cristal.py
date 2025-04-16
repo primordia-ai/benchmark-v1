@@ -326,13 +326,14 @@ class CRISTAL:
                 raise e
             else:
                 # Add to our lookup
+                logger.info(f"Loaded '{val.function_name}'")
                 self.loaded_codegens[val.function_name] = result
 
         logger.info(f"Finished Codegen suite")
 
     def codegen_pipe(self, function_name: str, function_kwargs: dict) -> Any:
         """
-        Hacky interim solution to pipe centralize codegen function calls
+        Hacky interim solution for calling codegen functions
         """
         if not self.loaded_codegens:
             raise RuntimeError("Codegen function requested but it has not been initialized.")
@@ -411,12 +412,15 @@ class CRISTAL:
                 function_name="indicator_likelihood_inference",
                 function_kwargs=codegen_input
             )
+            # Ensure the shape is correct
+            assert posterior.shape == prior.shape, \
+                f"Expected posterior shape {prior.shape}, received {posterior.shape}"
         else:
             # Update beta (likelihood matrix).
             posterior = cristal_stats.indicator_inference(prior, observations)
 
         # # TODO -- @Felix, this should be "category" not "class"
-        self.indicators['likelihood'] = (('class', 'indicator', 'color'), posterior)
+        self.indicators['likelihood'] = (('category', 'indicator', 'color'), posterior)
 
     def add_budget(self, budget: float):
         """
@@ -545,9 +549,13 @@ class CRISTAL:
                     cls_likelihood = class_color_matrix[:, ic]
                     gamma = prior * cls_likelihood
                     if np.sum(gamma) > 1e-6:
-                        gamma = gamma / np.sum(gamma)
+                        gamma /= np.sum(gamma)
                         # Expected log Bayes factor
-                        utility += p_col * np.sum(gamma * np.log(cls_likelihood) - np.log(p_col))
+                        try:
+                            utility += p_col * np.sum(gamma * np.log(cls_likelihood) - np.log(p_col))
+                        except RuntimeWarning:
+                            # Handle log(0) case
+                            continue
 
             # Add to list
             indicator_tuples.append((can, utility))
