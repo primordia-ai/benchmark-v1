@@ -3,13 +3,14 @@ Consolidate LLM models, and LLM utils etc.
 """
 import time
 from abc import ABC
+from typing import Type
 
 import instructor
 from instructor.exceptions import InstructorRetryException
-from tenacity import (RetryCallState, Retrying, stop_after_attempt, stop_after_delay, wait_none, wait_random)
 from tqdm import tqdm
 
 from cristal.llm import utils as llm_utils
+from cristal.llm.codegen.validator import LLMCodeGenValidator
 from cristal.llm.wrangling import read_reports
 from cristal.logger import logger
 from cristal.utils import BudgetMode
@@ -62,6 +63,9 @@ class LLMBaseClass(ABC):
         The financials may come in the form of quantitative figures, or qualitative reports.
         You are a Python class with access to a variety of methods and attributes to help you with your tasks.
         """,  # Inserting the cristal.utils.describe_class(CRISTAL) would be a circular import
+        "codegen": """
+        You are a masterful Python developer and excel at writing precise, efficient code for any task.
+        """,
     }
 
     def __init__(

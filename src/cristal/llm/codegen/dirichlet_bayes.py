@@ -1,6 +1,7 @@
 import ast
 
 import numpy as np
+from opto.trace import bundle
 from pydantic import model_validator, ValidationError
 
 from cristal.llm.codegen.validator import GREEN_IMPORTS, LLMCodeGenValidator
@@ -10,7 +11,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
     """
     Defines a function for Bayesian updating according to a Dirichlet prior (parametrized by 'alphas').
     Input arguments include:
-        1. A 2D numpy array where rows represent probabilities across outcomes (and sum to 1);
+        1. A 1D likelihood of the observed data
         2. A 1D prior of over category beliefs
         3. Alphas that parametrize the Dirichlet prior.
     Output:
@@ -19,13 +20,12 @@ class DirichletBayesFunction(LLMCodeGenValidator):
     """
     is_function = True
     function_name = "dirichlet_bayes"
-    prompt_description = ("Perform a Bayesian update for a Dirichlet prior, given the prior, alphas, and likelihoods. "
-                          "The likelihood is a 2D numpy array where rows represent probabilities across outcomes.")
+    prompt_description = "Perform a Bayesian update for a Dirichlet prior, given the prior, alphas, and likelihood."
     required_args = tuple(
         [
             {
                 "arg": "likelihood",
-                "description": "Likelihood matrix for the indicator",
+                "description": "Likelihood of the data",
                 "datatype": np.ndarray
             },
             {
@@ -60,9 +60,9 @@ class DirichletBayesFunction(LLMCodeGenValidator):
 
     # "after"-model validators have 'self' argument and act on the instance object
     @model_validator(mode="after")
-    def test_array_shapes(self):
+    def test_successful_inference(self):
         """
-        Validate that the shapes of the arrays are correct
+        Validate the it performs the inference correctly
         """
         tree = ast.parse(self.code)
 
@@ -76,11 +76,12 @@ class DirichletBayesFunction(LLMCodeGenValidator):
                 for alias in node.names:
                     if alias.name.split(".")[0] in GREEN_IMPORTS:
                         # Add the import to the namespace
+                        # TODO -- Why did I comment this out...
                         # namespace[alias.name.split(".")[0]] = __import__(alias.name)
                         continue
 
         # Create local namespace for this function
-        exec(self.code, {}, namespace)
+        exec(self.code, namespace)
         dirichlet_bayes = namespace[DirichletBayesFunction.function_name]
         # Import any green modules the code requires, and inject them into the function's globals
         for name, module in namespace.items():
@@ -96,6 +97,7 @@ class DirichletBayesFunction(LLMCodeGenValidator):
                 [0.5, 0.4, 0.01],
             ]
         )
+        # Reduce the likelihood given the observed color
         likelihood = likelihood @ color_pred.reshape(-1, 1)
         likelihood = likelihood.reshape(3, )
         p_k = np.array([0.2, 0.2, 0.6])
@@ -154,3 +156,23 @@ numpy.ndarray]:
     _alphas = alphas + posterior
     return posterior, _alphas
 '''
+
+
+# Add skeleton code for trace for the functions we want to generate
+@bundle(trainable=True)
+def dirichlet_bayes_codegen(likelihood: np.ndarray, p_k: np.ndarray, alphas: np.ndarray) -> tuple[
+    np.ndarray, np.ndarray]:
+    """
+    Bayesian update of the asset's class prediction.
+    Does not modify p_k and alphas in place, returns updated versions.
+
+    :param likelihood:      Likelihood matrix for the indicator
+    :param p_k:             Class predictions
+    :param alphas:          Dirichlet prior alpha parameters
+    :return:                Updated class prediction posterior, and alphas
+    """
+
+    posterior = np.ndarray()  # Placeholder for the generated code
+    # Avoiding modifying in place, just in case
+    _alphas = np.ndarray()  # Placeholder for the generated code
+    return posterior, _alphas
