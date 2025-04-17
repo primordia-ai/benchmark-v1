@@ -17,10 +17,13 @@ class LLMCodeGen:
 
     Provides an interface for LLM code generation.
     Initialization requires an initialized LLMBaseClass object.
+
+
     """
 
-    def __init__(self, llm: LLMBaseClass):
+    def __init__(self, llm: LLMBaseClass, critic: LLMBaseClass | None = None):
         self.llm: LLMBaseClass = llm
+        self.critic: LLMBaseClass | None = critic
 
     def call_llm(
         self,
