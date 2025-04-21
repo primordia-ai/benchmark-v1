@@ -71,7 +71,7 @@ if __name__ == '__main__':
     llm = llm_cls(temperature=0, seed=SEED)
 
     # Log to this filename
-    llm_log = f"./tmp/test_codegen_with_llm_strangesort.log"
+    llm_log = f"./tmp/test_codegen_strangesort.log"
 
     # Remove if exists
     if os.path.exists(llm_log):
