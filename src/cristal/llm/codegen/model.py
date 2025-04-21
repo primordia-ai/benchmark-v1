@@ -1,11 +1,13 @@
 """
 LLMCodeGen model
 """
+import time
 from typing import Callable, Type
 
 from instructor.exceptions import InstructorRetryException
 
 from cristal.llm.base import LLMBaseClass
+from cristal.llm.codegen.critic import CodeGenCritic, CriticEvalItem
 from cristal.llm.codegen.validator import LLMCodeGenException, LLMCodeGenValidator, load_code
 from cristal.llm.utils import get_retry_control
 from cristal.logger import logger
@@ -17,12 +19,15 @@ class LLMCodeGen:
 
     Provides an interface for LLM code generation.
     Initialization requires an initialized LLMBaseClass object.
+
+    The critic model is initialized with the given task
     """
 
-    def __init__(self, llm: LLMBaseClass):
+    def __init__(self, llm: LLMBaseClass, critic: CodeGenCritic | None = None):
         self.llm: LLMBaseClass = llm
+        self.critic: CodeGenCritic | None = critic
 
-    def call_llm(
+    def _call_llm(
         self,
         prompt: str,
         validator: Type[LLMCodeGenValidator],
@@ -78,54 +83,61 @@ class LLMCodeGen:
 
         return response.model_dump()["code"], True
 
+    def _get_function_gen_prompt(self, validator: Type[LLMCodeGenValidator]) -> str:
+        args = ""
+        for arg in validator.required_args:
+            args += f"\n\t{arg}"
+        if not args:
+            args = "\n\tNo arguments"
+
+        returns = ""
+        for ret in validator.returned_data:
+            returns += f"\n\t{ret}"
+        if not returns:
+            returns = "\n\tDoes not return data"
+
+        prompt = f"""Please write a python function according to the following spec:
+            Function name: {validator.function_name}
+            Purpose: {validator.prompt_description}
+            Args: {args}
+            Returns: {returns}
+
+            Return your response in JSON format as:
+            {{
+                "code": <str>
+            }}
+            where the "code" string is the entire function code.
+            """
+        return prompt
+
     def generate_function(
         self,
         validator: Type[LLMCodeGenValidator],
         max_retries: int | None = None,
         budget: float | None = None,
         prompt_override: str | None = None,
-    ) -> Callable:
+        load: bool = True,
+    ) -> Callable | str:
         """
         Given a validator, query the model and attempt to generate its code.
         Optionally control LLM retries with max_retries and budget.
+        Note that this is for a one-off gen, and not for Critic loops.
 
         :param validator:       LLMCodeGenValidator object
         :param max_retries:     Maximum number of retries
         :param budget:          Budget for the LLM
         :param prompt_override: Optional prompt override
+        :param load:       Whether to return the code loaded
         :return:                Callable function
         """
         if prompt_override:
             prompt = prompt_override
         else:
-            args = ""
-            for arg in validator.required_args:
-                args += f"\n\t{arg}"
-            if not args:
-                args = "\n\tNo arguments"
-
-            returns = ""
-            for ret in validator.returned_data:
-                returns += f"\n\t{ret}"
-            if not returns:
-                returns = "\n\tDoes not return data"
-
-            prompt = f"""Please write a python function according to the following spec:
-                Function name: {validator.function_name}
-                Purpose: {validator.prompt_description}
-                Args: {args}
-                Returns: {returns}
-                
-                Return your response in JSON format as:
-                {{
-                    "code": <str>
-                }}
-                where the "code" string is the entire function code.
-                """
+            prompt = self._get_function_gen_prompt(validator)
 
         logger.debug(f"Codegen prompt:\n{prompt}")
         # Submit this to the LLM
-        code, success = self.call_llm(prompt, validator, max_retries, budget)
+        code, success = self._call_llm(prompt, validator, max_retries, budget)
         if not success:
             logger.debug(
                 f"Codegen failed for function {validator.function_name}. Last attempt:\n"
@@ -136,4 +148,134 @@ class LLMCodeGen:
 
         # Successful code string
         logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
-        return load_code(code, validator.function_name)
+        if load:
+            return load_code(code, validator.function_name)
+        else:
+            return code
+
+    def _get_gen_prompt_with_eval(
+        self, validator: Type[LLMCodeGenValidator], last_attempt: str, evaluation: str
+    ) -> str:
+        """
+        Generate the prompt for the actor codegen call, including the evaluation result
+        """
+        prompt = self._get_function_gen_prompt(validator)
+        prompt += f"""
+        ---
+        You have previously attempted a solution to this function. However, a Critic Evaluator disapproved
+        of your last submission. Please consider your previous solution, enclosed in <PREV_SOLN> tags, and the
+        critic's evaluation, enclosed in <EVALUATION> tags, both of which are provided now.
+        
+        <PREV_SOLN>
+        {last_attempt}
+        </PREV_SOLN>
+        
+        <EVALUATION>
+        {evaluation}
+        </EVALUATION>
+        """
+        return prompt
+
+    def critic_loop(
+        self,
+        validator: Type[LLMCodeGenValidator],
+        max_iters: int = 10,
+        loop_budget: float = 120,  # two minutes
+        actor_retries: int | None = None,
+        actor_budget: float | None = None,
+    ) -> Callable:
+        """
+        Similar to the generate_function method, but incorporates a critic loop.
+        The critic's task has already been provided to it.
+
+        :param validator:       LLMCodeGenValidator object. Defines the output format for the actor
+        :param max_iters:       Maximum number of iterations for the critic loop
+        :param loop_budget:     Budget for the critic loop
+        :param actor_retries:   Maximum number of retries for the actor
+        :param actor_budget:    Budget for the actor
+        :return:                Callable function
+        """
+        if not self.critic:
+            raise LLMCodeGenException("Critic model not initialized")
+
+        # Get initial code attempt
+        prompt = self._get_function_gen_prompt(validator)
+        directive = self.critic.initial_directive_prompt()
+        logger.debug(
+            f"DIRECTIVE: "
+            f"\n{directive}"
+        )
+        prompt += f"""
+        ---
+        To aid in thinking about the solution, consider the following directive.
+        
+        <DIRECTIVE>
+        {directive}
+        </DIRECTIVE>
+        """
+
+        # Call the function gen, but don't load the code yet
+        attempt: str = self.generate_function(
+            validator, max_retries=actor_retries, budget=actor_budget,
+            prompt_override=prompt, load=False,
+        )
+
+        # Add this to the critic history
+        # self.critic.history.append({
+        #     "code": attempt,
+        #     "evaluation": directive,
+        #     "approved": False
+        # })
+
+        # Main loop
+        approved = False
+        start = time.time()
+        i = 0
+        remaining_budget = loop_budget
+        max_critic_eval_retries = 3  # After three, it's probably not returning JSON correct.
+        approved_solution = None
+        while not approved:
+            i += 1
+            # We'll use the default evaluate retry params
+            remaining_budget = loop_budget - (time.time() - start)
+            if remaining_budget < 0:
+                raise LLMCodeGenException(
+                    f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
+                )
+
+            eval_item: CriticEvalItem = self.critic.evaluate_function(
+                attempt, budget=remaining_budget, max_retries=max_critic_eval_retries
+            )
+            approved = eval_item['approved']
+
+            if approved:
+                # Great
+                logger.info(f"Codegen function approved by critic after {i} loops")
+                approved_solution = attempt
+                break
+
+            # Check if exhausted
+            if i >= max_iters:
+                raise LLMCodeGenException(
+                    f"Max iterations ({max_iters}) of critic loop reached without approved function. Latest "
+                    f"attempt:\n\n{attempt}"
+                )
+
+            remaining_budget = loop_budget - (time.time() - start)
+            if remaining_budget < 0:
+                raise LLMCodeGenException(
+                    f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
+                )
+
+            # Try another attempt
+            prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
+            attempt_budget = min(actor_budget, remaining_budget)
+            attempt: str = self.generate_function(
+                validator, max_retries=actor_retries, budget=attempt_budget,
+                prompt_override=prompt, load=False
+            )
+
+        if not approved:
+            raise LLMCodeGenException("Failed to produce satisfiable codegen solution within resources")
+
+        return load_code(approved_solution, validator.function_name)

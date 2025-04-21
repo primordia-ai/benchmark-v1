@@ -3,14 +3,12 @@ Consolidate LLM models, and LLM utils etc.
 """
 import time
 from abc import ABC
-from typing import Type
 
 import instructor
 from instructor.exceptions import InstructorRetryException
 from tqdm import tqdm
 
-from cristal.llm import utils as llm_utils
-from cristal.llm.codegen.validator import LLMCodeGenValidator
+from cristal.llm import system_roles, utils as llm_utils
 from cristal.llm.wrangling import read_reports
 from cristal.logger import logger
 from cristal.utils import BudgetMode
@@ -54,18 +52,10 @@ class LLMBaseClass(ABC):
     aliases = []
 
     system_roles = {
-        "financial_analyst": """
-        You are a financial analyst tasked with evaluating companies, or 'assets', based on their financials.
-        The financials may come in the form of quantitative figures, or qualitative reports. 
-        """,
-        "cristal": f"""
-        You are CRISTAL, an AI assistant tasked with evaluating companies, or 'assets', based on their financials.
-        The financials may come in the form of quantitative figures, or qualitative reports.
-        You are a Python class with access to a variety of methods and attributes to help you with your tasks.
-        """,  # Inserting the cristal.utils.describe_class(CRISTAL) would be a circular import
-        "codegen": """
-        You are a masterful Python developer and excel at writing precise, efficient code for any task.
-        """,
+        "financial_analyst": system_roles.FINANCIAL_ANALYST,
+        "cristal": system_roles.CRISTAL,
+        "codegen": system_roles.CODEGEN_LLM,
+        "codegen_critic": system_roles.CODEGEN_CRITIC,
     }
 
     def __init__(

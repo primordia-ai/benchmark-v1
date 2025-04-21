@@ -57,7 +57,7 @@ if __name__ == '__main__':
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
 
-    llm_log = "./tmp/test_codegen_with_llm_likelihoods.log"
+    llm_log = "./tmp/test_codegen_likelihoods.log"
     # Remove if exists
     if os.path.exists(llm_log):
         os.remove(llm_log)
