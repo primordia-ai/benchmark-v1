@@ -149,8 +149,8 @@ def main():
         # Define the task
         task = TASK_HARD
         # Set retries and budget
-        actor_retries, actor_budget = 3, 30
-        loop_max_iters = 4
+        actor_retries, actor_budget = 3, 60
+        loop_max_iters = 10
         loop_budget = args.budget
 
     #####################
