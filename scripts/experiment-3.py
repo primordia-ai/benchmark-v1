@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import sys
+import shutil
 
 import numpy as np
 import pytensor
@@ -120,6 +121,11 @@ def main():
     # Run dir
     run_name = args.name
     results_dir = os.path.join(PROJECT_ROOT, f"results/exp-3/{run_name}")
+    # Recursively remove dir if it exists
+    if os.path.exists(results_dir):
+        logger.info(f"Removing existing results directory {results_dir}")
+        shutil.rmtree(results_dir)
+
     os.makedirs(results_dir, exist_ok=True)
     log_path = os.path.join(results_dir, "out.log")
     # Set logging to file
