@@ -166,7 +166,7 @@ class CodeGenCritic:
             {
                 "code": code,
                 "evaluation": result["evaluation"],
-                "approved": result["approved"],
+                "approved": bool(result["approved"]),
             }
         )
         # Return the evaluation
