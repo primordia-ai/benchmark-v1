@@ -3,6 +3,10 @@ Experiment 3
 
 Through iterations on an actor-critic loop, can powerful LLMs arrive at correct program
 solutions to our inference problem? And if so, how long does this take?
+
+Metrics of interest are Number of iterations, Wall time (budget), Success, ...
+
+Other data to track: The solution attempts, and the critic evaluation responses.
 """
 
 import argparse
@@ -21,7 +25,7 @@ from cristal.env import PROJECT_ROOT
 from cristal.llm import get_llm, utils as llm_utils
 from cristal.llm.codegen.model import LLMCodeGen
 from cristal.llm.codegen.critic import CodeGenCritic
-from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference
+from cristal.llm.codegen.likelihood_inference_full import LikelihoodInferenceFull
 from cristal.logger import capture_description, log_to_file, logger, reset_logger
 
 
@@ -82,6 +86,9 @@ def main():
         "--critic", type=str, help="Codegen Critic model"
     )
     parser.add_argument(
+        "--task", type=str, help="Which Codegen task to run."
+    )
+    parser.add_argument(
         "--name", type=str, default="latest", help="Experiment name. Default 'latest'."
     )
     parser.add_argument(
@@ -99,6 +106,9 @@ def main():
     )
     parser.add_argument(
         "--budget", type=int, default=120, help="Budget per task in seconds. Default is two minutes."
+    )
+    parser.add_argument(
+        "--max-iters", type=int, default=10, help="Maximum number of critic evaluation iters"
     )
     parser.add_argument(
         "--compress-reports", action="store_true", help="Attempt to compress the reports through recursive summarizing"
@@ -180,7 +190,7 @@ def main():
 
     critic = CodeGenCritic(critic_llm, task)
     actor = LLMCodeGen(actor_llm, critic)
-    validator = IndicatorLikelihoodInference
+    validator = LikelihoodInferenceFull
 
     #####################
     # Save details to config file

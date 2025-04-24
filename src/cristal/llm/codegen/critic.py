@@ -192,8 +192,8 @@ class CodeGenCritic:
         if self.history:
             latest = self.history[-1]
             prompt += f"""
-            
-            There exists an entry from your last evaluation.
+            ---
+            There exists an entry from your last evaluation for you to consider.
             The details will be provided now, with the earlier code attempt within <PREV_SOLN> tags, 
             and your previous evaluation in <PREV_EVAL> tags.
 
@@ -204,10 +204,11 @@ class CodeGenCritic:
             <PREV_EVAL>
             {latest['evaluation']}
             </PREV_EVAL>
+            ---
             """
 
         prompt += f"""
-        The proposed solution is given now, enclosed in <SOLN> html tags.
+        The current proposed solution is given now, enclosed in <SOLN> html tags.
 
         <SOLN>
         {code}

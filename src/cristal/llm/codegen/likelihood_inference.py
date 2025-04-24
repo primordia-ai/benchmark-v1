@@ -274,3 +274,45 @@ def indicator_likelihood_inference(prior: np.ndarray, observations: np.ndarray) 
     normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
     return normalized
 '''
+
+
+TASK_HARD = """
+We are trying to categorize a company into one of K classes and we observe J categorical indicators.  
+Each indicator can take one of C colors, that characterize the company's value in the dimension of that indicator.
+Each indicator has a different set of likelihoods given classes. We represent the sampling distributions as
+
+k ~ Categorical(p)
+x_j ~ Categorical(A_{j,:,k}) # The array A (J x C x K) contains the likelihoods of each indicator given each of the latent company class k.
+
+The goal is to update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors and 
+categories. Each indicator has a different set of likelihoods given classes.
+"""
+
+TASK_MEDIUM = TASK_HARD + """
+
+Tip:
+    First work out the closed-form Bayesian update for the class probability vector p.
+    Then extend this to assume the likelihood matrix is also unknown and we must simultaneously infer its parameters.
+"""
+
+TASK_EASY = TASK_MEDIUM + """
+
+Recall that the unnormalized Bayesian posterior is:
+posterior = likelihood * prior
+where the likelihood is the indicator likelihood given the class and the prior is the prior distribution of classes.
+
+Your solution may resemble the following:
+
+posterior = prior.copy()
+n_cat = prior.shape[0]
+J = prior.shape[1]
+n_color = prior.shape[2]
+
+for k_val in range(n_cat):
+    for j in range(J):  # Iterate over indicators
+        for c in range(n_color):  # Iterate over colors
+            posterior[k_val, j, c] = prior[k_val, j, c] ...
+epsilon = 1e-10  # Small value to prevent division by zero
+normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
+return normalized
+"""

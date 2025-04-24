@@ -139,12 +139,8 @@ class LLMCodeGen:
         # Submit this to the LLM
         code, success = self._call_llm(prompt, validator, max_retries, budget)
         if not success:
-            logger.debug(
-                f"Codegen failed for function {validator.function_name}. Last attempt:\n"
-                f"{code['last_completion']}"
-            )
-
-            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}")
+            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}. Last attempt:\n"
+                                      f"{code['last_completion']}")
 
         # Successful code string
         logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
@@ -214,24 +210,23 @@ class LLMCodeGen:
         </DIRECTIVE>
         """
 
-        # Call the function gen, but don't load the code yet
-        attempt: str = self.generate_function(
-            validator, max_retries=actor_retries, budget=actor_budget,
-            prompt_override=prompt, load=False,
+        # We circumnavigate the self.generate_function method, because we want to capture and continue with whatever
+        # the produce code attempt is.
+        attempt, validated = self._call_llm(
+            prompt, validator, actor_retries, actor_budget,
         )
-
-        # Add this to the critic history
-        # self.critic.history.append({
-        #     "code": attempt,
-        #     "evaluation": directive,
-        #     "approved": False
-        # })
+        if not validated:
+            # Add a note above the attempt that this method did not pass validation
+            attempt = f"""
+            NOTE: THE FOLLOWING CODE DID NOT PASS VALIDATION
+            
+            {attempt}
+            """
 
         # Main loop
         approved = False
         start = time.time()
         i = 0
-        remaining_budget = loop_budget
         max_critic_eval_retries = 3  # After three, it's probably not returning JSON correct.
         approved_solution = None
         while not approved:
@@ -249,10 +244,29 @@ class LLMCodeGen:
             approved = eval_item['approved']
 
             if approved:
-                # Great
-                logger.info(f"Codegen function approved by critic after {i} loops")
-                approved_solution = attempt
-                break
+                if not validated:
+                    # Trouble. The LLM approves, but it failed our validation.
+                    logger.warning(
+                        "Codegen function approved by critic, but failed internal validation. "
+                        "Rejecting proposed solution."
+                    )
+                    # Set a custom message for passing to the critic that indicates the validation failed,
+                    # and count this as a failure.
+                    approved = False
+                    self.critic.history[-1]['approved'] = False
+                    new_eval = f"""
+                    {eval_item['evaluation']}
+                    ---
+                    NOTE: THIS EVALUATION APPROVED THE PROPOSED SOLUTION. HOWEVER IT FAILED INTERNAL VALIDATION,
+                    AND IS THUS REJECTED AS A SOLUTION. 
+                    """
+                    eval_item['evaluation'] = new_eval
+                    self.critic.history[-1]['evaluation'] = new_eval
+                else:
+                    # Great
+                    logger.info(f"Codegen function approved by critic after {i} loops")
+                    approved_solution = attempt
+                    break
 
             # Check if exhausted
             if i >= max_iters:
@@ -270,10 +284,16 @@ class LLMCodeGen:
             # Try another attempt
             prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
             attempt_budget = min(actor_budget, remaining_budget)
-            attempt: str = self.generate_function(
-                validator, max_retries=actor_retries, budget=attempt_budget,
-                prompt_override=prompt, load=False
+            attempt, validated = self._call_llm(
+                prompt, validator, actor_retries, attempt_budget,
             )
+            if not validated:
+                # Add a note above the attempt that this method did not pass validation
+                attempt = f"""
+                NOTE: THE FOLLOWING CODE DID NOT PASS VALIDATION
+
+                {attempt}
+                """
 
         if not approved:
             raise LLMCodeGenException("Failed to produce satisfiable codegen solution within resources")
