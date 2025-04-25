@@ -79,7 +79,7 @@ class LLMCodeGen:
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
             content = last.to_dict()['choices'][-1]['message']['content']
-            print(f"MW DEBUG CONTENT -- {content}")
+            print(f"MW DEBUG CONTENT -- {last.to_dict()}")
             # See if we can load again
             try:
                 py_content = json.loads(content)
