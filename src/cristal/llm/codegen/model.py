@@ -76,25 +76,21 @@ class LLMCodeGen:
                 max_retries=retry_ctrl,
             )
         except InstructorRetryException as e:
-            print(f"MW EXCEPTION -- {type(e)} | {isinstance(e, LLMCodeGenException)}")
-            print(f"MW CODE ATTR???? -- {e.code}")
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
-            content = last.to_dict()['choices'][-1]['message']['content']
-            print(f"MW DEBUG CONTENT -- {last.to_dict()}")
-            # See if we can load again
+            returned_message = last.to_dict()['choices'][-1]['message']
+            content = returned_message['content']
+            # See if we can get the attempt string
             try:
                 py_content = json.loads(content)
                 code = py_content['code']
-            except Exception as e2:
-                # Idk
-                print(f"MW DEBUGGING WEIRD EXCEPTION -- {e2}")
-                # Return whatever we can from the last completion
-                info = f"DETAILS FROM ACTOR ATTEMPT: {last.to_json()}"
+            except TypeError as te:
+                # Sometimes the 'content' key is empty. Not sure why this happens.
+                # Convert the message object into a string. Somewhere it should contain the function information
+                info =  json.dumps(returned_message)
                 return info, False, str(e)
             else:
                 # Return the attempted code
-                print(f"MW HAVE CODE -- {code}")
                 return str(code), False, str(e)
 
         return str(response.model_dump()["code"]), True, None
@@ -155,7 +151,7 @@ class LLMCodeGen:
         # Submit this to the LLM
         code, success, error = self._call_llm(prompt, validator, max_retries, budget)
         if not success:
-            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}.\nError: {error} "
+            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}.\nError: {error}\n"
                                       f"Last attempt:\n{code}")
 
         # Successful code string

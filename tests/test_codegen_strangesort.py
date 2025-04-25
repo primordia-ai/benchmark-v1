@@ -67,7 +67,7 @@ if __name__ == '__main__':
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("qwen-medium")
     else:
-        llm_cls = get_llm("qwen-tiny")
+        llm_cls = get_llm("gpt-4o")
 
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
