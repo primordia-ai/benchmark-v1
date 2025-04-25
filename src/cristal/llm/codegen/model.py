@@ -79,15 +79,21 @@ class LLMCodeGen:
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
             content = last.to_dict()['choices'][-1]['message']['content']
+            print(f"MW DEBUG CONTENT -- {content}")
             # See if we can load again
             try:
                 py_content = json.loads(content)
                 code = py_content['code']
-            except Exception:
+            except Exception as e2:
                 # Idk
-                code = content
-
-            return code, False, str(e)
+                print(f"MW DEBUGGING WEIRD EXCEPTION -- {e2}")
+                # Return whatever we can from the last completion
+                info = f"ATTEMPTED RESPONSE: {content}"
+                return info, False, str(e)
+            else:
+                # Return the attempted code
+                print(f"MW HAVE CODE -- {code}")
+                return str(code), False, str(e)
 
         return str(response.model_dump()["code"]), True, None
 
