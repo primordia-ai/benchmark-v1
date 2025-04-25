@@ -51,14 +51,14 @@ def run_multi_exp2():
             # Construct the name based on task and difficulty
             name = f"{task_code}/{difficulty}/{tag}{critic}-{actor}-{budget}"
             runs[name] = [
-                f"--actor='{actor}'",
-                f"--critic='{critic}'",
+                f"--actor={actor}",
+                f"--critic={critic}",
                 f"--task={task_code}",
                 f"--difficulty={difficulty}",
             ]
 
     base_command = (
-        f"python experiment-2.py --no-input --seed={seed} --max-iters={max_loop_iters} --budget={budget}"
+        f"python experiment-3.py --no-input --seed={seed} --max-iters={max_loop_iters} --budget={budget}"
     )
 
     for name in runs:
