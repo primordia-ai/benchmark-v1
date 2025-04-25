@@ -25,6 +25,9 @@ def run_multi_exp2():
     ]
 
     critic = "gpt-4o"
+    critic_temp = 0.1
+    actor_temp = 0.5
+
     tasks = [
         # Iterating over task code and difficulty combinations
         {
