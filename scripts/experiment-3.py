@@ -25,51 +25,8 @@ from cristal.env import PROJECT_ROOT
 from cristal.llm import get_llm, utils as llm_utils
 from cristal.llm.codegen.model import LLMCodeGen
 from cristal.llm.codegen.critic import CodeGenCritic
-from cristal.llm.codegen.likelihood_inference_full import LikelihoodInferenceFull
+from cristal.llm.codegen import likelihood_inference_full
 from cristal.logger import capture_description, log_to_file, logger, reset_logger
-
-
-# Define different task difficulties based on how much information we will provide
-TASK_HARD = """
-We are trying to categorize a company into one of K classes and we observe J categorical indicators.  
-Each indicator can take one of C colors, that characterize the company's value in the dimension of that indicator.
-Each indicator has a different set of likelihoods given classes. We represent the sampling distributions as
-
-k ~ Categorical(p)
-x_j ~ Categorical(A_{j,:,k}) # The array A (J x C x K) contains the likelihoods of each indicator given each of the latent company class k.
-
-The goal is to update an indicator likelihood prior using Bayesian inference, from N observations of indicator colors and 
-categories. Each indicator has a different set of likelihoods given classes.
-"""
-
-TASK_MEDIUM = TASK_HARD + """
-
-Tip:
-    First work out the closed-form Bayesian update for the class probability vector p.
-    Then extend this to assume the likelihood matrix is also unknown and we must simultaneously infer its parameters.
-"""
-
-TASK_EASY = TASK_MEDIUM + """
-
-Recall that the unnormalized Bayesian posterior is:
-posterior = likelihood * prior
-where the likelihood is the indicator likelihood given the class and the prior is the prior distribution of classes.
-
-Your solution may resemble the following:
-
-posterior = prior.copy()
-n_cat = prior.shape[0]
-J = prior.shape[1]
-n_color = prior.shape[2]
-
-for k_val in range(n_cat):
-    for j in range(J):  # Iterate over indicators
-        for c in range(n_color):  # Iterate over colors
-            posterior[k_val, j, c] = prior[k_val, j, c] ...
-epsilon = 1e-10  # Small value to prevent division by zero
-normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
-return normalized
-"""
 
 
 def main():
@@ -87,6 +44,9 @@ def main():
     )
     parser.add_argument(
         "--task", type=str, help="Which Codegen task to run."
+    )
+    parser.add_argument(
+        "--difficulty", type=str, default="hard", help="Task difficulty, ['easy', 'med', 'hard']. Default 'hard'."
     )
     parser.add_argument(
         "--name", type=str, default="latest", help="Experiment name. Default 'latest'."
@@ -118,6 +78,17 @@ def main():
     )
 
     args = parser.parse_args()
+
+    tasks = {
+        "inference_full": {
+            "validator": likelihood_inference_full.LikelihoodInferenceFull,
+            "easy": likelihood_inference_full.TASK_EASY,
+            "hard": likelihood_inference_full.TASK_HARD,
+        }
+    }
+    task_code = args.task
+    task_diff = args.difficulty
+    validator, task = tasks[task_code]["validator"], tasks[task_code][task_diff]
 
     # Seed rng
     seed = args.seed
@@ -153,8 +124,6 @@ def main():
     testing = args.test
     strict = args.strict
     if testing:
-        # Define the task
-        task = TASK_EASY
         # Set retries and budget
         actor_retries, actor_budget = 3, 20
         loop_max_iters = 4
@@ -162,8 +131,6 @@ def main():
         # Set logger to debug
 
     else:
-        # Define the task
-        task = TASK_HARD
         # Set retries and budget
         actor_retries, actor_budget = 3, 60
         loop_max_iters = 10
@@ -190,7 +157,6 @@ def main():
 
     critic = CodeGenCritic(critic_llm, task)
     actor = LLMCodeGen(actor_llm, critic)
-    validator = LikelihoodInferenceFull
 
     #####################
     # Save details to config file
@@ -205,6 +171,7 @@ def main():
         "loop_max_iters": loop_max_iters,
         "validator": validator.function_name,
         "validator_description": validator.prompt_description,
+        "task_difficulty": task_diff,
         "task": task,
     }
 
