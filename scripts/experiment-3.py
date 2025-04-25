@@ -180,17 +180,24 @@ def main():
         logger.info(f"Saving run data to {config_path}")
         json.dump(run_data, f, indent=4)
 
-    results = {}
     # Call the loop method
-    func = actor.critic_loop(
+    critic_result = actor.critic_loop(
         validator, loop_max_iters, loop_budget, actor_retries, actor_budget
     )
+    # Print some details of the result
+    logger.info("\nCritic loop finished:")
+    logger.info(f"\tApproved: {critic_result['approved']}")
+    logger.info(f"\tIters: {critic_result['iters']}")
+    logger.info(f"\tCost: {float(critic_result['cost']):2f}")
 
-    # Save Results
+    all_results = critic_result['all_results']
+    logger.debug(f"Last result:\n\t{all_results[-1]}")
+
+    # Save the bulk results
     results_path = os.path.join(results_dir, "results.json")
     with open(results_path, 'w') as f:
         logger.info(f"Saving results to {results_path}")
-        json.dump(results, f, indent=4)
+        json.dump(all_results, f, indent=4)
 
 
 if __name__ == '__main__':

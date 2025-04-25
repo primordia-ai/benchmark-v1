@@ -179,7 +179,7 @@ class LLMCodeGen:
         loop_budget: float = 120,  # two minutes
         actor_retries: int | None = None,
         actor_budget: float | None = None,
-    ) -> Callable:
+    ) -> dict:
         """
         Similar to the generate_function method, but incorporates a critic loop.
         The critic's task has already been provided to it.
@@ -225,10 +225,14 @@ class LLMCodeGen:
 
         # Main loop
         approved = False
-        start = time.time()
+        start = eval_moment = time.time()
         i = 0
         max_critic_eval_retries = 3  # After three, it's probably not returning JSON correct.
         approved_solution = None
+
+        # Gather some data about the loop
+        results = []
+
         while not approved:
             i += 1
             # We'll use the default evaluate retry params
@@ -268,6 +272,19 @@ class LLMCodeGen:
                     approved_solution = attempt
                     break
 
+            delta = time.time() - eval_moment
+            eval_moment = time.time()
+
+            results.append([
+                {
+                    "code": attempt,
+                    "approved": approved,
+                    "evaluation": eval_item['evaluation'],
+                    "iter_delta": delta,
+                    "total_time": time.time() - start,
+                }
+            ])
+
             # Check if exhausted
             if i >= max_iters:
                 raise LLMCodeGenException(
@@ -281,7 +298,7 @@ class LLMCodeGen:
                     f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
                 )
 
-            # Try another attempt
+            # We have enough resources to have another attempt
             prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
             attempt_budget = min(actor_budget, remaining_budget)
             attempt, validated = self._call_llm(
@@ -298,4 +315,12 @@ class LLMCodeGen:
         if not approved:
             raise LLMCodeGenException("Failed to produce satisfiable codegen solution within resources")
 
-        return load_code(approved_solution, validator.function_name)
+        return {
+            "all_results": results,
+            "approved": approved,
+            "evaluation": self.critic.history[-1]['evaluation'],
+            "code": approved_solution,
+            "function_name": validator.function_name,
+            "iter_used": i,
+            "total_time": time.time() - start,
+        }
