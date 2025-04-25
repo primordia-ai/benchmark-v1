@@ -199,8 +199,8 @@ def main():
     # Print some details of the result
     logger.info("\nCritic loop finished:")
     logger.info(f"\tApproved: {critic_result['approved']}")
-    logger.info(f"\tIters: {critic_result['iters']}")
-    logger.info(f"\tCost: {float(critic_result['cost']):2f}")
+    logger.info(f"\tIters used: {critic_result['iters_used']}")
+    logger.info(f"\tTotal time: {float(critic_result['total_time']):2f}")
 
     all_results = critic_result['all_results']
     logger.debug(f"Last result:\n\t{all_results[-1]}")

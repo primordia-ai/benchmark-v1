@@ -269,7 +269,11 @@ class LLMCodeGen:
 
             results.append([
                 {
-                    "eval_item": eval_item,
+                    "code": attempt,
+                    "evaluation": eval_item['evaluation'],
+                    "approved": eval_item['approved'],
+                    "validated": validated,
+                    "validation_error": error,
                     "iter_delta": delta,
                     "total_time": time.time() - start,
                 }
@@ -277,16 +281,18 @@ class LLMCodeGen:
 
             # Check if exhausted
             if i >= max_iters:
-                raise LLMCodeGenException(
+                logger.warning(
                     f"Max iterations ({max_iters}) of critic loop reached without approved function. Latest "
                     f"attempt:\n\n{attempt}"
                 )
+                break
 
             remaining_budget = loop_budget - (time.time() - start)
             if remaining_budget < 0:
-                raise LLMCodeGenException(
+                logger.warning(
                     f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
                 )
+                break
 
             # We have enough resources to have another attempt
             prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
@@ -295,15 +301,13 @@ class LLMCodeGen:
                 prompt, validator, actor_retries, attempt_budget,
             )
 
-        if not approved:
-            raise LLMCodeGenException("Failed to produce satisfiable codegen solution within resources")
-
         return {
             "all_results": results,
+            "last_result": results[-1],
             "approved": approved,
             "evaluation": self.critic.history[-1]['evaluation'],
             "code": approved_solution,
             "function_name": validator.function_name,
-            "iter_used": i,
+            "iters_used": i,
             "total_time": time.time() - start,
         }
