@@ -40,7 +40,13 @@ def main():
         "--actor", type=str, help="Actor model that is also used for Codegen generation"
     )
     parser.add_argument(
+        "--actor-temp", type=float, default=0., help="Actor temperature"
+    )
+    parser.add_argument(
         "--critic", type=str, help="Codegen Critic model"
+    )
+    parser.add_argument(
+        "--critic-temp", type=float, default=0., help="Critic temperature"
     )
     parser.add_argument(
         "--task", type=str, help="Which Codegen task to run."
@@ -141,15 +147,17 @@ def main():
     critic_code = args.critic
 
     # Critic Model
+    critic_temp = args.critic_temp
     critic_log_path = os.path.join(results_dir, "critic.log")
-    critic_llm = get_llm(critic_code)(seed=seed)
+    critic_llm = get_llm(critic_code)(seed=seed, temperature=critic_temp)
     # Activate logging LLM
     logger.info(f"Piping Critic logs to {critic_log_path}")
     critic_llm.log_to_file(critic_log_path)
 
     # Actor Model
+    actor_temp = args.actor_temp
     actor_log_path = os.path.join(results_dir, "actor.log")
-    actor_llm = get_llm(actor_code)(seed=seed)
+    actor_llm = get_llm(actor_code)(seed=seed, temperature=actor_temp)
     # Activate logging LLM
     logger.info(f"Piping Actor logs to {actor_log_path}")
     actor_llm.log_to_file(actor_log_path)
@@ -165,7 +173,9 @@ def main():
         "seed": seed,
         "test": testing,
         "actor_llm": actor_llm.to_json(),
+        "actor_temp": actor_temp,
         "critic_llm": critic_llm.to_json(),
+        "critic_temp": critic_temp,
         "loop_budget": loop_budget,
         "loop_max_iters": loop_max_iters,
         "validator": validator.function_name,
