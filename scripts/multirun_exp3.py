@@ -51,8 +51,8 @@ def run_multi_exp2():
             # Construct the name based on task and difficulty
             name = f"{task_code}/{difficulty}/{tag}{critic}-{actor}-{budget}"
             runs[name] = [
-                f"--actor={actor}",
-                f"--critic={critic}",
+                f"--actor='{actor}'",
+                f"--critic='{critic}'",
                 f"--task={task_code}",
                 f"--difficulty={difficulty}",
             ]
