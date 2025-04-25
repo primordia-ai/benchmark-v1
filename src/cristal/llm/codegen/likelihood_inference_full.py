@@ -1,7 +1,7 @@
 import numpy as np
-from pydantic import model_validator, ValidationError
+from pydantic import model_validator
 
-from cristal.llm.codegen.validator import LLMCodeGenValidator, load_code, LLMCodeGenException
+from cristal.llm.codegen.validator import LLMCodeGenException, LLMCodeGenValidator, load_code
 from cristal.synthetic import get_ground_truth_samples
 
 
@@ -81,19 +81,25 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
         try:
             result = func(training_data)
         except Exception:
-            raise ValidationError("Function failed to run with the provided data.")
+            raise LLMCodeGenException("Function failed to run with the provided data.", code=self.code)
 
         # Compare result with solution
         if result.shape != solution.shape:
-            raise LLMCodeGenException(f"Result shape {result.shape} does not match solution shape {solution.shape}")
+            raise LLMCodeGenException(
+                f"Result shape {result.shape} does not match solution shape {solution.shape}",
+                code=self.code
+            )
 
         if not np.allclose(result.sum(axis=2), 1):
-            raise LLMCodeGenException("Posterior probabilities do not sum to 1")
+            raise LLMCodeGenException("Posterior probabilities do not sum to 1", code=self.code)
 
         # Relative tolerance
         eps = 1e-6
         if not np.allclose(result, solution, rtol=eps):
-            raise LLMCodeGenException(f"Result does not match the expected solution.\nresult[0] = {result[0]}")
+            raise LLMCodeGenException(
+                f"Result does not match the expected solution.\nresult[0] = {result[0]}",
+                code=self.code
+            )
 
         return self
 
@@ -113,21 +119,25 @@ def test_code(code: str) -> None:
     try:
         result = func(training_data)
     except Exception:
-        raise ValidationError("Function failed to run with the provided data.")
+        raise LLMCodeGenException("Function failed to run with the provided data.", code=code)
 
     # Compare result with solution
     if result.shape != solution.shape:
-        raise LLMCodeGenException(f"Result shape {result.shape} does not match solution shape {solution.shape}")
+        raise LLMCodeGenException(
+            f"Result shape {result.shape} does not match solution shape {solution.shape}",
+            code=code
+        )
 
     if not np.allclose(result.sum(axis=2), 1):
-        raise LLMCodeGenException("Posterior probabilities do not sum to 1")
+        raise LLMCodeGenException("Posterior probabilities do not sum to 1", code=code)
 
     # Relative tolerance
     eps = 1e-6
     if not np.allclose(result, solution, rtol=eps):
-        raise LLMCodeGenException(f"Result does not match the expected solution.\nresult[0] = {result[0]}")
+        raise LLMCodeGenException(f"Result does not match the expected solution.\nresult[0] = {result[0]}", code=code)
 
     return None
+
 
 # For testing
 solution_string = '''
@@ -222,13 +232,6 @@ posterior = likelihood * prior
 where the likelihood is the indicator likelihood given the class and the prior is the prior distribution of classes.
 
 """
-
-
-
-
-
-
-
 
 
 ##############################

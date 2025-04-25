@@ -12,12 +12,14 @@ class LLMCodeGenException(Exception):
     Custom error for LLM codegen
     """
 
-    def __init__(self, message: str, exception: Exception | None = None):
+    def __init__(self, message: str, exception: Exception | None = None, code: str | None = None):
         # Format the message
+        # Optionally include the code and exception
         if exception:
             message += f"\n\t{type(exception)}: {exception}"
         super().__init__(message)
         self.exception = exception
+        self.code = code
 
 
 INSECURE_METHODS = {
@@ -124,13 +126,13 @@ class LLMCodeGenValidator(BaseModel):
             if isinstance(node, (ast.Import, ast.ImportFrom)):
                 for alias in node.names:
                     if alias.name.split(".")[0] not in GREEN_IMPORTS:
-                        raise ValueError(f"Import '{alias.name}' is not allowed.")
+                        raise LLMCodeGenException("", ValueError(f"Import '{alias.name}' is not allowed."), code)
 
         # Prevent unsafe operations
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 if node.func.id in INSECURE_METHODS:
-                    raise ValueError(f"Usage of '{node.func.id}' is not allowed.")
+                    raise LLMCodeGenException("", ValueError(f"Usage of '{node.func.id}' is not allowed."), code)
 
         return code
 
@@ -150,37 +152,37 @@ class LLMCodeGenValidator(BaseModel):
         # Ensure there's only one function definition
         functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
         if len(functions) != 1:
-            raise ValueError("There must be exactly one function definition.")
+            raise LLMCodeGenException("", ValueError("There must be exactly one function definition."), code)
 
         func = functions[0]
 
         # Validate function name
         if func.name != cls.function_name:
-            raise ValueError(f"Function name must be '{cls.function_name}'.")
+            raise LLMCodeGenException("", ValueError(f"Function name must be '{cls.function_name}'."), code)
 
         # Validate required argument names
         actual_args = tuple([arg.arg for arg in func.args.args])
 
         arg_names = tuple([arg['arg'] for arg in cls.required_args])
         if actual_args != arg_names:
-            raise ValueError(f"Expected arguments {arg_names}, got {actual_args}.")
+            raise LLMCodeGenException("", ValueError(f"Expected arguments {arg_names}, got {actual_args}."), code)
 
         # Much less clear how to validate output data, but we can at least check the number of returns
         # TODO -- Evaluating return datatype? Might have to be through descendant classes
         for stmt in func.body:
             if isinstance(stmt, ast.Return):
                 if stmt.value is None:
-                    raise ValueError("Explicit 'return' with no value is not allowed.")
+                    raise LLMCodeGenException("", ValueError("Explicit 'return' with no value is not allowed."), code)
 
                 elif isinstance(stmt.value, ast.Tuple):
                     if len(stmt.value.elts) != len(cls.returned_data):
-                        raise ValueError(
+                        raise LLMCodeGenException("", ValueError(
                             f"Expected {len(cls.returned_data)} return values, got {len(stmt.value.elts)}."
-                        )
+                        ), code)
 
                 elif len(cls.returned_data) != 1:
-                    raise ValueError(
+                    raise LLMCodeGenException("", ValueError(
                         f"Expected {len(cls.returned_data)} return values, got 1."
-                    )
+                    ), code)
 
         return code

@@ -76,6 +76,7 @@ class LLMCodeGen:
                 max_retries=retry_ctrl,
             )
         except InstructorRetryException as e:
+            print(f"MW EXCEPTION -- {e}")
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
             content = last.to_dict()['choices'][-1]['message']['content']
@@ -88,7 +89,7 @@ class LLMCodeGen:
                 # Idk
                 print(f"MW DEBUGGING WEIRD EXCEPTION -- {e2}")
                 # Return whatever we can from the last completion
-                info = f"ATTEMPTED RESPONSE: {content}"
+                info = f"DETAILS FROM ACTOR ATTEMPT: {last.to_json()}"
                 return info, False, str(e)
             else:
                 # Return the attempted code
