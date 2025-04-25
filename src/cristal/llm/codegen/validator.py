@@ -4,21 +4,20 @@ Validators and formatting models for LLM codegen
 import ast
 from typing import Any, Callable, ClassVar
 
-from cristal.logger import logger
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from pydantic import BaseModel, Field, field_validator
 
 
-class LLMCodeGenException(ValidationError):
+class LLMCodeGenException(Exception):
     """
     Custom error for LLM codegen
     """
 
-    # TODO -- Doesn't work atm
-    # def __init__(self, message: str, exception: Exception):
-    #     # Format the message
-    #     message = f"LLMCodeGenException: {message}\nSource Exception: {exception}"
-    #     super().__init__(message)
-    #     self.exception = exception
+    def __init__(self, message: str, exception: Exception | None = None):
+        # Format the message
+        if exception:
+            message += f"\n\t{type(exception)}: {exception}"
+        super().__init__(message)
+        self.exception = exception
 
 
 INSECURE_METHODS = {
