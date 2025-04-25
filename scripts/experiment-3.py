@@ -181,6 +181,8 @@ def main():
         json.dump(run_data, f, indent=4)
 
     # Call the loop method
+    # TODO -- Gather data on Actor success/failure rates, and speed (from _call_llm)
+    # TODO -- Also record the approve+invalid instances
     critic_result = actor.critic_loop(
         validator, loop_max_iters, loop_budget, actor_retries, actor_budget
     )

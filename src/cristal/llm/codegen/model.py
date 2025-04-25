@@ -250,6 +250,7 @@ class LLMCodeGen:
             if approved:
                 if not validated:
                     # Trouble. The LLM approves, but it failed our validation.
+                    # TODO -- Maybe record these instances
                     logger.warning(
                         "Codegen function approved by critic, but failed internal validation. "
                         "Rejecting proposed solution."
