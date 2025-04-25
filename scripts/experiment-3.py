@@ -123,17 +123,16 @@ def main():
 
     testing = args.test
     strict = args.strict
+    loop_max_iters = args.max_iters
     if testing:
         # Set retries and budget
         actor_retries, actor_budget = 3, 20
-        loop_max_iters = 4
         loop_budget = args.budget
         # Set logger to debug
 
     else:
         # Set retries and budget
         actor_retries, actor_budget = 3, 60
-        loop_max_iters = 10
         loop_budget = args.budget
 
     #####################

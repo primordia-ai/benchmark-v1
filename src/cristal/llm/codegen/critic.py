@@ -80,7 +80,7 @@ class CodeGenCritic:
                 "seed": self.llm.seed,
             }
 
-        prompt = """
+        prompt = f"""
         Before we begin evaluating code solutions to the task from the actor model, 
         please generate a prompt that will help the LLM actor model in thinking about its solution to the provided task.
         The task is given now, enclosed in <TASK> html tags.
@@ -90,7 +90,7 @@ class CodeGenCritic:
         </TASK>
 
         NOTE: The point here is not to create pseudocode for it to fill in the blanks, but more high-level 
-        considerations specifically about the task at hand.
+        considerations specifically about the task at hand. You should reference specific elements of the task. 
         
         Try to keep the directive length at most a page of text.
         Please return your response in JSON format with the single key 'directive'.
