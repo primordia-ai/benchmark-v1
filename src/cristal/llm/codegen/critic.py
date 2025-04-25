@@ -80,24 +80,38 @@ class CodeGenCritic:
                 "seed": self.llm.seed,
             }
 
-        prompt = f"""
-        Before we begin evaluating code solutions to the task, please generate a prompt that will help
-        the LLM actor model in thinking about its solution.
+        prompt = """
+        Before we begin evaluating code solutions to the task from the actor model, 
+        please generate a prompt that will help the LLM actor model in thinking about its solution to the provided task.
+        The task is given now, enclosed in <TASK> html tags.
         
-        Try to keep the directive length at most a page of text.
-        
+        <TASK>
+        {self.task}
+        </TASK>
+
         NOTE: The point here is not to create pseudocode for it to fill in the blanks, but more high-level 
         considerations.
         
+        Try to keep the directive length at most a page of text.
         Please return your response in JSON format with the single key 'directive'.
         """
+
+        # Custom system prompt for the directive
+        system_prompt = """
+        You are a masterful Python developer and excel at writing precise, efficient code for any task.
+        You have an exceptional ability to critique code, identifying potential issues and suggesting improvements.
+        
+        Your role will be as a Critic, evaluating code solutions from an LLM Actor model regarding the provided Task.
+        
+        """
+
         try:
             response, completion = client.chat.completions.create_with_completion(
                 **additional_kwargs,
                 messages=[
                     {
                         "role": "developer",
-                        "content": self.llm.system_roles["codegen_critic"],
+                        "content": system_prompt,
                     },
                     {
                         "role": "user",
