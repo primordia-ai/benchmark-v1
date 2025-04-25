@@ -76,7 +76,8 @@ class LLMCodeGen:
                 max_retries=retry_ctrl,
             )
         except InstructorRetryException as e:
-            print(f"MW EXCEPTION -- {e}")
+            print(f"MW EXCEPTION -- {type(e)} | {isinstance(e, LLMCodeGenException)}")
+            print(f"MW CODE ATTR???? -- {e.code}")
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
             content = last.to_dict()['choices'][-1]['message']['content']
