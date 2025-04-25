@@ -58,7 +58,7 @@ def run_multi_exp2():
             ]
 
     base_command = (
-        f"python experiment-2.py --no-input --seed={seed} --max-loop-iters={max_loop_iters} --budget={budget}"
+        f"python experiment-2.py --no-input --seed={seed} --max-iters={max_loop_iters} --budget={budget}"
     )
 
     for name in runs:
