@@ -223,6 +223,7 @@ class LLMCodeGen:
         attempt, validated, error = self._call_llm(
             prompt, validator, actor_retries, actor_budget,
         )
+        print(f"MW FIRST ATTEMPT -- {validated} | {error} \n\nATTEMPT:\n {attempt}")
 
         # Main loop
         approved = False
