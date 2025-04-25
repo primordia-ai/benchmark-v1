@@ -30,6 +30,9 @@ class CriticEvalItem(TypedDict):
     code: str
     evaluation: str
     approved: bool
+    # From codegen attempt
+    validated: bool
+    validation_error: str | None
 
 
 class DirectiveResponse(BaseModel):
@@ -49,7 +52,7 @@ class CodeGenCritic:
         self.llm: LLMBaseClass = llm
         self.task: str = task
         # Store a history of the agent solutions and the critic responses
-        # Keys of dict items will be "code", "evaluation", and "approved"
+        # Keys of dict items will be "code", "evaluation", "approved"
         self.history: list[CriticEvalItem] = []
 
     def reset(self, task: str):
@@ -122,13 +125,15 @@ class CodeGenCritic:
                 response_model=DirectiveResponse,
             )
         except InstructorRetryException as e:
-            raise LLMCodeGenException(f"Error: {e}")
+            raise LLMCodeGenException(f"Error: {e}", e)
 
         return response.model_dump()["directive"]
 
-    def evaluate_function(
+    def evaluate_attempt(
         self,
         code: str,
+        validated: bool,
+        validation_error: str | None,
         max_retries: int = 3,
         budget: float = 30,  # seconds
     ) -> CriticEvalItem:
@@ -136,6 +141,8 @@ class CodeGenCritic:
         Evaluate the proposed function code and return a text response, and an approval boolean.
 
         :param code:            The proposed function code.
+        :param validated:       Boolean indicating if the code passed codegen validation.
+        :param validation_error: Error message if the code was not validated.
         :param max_retries:     Maximum number of retries to attempt.
         :param budget:          Budget to perform the evaluation within.
         :return:                Text response and approval boolean.
@@ -151,7 +158,7 @@ class CodeGenCritic:
             }
 
         retry_ctrl = get_retry_control(max_retries, budget, wait_range=(0.1, 0.3))
-        prompt = self._get_eval_prompt(code)
+        prompt = self._get_eval_prompt(code, validated, validation_error)
         logger.debug(f"\nCRITIC EVAL PROMPT:\n{prompt}")
 
         try:
@@ -172,7 +179,7 @@ class CodeGenCritic:
                 response_model=CriticResponse,
             )
         except InstructorRetryException as e:
-            raise LLMCodeGenException(f"Error: {e}")
+            raise LLMCodeGenException(f"Error: {e}", e)
 
         result = response.model_dump()
         # Update the history
@@ -182,17 +189,21 @@ class CodeGenCritic:
                 "code": code,
                 "evaluation": result["evaluation"],
                 "approved": bool(result["approved"]),
+                "validated": validated,
+                "validation_error": validation_error,
             }
         )
         # Return the evaluation
         return self.history[-1]
 
-    def _get_eval_prompt(self, code: str) -> str:
+    def _get_eval_prompt(self, code: str, validated: bool, validation_error: str | None) -> str:
         """
         Get the prompt for the critic.
 
-        :param code:    The code to be evaluated.
-        :return:        The prompt string.
+        :param code:                The code to be evaluated.
+        :param validated:           Boolean indicating if the code passed codegen validation.
+        :param validation_error:    Error message if the code was not validated.
+        :return:                    The prompt string.
         """
         prompt: str = f"""
         Given the task described, please evaluate the proposed code.
@@ -202,6 +213,7 @@ class CodeGenCritic:
         <TASK>
         {self.task}
         </TASK>
+        
         """
 
         if self.history:
@@ -222,12 +234,26 @@ class CodeGenCritic:
             ---
             """
 
-        prompt += f"""
-        The current proposed solution is given now, enclosed in <SOLN> html tags.
+        if not validated or validation_error:
+            prompt += f"""
+            ---
+            NOTE: THE PREVIOUS SOLUTION FAILED VALIDATION WITH THE FOLLOWING ERROR:
+            
+            <VALIDATION_ERROR>
+            {validation_error}
+            </VALIDATION_ERROR>
+            
+            Your evaluation should take this into account when reviewing the proposed solution.
+            Note that validation failure is not always from logic errors, but could be formatting issues.
+            ---
+            """
 
-        <SOLN>
+        prompt += f"""
+        The current proposed solution is given now, enclosed in <PROPOSED_SOLN> html tags.
+
+        <PROPOSED_SOLN>
         {code}
-        </SOLN>
+        </PROPOSED_SOLN>
 
         Please provide your evaluation.
         Format your response in JSON format with the following keys:

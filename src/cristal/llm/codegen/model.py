@@ -33,7 +33,7 @@ class LLMCodeGen:
         validator: Type[LLMCodeGenValidator],
         max_retries: int | None = None,
         budget: float | None = None
-    ) -> tuple[str | dict, bool]:
+    ) -> tuple[str, bool, str | None]:
         """
         Generate a codegen function
 
@@ -43,7 +43,7 @@ class LLMCodeGen:
         :param validator:       The validator to use against the proposed code string.
         :param max_retries:     The maximum number of retries to attempt.
         :param budget:          Budget to perform the evaluation within.
-        :return:                The validated code string, and a boolean indicating success
+        :return:                The attempt, and a boolean indicating success, and an error if present.
         """
         client = self.llm.get_client()
         if "gemini" in self.llm.code.lower():
@@ -75,13 +75,10 @@ class LLMCodeGen:
             )
         except InstructorRetryException as e:
             # Could not manage to produce a response
-            error_result = {
-                "error": str(e),
-                "last_completion": e.last_completion,  # e.messages[-1]
-            }
-            return error_result, False
+            attempt = e.last_completion # e.messages[-1]
+            return attempt, False, str(e)
 
-        return response.model_dump()["code"], True
+        return str(response.model_dump()["code"]), True, None
 
     def _get_function_gen_prompt(self, validator: Type[LLMCodeGenValidator]) -> str:
         args = ""
@@ -137,10 +134,10 @@ class LLMCodeGen:
 
         logger.debug(f"Codegen prompt:\n{prompt}")
         # Submit this to the LLM
-        code, success = self._call_llm(prompt, validator, max_retries, budget)
+        code, success, error = self._call_llm(prompt, validator, max_retries, budget)
         if not success:
-            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}. Last attempt:\n"
-                                      f"{code['last_completion']}")
+            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}.\nError: {error} "
+                                      f"Last attempt:\n{code}")
 
         # Successful code string
         logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
@@ -212,16 +209,9 @@ class LLMCodeGen:
 
         # We circumnavigate the self.generate_function method, because we want to capture and continue with whatever
         # the produce code attempt is.
-        attempt, validated = self._call_llm(
+        attempt, validated, error = self._call_llm(
             prompt, validator, actor_retries, actor_budget,
         )
-        if not validated:
-            # Add a note above the attempt that this method did not pass validation
-            attempt = f"""
-            NOTE: THE FOLLOWING CODE DID NOT PASS VALIDATION
-            
-            {attempt}
-            """
 
         # Main loop
         approved = False
@@ -242,8 +232,9 @@ class LLMCodeGen:
                     f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
                 )
 
-            eval_item: CriticEvalItem = self.critic.evaluate_function(
-                attempt, budget=remaining_budget, max_retries=max_critic_eval_retries
+            # Validation and validation errors are taken into account
+            eval_item: CriticEvalItem = self.critic.evaluate_attempt(
+                attempt, validated, error, budget=remaining_budget, max_retries=max_critic_eval_retries
             )
             approved = eval_item['approved']
 
@@ -262,7 +253,7 @@ class LLMCodeGen:
                     new_eval = f"""
                     {eval_item['evaluation']}
                     ---
-                    NOTE: THIS EVALUATION APPROVED THE PROPOSED SOLUTION. HOWEVER IT FAILED INTERNAL VALIDATION,
+                    NOTE: THIS EVALUATION APPROVED THE PROPOSED SOLUTION. HOWEVER, IT FAILED INTERNAL VALIDATION,
                     AND IS THUS REJECTED AS A SOLUTION. 
                     """
                     eval_item['evaluation'] = new_eval
@@ -278,9 +269,7 @@ class LLMCodeGen:
 
             results.append([
                 {
-                    "code": attempt,
-                    "approved": approved,
-                    "evaluation": eval_item['evaluation'],
+                    "eval_item": eval_item,
                     "iter_delta": delta,
                     "total_time": time.time() - start,
                 }
@@ -302,16 +291,9 @@ class LLMCodeGen:
             # We have enough resources to have another attempt
             prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
             attempt_budget = min(actor_budget, remaining_budget)
-            attempt, validated = self._call_llm(
+            attempt, validated, error = self._call_llm(
                 prompt, validator, actor_retries, attempt_budget,
             )
-            if not validated:
-                # Add a note above the attempt that this method did not pass validation
-                attempt = f"""
-                NOTE: THE FOLLOWING CODE DID NOT PASS VALIDATION
-
-                {attempt}
-                """
 
         if not approved:
             raise LLMCodeGenException("Failed to produce satisfiable codegen solution within resources")
