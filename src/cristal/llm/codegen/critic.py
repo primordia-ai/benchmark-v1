@@ -125,7 +125,7 @@ class CodeGenCritic:
                 response_model=DirectiveResponse,
             )
         except InstructorRetryException as e:
-            raise LLMCodeGenException(f"Error: {e}", e)
+            raise LLMCodeGenException("Failed to construct directive", e)
 
         return response.model_dump()["directive"]
 
@@ -179,7 +179,7 @@ class CodeGenCritic:
                 response_model=CriticResponse,
             )
         except InstructorRetryException as e:
-            raise LLMCodeGenException(f"Error: {e}", e)
+            raise LLMCodeGenException("Critic failed to evaluate attempt", e)
 
         result = response.model_dump()
         # Update the history

@@ -47,6 +47,8 @@ class StrangeSortFunction(LLMCodeGenValidator):
 
     @model_validator(mode="after")
     def test_array_shapes(self):
+        return ValidationError(f"Strange-sort function failed on input.")
+
         func = load_code(self.code, self.function_name)
         x = [5,2,7,8,45,1,3]
         y = [1, 45, 2, 8, 3, 7, 5]

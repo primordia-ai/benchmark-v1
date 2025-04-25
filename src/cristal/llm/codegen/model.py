@@ -3,8 +3,10 @@ LLMCodeGen model
 """
 import time
 from typing import Callable, Type
+import json
 
 from instructor.exceptions import InstructorRetryException
+from instructor.utils import ChatCompletion
 
 from cristal.llm.base import LLMBaseClass
 from cristal.llm.codegen.critic import CodeGenCritic, CriticEvalItem
@@ -76,8 +78,18 @@ class LLMCodeGen:
         except InstructorRetryException as e:
             # Could not manage to produce a response
             # attempt = e.last_completion # e.messages[-1]
-            attempt = e.messages[-1] # e.messages[-1]
-            return attempt, False, str(e)
+            last: ChatCompletion = e.last_completion
+            # print(f"MW HELP -- {help(last)}")
+            content = last.to_dict()['choices'][-1]['message']['content']
+            # See if we can load again
+            try:
+                py_content = json.loads(content)
+                code = py_content['code']
+            except Exception:
+                # Idk
+                code = content
+
+            return code, False, str(e)
 
         return str(response.model_dump()["code"]), True, None
 
