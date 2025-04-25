@@ -75,7 +75,8 @@ class LLMCodeGen:
             )
         except InstructorRetryException as e:
             # Could not manage to produce a response
-            attempt = e.last_completion # e.messages[-1]
+            # attempt = e.last_completion # e.messages[-1]
+            attempt = e.messages[-1] # e.messages[-1]
             return attempt, False, str(e)
 
         return str(response.model_dump()["code"]), True, None
