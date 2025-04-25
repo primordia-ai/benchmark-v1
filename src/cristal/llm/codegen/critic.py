@@ -90,7 +90,7 @@ class CodeGenCritic:
         </TASK>
 
         NOTE: The point here is not to create pseudocode for it to fill in the blanks, but more high-level 
-        considerations.
+        considerations specifically about the task at hand.
         
         Try to keep the directive length at most a page of text.
         Please return your response in JSON format with the single key 'directive'.
