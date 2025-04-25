@@ -132,7 +132,7 @@ def main():
 
     else:
         # Set retries and budget
-        actor_retries, actor_budget = 3, 60
+        actor_retries, actor_budget = 5, 60
         loop_budget = args.budget
 
     #####################

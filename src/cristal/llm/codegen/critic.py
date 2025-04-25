@@ -152,6 +152,7 @@ class CodeGenCritic:
 
         retry_ctrl = get_retry_control(max_retries, budget, wait_range=(0.1, 0.3))
         prompt = self._get_eval_prompt(code)
+        logger.debug(f"\nCRITIC EVAL PROMPT:\n{prompt}")
 
         try:
             response, completion = client.chat.completions.create_with_completion(
