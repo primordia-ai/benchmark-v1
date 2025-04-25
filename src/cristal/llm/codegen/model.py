@@ -77,9 +77,7 @@ class LLMCodeGen:
             )
         except InstructorRetryException as e:
             # Could not manage to produce a response
-            # attempt = e.last_completion # e.messages[-1]
             last: ChatCompletion = e.last_completion
-            # print(f"MW HELP -- {help(last)}")
             content = last.to_dict()['choices'][-1]['message']['content']
             # See if we can load again
             try:
