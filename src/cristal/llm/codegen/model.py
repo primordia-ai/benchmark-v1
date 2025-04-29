@@ -80,6 +80,10 @@ class LLMCodeGen:
         except InstructorRetryException as e:
             # Could not manage to produce a response
             last: ChatCompletion = e.last_completion
+            if not last:
+                # Failed to get response
+                return "", False, "Failed to get LLM response for codegen."
+
             returned_message = last.to_dict()['choices'][-1]['message']
             content = returned_message['content']
             # See if we can get the attempt string
