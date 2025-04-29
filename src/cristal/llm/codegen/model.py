@@ -92,14 +92,14 @@ class LLMCodeGen:
                     # From gpt observations, it looks like the code can be located/parsed here
                     content = returned_message['tool_calls'][0]['function']['arguments']
                     code = json.loads(content)['code']
-                    return code, False, str(e)  # original exception
                 except Exception as e2:
-                    # Convert the message object into a string. Somewhere it should contain the function information
+                    # Okay, just convert the message object into a string. Somewhere it should contain the function.
+                    # information
                     info = json.dumps(returned_message)
                     return info, False, str(e)
-            else:
-                # Return the attempted code
-                return str(code), False, str(e)
+
+            # Return the attempted code
+            return str(code), False, str(e)
 
         return str(response.model_dump()["code"]), True, None
 
