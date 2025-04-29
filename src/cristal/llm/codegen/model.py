@@ -323,6 +323,7 @@ class LLMCodeGen:
                 # We have enough resources to have another attempt
                 prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
                 attempt_budget = min(actor_budget, remaining_budget)
+                actor_start = time.time()
                 attempt, validated, error = self._call_llm(
                     prompt, validator, actor_retries, attempt_budget,
                 )
