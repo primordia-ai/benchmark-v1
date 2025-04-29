@@ -1,9 +1,9 @@
 """
 LLMCodeGen model
 """
+import json
 import time
 from typing import Callable, Type
-import json
 
 from instructor.exceptions import InstructorRetryException
 from instructor.utils import ChatCompletion
@@ -86,9 +86,16 @@ class LLMCodeGen:
                 code = py_content['code']
             except TypeError as te:
                 # Sometimes the 'content' key is empty. Not sure why this happens.
-                # Convert the message object into a string. Somewhere it should contain the function information
-                info =  json.dumps(returned_message)
-                return info, False, str(e)
+                try:
+                    # From gpt observations, it looks like the code can be located/parsed here
+                    content = returned_message['tool_calls'][0]['function']['arguments']
+                    print(f"MW DEBUGGING -- {type(content)} | {content}")
+                    code = json.loads(content)['code']
+                    return code, False, str(e)  # original exception
+                except Exception as e2:
+                    # Convert the message object into a string. Somewhere it should contain the function information
+                    info = json.dumps(returned_message)
+                    return info, False, str(e)
             else:
                 # Return the attempted code
                 return str(code), False, str(e)
@@ -151,8 +158,10 @@ class LLMCodeGen:
         # Submit this to the LLM
         code, success, error = self._call_llm(prompt, validator, max_retries, budget)
         if not success:
-            raise LLMCodeGenException(f"Failed to generate code for {validator.function_name}.\nError: {error}\n"
-                                      f"Last attempt:\n{code}")
+            raise LLMCodeGenException(
+                f"Failed to generate code for {validator.function_name}.\nError: {error}\n"
+                f"Last attempt:\n{code}"
+            )
 
         # Successful code string
         logger.debug(f"Generated validated code for {validator.function_name}:\n{code}")
@@ -283,18 +292,20 @@ class LLMCodeGen:
             iter_delta = time.time() - iter_start
             iter_start = time.time()
 
-            results.append([
-                {
-                    "code": attempt,
-                    "evaluation": eval_item['evaluation'],
-                    "approved": eval_item['approved'],
-                    "validated": validated,
-                    "validation_error": error,
-                    "actor_delta": actor_delta,
-                    "eval_delta": eval_delta,
-                    "iter_delta": iter_delta,
-                }
-            ])
+            results.append(
+                [
+                    {
+                        "code": attempt,
+                        "evaluation": eval_item['evaluation'],
+                        "approved": eval_item['approved'],
+                        "validated": validated,
+                        "validation_error": error,
+                        "actor_delta": actor_delta,
+                        "eval_delta": eval_delta,
+                        "iter_delta": iter_delta,
+                    }
+                ]
+            )
 
             # Check if exhausted
             if i >= max_iters:
