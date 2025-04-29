@@ -29,6 +29,7 @@ class AnthropicModel(LLMBaseClass):
     """
     name = "claude-3-5-sonnet"
     code = "claude-3-5-sonnet-20240620"
+    path_code = "claude3_5_sonnet_20240620"
     api_key = get_api_key()
     aliases = [
         "claude35",
