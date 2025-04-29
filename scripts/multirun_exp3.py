@@ -7,7 +7,7 @@ from cristal.env import PROJECT_ROOT
 from cristal.llm import get_llm
 
 
-def run_multi_exp2():
+def run_multi_exp3():
     ############
     # Parameters
     actors = [
@@ -90,4 +90,4 @@ def run_multi_exp2():
 
 
 if __name__ == '__main__':
-    run_multi_exp2()
+    run_multi_exp3()
