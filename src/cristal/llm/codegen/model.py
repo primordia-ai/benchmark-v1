@@ -224,6 +224,7 @@ class LLMCodeGen:
 
         # We'll start the clock here
         start = iter_start = actor_start = time.time()
+        remaining_budget = loop_budget
 
         # We circumnavigate the self.generate_function method, because we want to capture and continue with whatever
         # the produce code attempt is.
@@ -231,6 +232,7 @@ class LLMCodeGen:
             prompt, validator, actor_retries, actor_budget,
         )
         actor_delta = time.time() - actor_start
+        remaining_budget = loop_budget - (time.time() - start)
 
         # Main loop
         approved = False
