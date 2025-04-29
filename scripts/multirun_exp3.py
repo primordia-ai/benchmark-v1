@@ -25,8 +25,8 @@ def run_multi_exp2():
     ]
 
     critic = "gpt-4o"
-    critic_temp = 0.1
-    actor_temp = 0.5
+    critic_temp = 0.3
+    actor_temp = 0.6
 
     tasks = [
         # Iterating over task code and difficulty combinations
@@ -55,7 +55,9 @@ def run_multi_exp2():
             name = f"{task_code}/{difficulty}/{tag}{critic}-{actor}-{budget}"
             runs[name] = [
                 f"--actor={actor}",
+                f"--actor-temp={actor_temp}",
                 f"--critic={critic}",
+                f"--critic-temp={critic_temp}",
                 f"--task={task_code}",
                 f"--difficulty={difficulty}",
             ]
