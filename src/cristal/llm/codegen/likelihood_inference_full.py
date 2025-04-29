@@ -144,6 +144,9 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
         color_mapping, indicator_mapping, category_mapping = get_mappings()
         solution = likelihood_inference_soln(training_data, color_mapping, indicator_mapping, category_mapping)
 
+        # TODO -- remove
+        raise LLMCodeGenException("TESTING EXCEPTION", code=self.code)
+
         # Get solution from the function
         func = load_code(self.code, self.function_name)
         try:

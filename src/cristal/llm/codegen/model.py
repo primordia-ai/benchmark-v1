@@ -263,6 +263,23 @@ class LLMCodeGen:
             eval_delta = time.time() - eval_start
             approved = eval_item['approved']
 
+            iter_delta = time.time() - iter_start
+            iter_start = time.time()
+            results.append(
+                [
+                    {
+                        "code": attempt,
+                        "evaluation": eval_item['evaluation'],
+                        "approved": eval_item['approved'],
+                        "validated": validated,
+                        "validation_error": error,
+                        "actor_delta": actor_delta,
+                        "eval_delta": eval_delta,
+                        "iter_delta": iter_delta,
+                    }
+                ]
+            )
+
             if approved:
                 if not validated:
                     # Trouble. The LLM approves, but it failed our validation.
@@ -288,24 +305,6 @@ class LLMCodeGen:
                     logger.info(f"Codegen function approved by critic after {i} loops")
                     approved_solution = attempt
                     break
-
-            iter_delta = time.time() - iter_start
-            iter_start = time.time()
-
-            results.append(
-                [
-                    {
-                        "code": attempt,
-                        "evaluation": eval_item['evaluation'],
-                        "approved": eval_item['approved'],
-                        "validated": validated,
-                        "validation_error": error,
-                        "actor_delta": actor_delta,
-                        "eval_delta": eval_delta,
-                        "iter_delta": iter_delta,
-                    }
-                ]
-            )
 
             # Check if exhausted
             if i >= max_iters:
