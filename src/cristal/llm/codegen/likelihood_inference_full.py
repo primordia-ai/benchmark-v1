@@ -147,7 +147,7 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
         # Get solution from the function
         func = load_code(self.code, self.function_name)
         try:
-            result = func(training_data)
+            result = func(training_data, color_mapping, indicator_mapping, category_mapping)
         except Exception:
             raise LLMCodeGenException("Function failed to run with the provided data.", code=self.code)
 
@@ -170,43 +170,6 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
             )
 
         return self
-
-
-def test_code(code: str) -> None:
-    """
-    Externalize the testing procedure so that the Critic can receive precise information
-    """
-    # Load some sample training data
-    n_shots, train_size = 5, 100  # Produces 15 samples
-    training_data = get_ground_truth_samples(n_shots, train_size)
-    # Get likelihood solution
-    training_data = _format_data(training_data)
-    color_mapping, indicator_mapping, category_mapping = get_mappings()
-    solution = likelihood_inference_soln(training_data, color_mapping, indicator_mapping, category_mapping)
-
-    # Get solution from the function
-    func = load_code(code, LikelihoodInferenceFull.function_name)
-    try:
-        result = func(training_data, color_mapping, indicator_mapping, category_mapping)
-    except Exception:
-        raise LLMCodeGenException("Function failed to run with the provided data.", code=code)
-
-    # Compare result with solution
-    if result.shape != solution.shape:
-        raise LLMCodeGenException(
-            f"Result shape {result.shape} does not match solution shape {solution.shape}",
-            code=code
-        )
-
-    if not np.allclose(result.sum(axis=2), 1):
-        raise LLMCodeGenException("Posterior probabilities do not sum to 1", code=code)
-
-    # Relative tolerance
-    eps = 1e-6
-    if not np.allclose(result, solution, rtol=eps):
-        raise LLMCodeGenException(f"Result does not match the expected solution.\nresult[0] = {result[0]}", code=code)
-
-    return None
 
 
 # For testing
