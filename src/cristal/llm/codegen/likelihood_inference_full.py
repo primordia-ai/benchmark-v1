@@ -148,8 +148,8 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
         func = load_code(self.code, self.function_name)
         try:
             result = func(training_data, color_mapping, indicator_mapping, category_mapping)
-        except Exception:
-            raise LLMCodeGenException("Function failed to run with the provided data.", code=self.code)
+        except Exception as e:
+            raise LLMCodeGenException("Exception encountered running the function", e, code=self.code)
 
         # Compare result with solution
         if result.shape != solution.shape:
@@ -205,38 +205,41 @@ def likelihood_inference_full(
     Returns:
         np.ndarray: The likelihood matrix with dimensions (n_category, n_indicator, n_color)
     """
-    indicators = list(indicator_mapping.keys())
-    N = len(data)
-    J = len(indicators)
-    K = len(category_mapping)
-    C = len(color_mapping)
+    n_categories = len(category_mapping)
+    n_indicators = len(indicator_mapping)
+    n_colors = len(color_mapping)
+    
+    # Initialize the likelihood matrix with zeros
+    likelihood_matrix = np.zeros((n_categories, n_indicators, n_colors))
 
-    # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
-    # j=0 is category
-    observations = np.zeros((N, J + 1), dtype=int)
+    # Count occurrences of each (category, indicator, color) triplet
+    count_matrix = np.zeros((n_categories, n_indicators, n_colors))
 
-    for i, (asset_name, asset_data) in enumerate(data.items()):
-        # First column is the category
-        observations[i, 0] = category_mapping[asset_data['category']]
-        # Remaining columns are the indicators
-        for indicator in indicators:
-            color_str = asset_data['sampled_colors'][indicator]
-            ind_idx, color_idx = indicator_mapping[indicator], color_mapping[color_str]
-            observations[i, ind_idx + 1] = color_idx
+    # Iterate over each asset in the data
+    for asset, asset_data in data.items():
+        category = asset_data['category']
+        sampled_colors = asset_data['sampled_colors']
+        
+        # Map the category to its index
+        category_idx = category_mapping[category]
+        
+        # Iterate over each indicator and its observed color
+        for indicator, color in sampled_colors.items():
+            # Map the indicator and color to their indices
+            indicator_idx = indicator_mapping[indicator]
+            color_idx = color_mapping[color]
+            
+            # Update the count matrix
+            count_matrix[category_idx, indicator_idx, color_idx] += 1
 
-    # Bayesian inference
-    prior = np.ones((K, J, C))
-    posterior = prior.copy()
+    # Normalize the counts to get likelihoods
+    for category_idx in range(n_categories):
+        for indicator_idx in range(n_indicators):
+            total = np.sum(count_matrix[category_idx, indicator_idx, :])
+            if total > 0:
+                likelihood_matrix[category_idx, indicator_idx, :] = count_matrix[category_idx, indicator_idx, :] / total
 
-    for k in range(K):
-        for j in range(J):  # Iterate over indicators
-            for c in range(C):  # Iterate over colors
-                posterior[k, j, c] = prior[k, j, c] + np.sum(
-                    (observations[:, j + 1] == c) & (observations[:, 0] == k)
-                )
-    epsilon = 1e-10  # Small value to prevent division by zero
-    normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
-    return normalized
+    return likelihood_matrix
 
 '''
 
@@ -324,38 +327,42 @@ def likelihood_inference_soln(
     Returns:
         np.ndarray: The likelihood matrix with dimensions (n_category, n_indicator, n_color)
     """
-    indicators = list(indicator_mapping.keys())
-    N = len(data)
-    J = len(indicators)
-    K = len(category_mapping)
-    C = len(color_mapping)
+    n_categories = len(category_mapping)
+    n_indicators = len(indicator_mapping)
+    n_colors = len(color_mapping)
 
-    # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
-    # j=0 is category
-    observations = np.zeros((N, J + 1), dtype=int)
+    # Initialize the likelihood matrix with zeros
+    likelihood_matrix = np.zeros((n_categories, n_indicators, n_colors))
 
-    for i, (asset_name, asset_data) in enumerate(data.items()):
-        # First column is the category
-        observations[i, 0] = category_mapping[asset_data['category']]
-        # Remaining columns are the indicators
-        for indicator in indicators:
-            color_str = asset_data['sampled_colors'][indicator]
-            ind_idx, color_idx = indicator_mapping[indicator], color_mapping[color_str]
-            observations[i, ind_idx + 1] = color_idx
+    # Count occurrences of each (category, indicator, color) triplet
+    # NOTE: It's possible this should be np.ones.
+    count_matrix = np.zeros((n_categories, n_indicators, n_colors))
 
-    # Bayesian inference
-    prior = np.ones((K, J, C))
-    posterior = prior.copy()
+    # Iterate over each asset in the data
+    for asset, asset_data in data.items():
+        category = asset_data['category']
+        sampled_colors = asset_data['sampled_colors']
 
-    for k in range(K):
-        for j in range(J):  # Iterate over indicators
-            for c in range(C):  # Iterate over colors
-                posterior[k, j, c] = prior[k, j, c] + np.sum(
-                    (observations[:, j + 1] == c) & (observations[:, 0] == k)
-                )
-    epsilon = 1e-10  # Small value to prevent division by zero
-    normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
-    return normalized
+        # Map the category to its index
+        category_idx = category_mapping[category]
+
+        # Iterate over each indicator and its observed color
+        for indicator, color in sampled_colors.items():
+            # Map the indicator and color to their indices
+            indicator_idx = indicator_mapping[indicator]
+            color_idx = color_mapping[color]
+
+            # Update the count matrix
+            count_matrix[category_idx, indicator_idx, color_idx] += 1
+
+    # Normalize the counts to get likelihoods
+    for category_idx in range(n_categories):
+        for indicator_idx in range(n_indicators):
+            total = np.sum(count_matrix[category_idx, indicator_idx, :])
+            if total > 0:
+                likelihood_matrix[category_idx, indicator_idx, :] = count_matrix[category_idx, indicator_idx, :] / total
+
+    return likelihood_matrix
 
 
 def indicator_likelihood_old1(data: dict) -> np.ndarray:
