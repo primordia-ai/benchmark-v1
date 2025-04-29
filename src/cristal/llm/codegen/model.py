@@ -89,7 +89,6 @@ class LLMCodeGen:
                 try:
                     # From gpt observations, it looks like the code can be located/parsed here
                     content = returned_message['tool_calls'][0]['function']['arguments']
-                    print(f"MW DEBUGGING -- {type(content)} | {content}")
                     code = json.loads(content)['code']
                     return code, False, str(e)  # original exception
                 except Exception as e2:
