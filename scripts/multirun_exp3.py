@@ -4,24 +4,30 @@ Script for running multiple runs
 import subprocess
 import time
 from cristal.env import PROJECT_ROOT
+from cristal.llm import get_llm
 
 
 def run_multi_exp2():
     ############
     # Parameters
     actors = [
-        #"llama-large",
-        #"llama-small",
-        #"mistral-small",
-        #"mistral-nemo",
-        #"deepseek-r1-14b",
-        #"deepseek-r1-70b",
-        #"qwen-32b",
-        # "qwen-72b",
+        "llama-large",
+        "llama-small",
+        "mistral-small",
+        "mistral-nemo",
+        "deepseek-r1:14b",  # small
+        "deepseek-r1:70b", # medium
+        "qwen2.5-coder:32b",
+        "qwen2.5:72b",
         # CAREFUL with rated usage
         "gpt-4o",
-        #"gemini2",
-        #"gemini25",
+        "gemini1.5",
+        "gemini2",
+        "gemini25",
+    ]
+    # Convert actor codes into paths codes
+    path_codes = [
+        get_llm(actor).path_code for actor in actors
     ]
 
     critic = "gpt-4o"
@@ -46,13 +52,16 @@ def run_multi_exp2():
     if tag:
         tag = tag.split("-")[0] + "-"
     runs = {}
-    for actor in actors:
+    for actor, path_code in zip(actors, path_codes):
         for task in tasks:
             task_code = task["task"]
             difficulty = task["difficulty"]
 
             # Construct the name based on task and difficulty
-            name = f"{task_code}/{difficulty}/{tag}{critic}-{actor}-{budget}"
+            if tag:
+                name = f"{task_code}/{difficulty}/{tag}/{critic}-{budget}/{path_code}"
+            else:
+                name = f"{task_code}/{difficulty}/{critic}-{budget}/{path_code}"
             runs[name] = [
                 f"--actor={actor}",
                 f"--actor-temp={actor_temp}",
@@ -75,7 +84,7 @@ def run_multi_exp2():
         time.sleep(5)
         result = subprocess.run(command, shell=True)
         if result.returncode != 0:
-            print(f"Command failed with return code {result.returncode}")
+            print(f"Command failed with return code {result.returncode}. Continuing to next run.")
             # Try the next one
             continue
 
