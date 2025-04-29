@@ -41,75 +41,6 @@ def get_mappings():
     return color_mapping, indicator_mapping, category_mapping
 
 
-##############################
-# For reference and comparison
-
-def likelihood_inference_soln(
-    data: dict, color_mapping: dict, indicator_mapping: dict, category_mapping: dict
-) -> np.ndarray:
-    """
-    Generates likelihood matrix based on data observations.
-    Mapping keys can be used to extract values in data dict.
-
-    Args:
-        data: A dictionary containing the observed data for each asset, with the following format:
-            {
-                <asset_1>: {
-                    "category": <cat>,
-                    "sampled_colors": {
-                        <ind_1>: <color>,
-                        <ind_2>: <color>,
-                        ...
-                },
-                <asset_2>: {...},
-                ...
-            }
-            The sampled indicator color strings correspond to the assets performance in that indicator dimension.
-            The allowed string values for category, indicator, and color can be retrieved from the
-            mapping arguments provided.
-        color_mapping: Mapping of color names to likelihood array index.
-        indicator_mapping: Mapping of indicator names to likelihood array index.
-        category_mapping: Mapping of category names to likelihood array index.
-    Returns:
-        np.ndarray: The likelihood matrix with dimensions (n_category, n_indicator, n_color)
-    """
-    indicators = list(indicator_mapping.keys())
-    N = len(data)
-    J = len(indicators)
-    K = len(category_mapping)
-    C = len(color_mapping)
-
-    # Each row an asset; Each value is 0,1,2 based on the color of the asset i and indicator j
-    # j=0 is category
-    observations = np.zeros((N, J + 1), dtype=int)
-
-    for i, (asset_name, asset_data) in enumerate(data.items()):
-        # First column is the category
-        observations[i, 0] = category_mapping[asset_data['category']]
-        # Remaining columns are the indicators
-        for indicator in indicators:
-            color_str = asset_data['sampled_colors'][indicator]
-            ind_idx, color_idx = indicator_mapping[indicator], color_mapping[color_str]
-            observations[i, ind_idx + 1] = color_idx
-
-    # Bayesian inference
-    prior = np.ones((K, J, C))
-    posterior = prior.copy()
-
-    for k in range(K):
-        for j in range(J):  # Iterate over indicators
-            for c in range(C):  # Iterate over colors
-                posterior[k, j, c] = prior[k, j, c] + np.sum(
-                    (observations[:, j + 1] == c) & (observations[:, 0] == k)
-                )
-    epsilon = 1e-10  # Small value to prevent division by zero
-    normalized = posterior / (np.sum(posterior, axis=2, keepdims=True) + epsilon)
-    return normalized
-
-
-#######
-
-
 class LikelihoodInferenceFull(LLMCodeGenValidator):
     """
     Full formulation for performing inference provided only the dictionary of asset data observations to build
@@ -211,7 +142,7 @@ class LikelihoodInferenceFull(LLMCodeGenValidator):
         # Reformat the data
         training_data = _format_data(training_data)
         color_mapping, indicator_mapping, category_mapping = get_mappings()
-        solution = indicator_likelihood_soln(training_data, color_mapping, indicator_mapping, category_mapping)
+        solution = likelihood_inference_soln(training_data, color_mapping, indicator_mapping, category_mapping)
 
         # Get solution from the function
         func = load_code(self.code, self.function_name)
