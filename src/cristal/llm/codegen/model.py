@@ -4,6 +4,8 @@ LLMCodeGen model
 import json
 import time
 from typing import Callable, Type
+from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from instructor.exceptions import InstructorRetryException
 from instructor.utils import ChatCompletion
@@ -244,88 +246,86 @@ class LLMCodeGen:
 
         # Main loop
         approved = False
-        i = 0
         max_critic_eval_retries = 3  # After three, it's probably not returning JSON correct.
         approved_solution = None
 
         # Gather some data about the loop
         results = []
 
-        while not approved:
-            i += 1
+        with logging_redirect_tqdm(loggers=[logger]):
+            for i in tqdm(range(1, max_iters + 1), desc="Evals"):
+                # Validation and validation errors are taken into account
+                eval_start = time.time()
+                eval_item: CriticEvalItem = self.critic.evaluate_attempt(
+                    attempt, validated, error, budget=remaining_budget, max_retries=max_critic_eval_retries
+                )
+                eval_delta = time.time() - eval_start
+                approved = eval_item['approved']
 
-            # Validation and validation errors are taken into account
-            eval_start = time.time()
-            eval_item: CriticEvalItem = self.critic.evaluate_attempt(
-                attempt, validated, error, budget=remaining_budget, max_retries=max_critic_eval_retries
-            )
-            eval_delta = time.time() - eval_start
-            approved = eval_item['approved']
+                iter_delta = time.time() - iter_start
+                iter_start = time.time()
+                results.append(
+                    [
+                        {
+                            "code": attempt,
+                            "evaluation": eval_item['evaluation'],
+                            "approved": eval_item['approved'],
+                            "validated": validated,
+                            "validation_error": error,
+                            "actor_delta": actor_delta,
+                            "eval_delta": eval_delta,
+                            "iter_delta": iter_delta,
+                        }
+                    ]
+                )
 
-            iter_delta = time.time() - iter_start
-            iter_start = time.time()
-            results.append(
-                [
-                    {
-                        "code": attempt,
-                        "evaluation": eval_item['evaluation'],
-                        "approved": eval_item['approved'],
-                        "validated": validated,
-                        "validation_error": error,
-                        "actor_delta": actor_delta,
-                        "eval_delta": eval_delta,
-                        "iter_delta": iter_delta,
-                    }
-                ]
-            )
+                if approved:
+                    if not validated:
+                        # Trouble. The LLM approves, but it failed our validation.
+                        # TODO -- Maybe record these instances
+                        logger.warning(
+                            "Codegen function approved by critic, but failed internal validation. "
+                            "Rejecting proposed solution."
+                        )
+                        # Set a custom message for passing to the critic that indicates the validation failed,
+                        # and count this as a failure.
+                        approved = False
+                        self.critic.history[-1]['approved'] = False
+                        new_eval = f"""
+                        {eval_item['evaluation']}
+                        ---
+                        NOTE: THIS EVALUATION APPROVED THE PROPOSED SOLUTION. HOWEVER, IT FAILED INTERNAL VALIDATION,
+                        AND IS THUS REJECTED AS A SOLUTION. 
+                        """
+                        eval_item['evaluation'] = new_eval
+                        self.critic.history[-1]['evaluation'] = new_eval
+                    else:
+                        # Great
+                        logger.info(f"Codegen function approved by critic after {i} loops")
+                        approved_solution = attempt
+                        break
 
-            if approved:
-                if not validated:
-                    # Trouble. The LLM approves, but it failed our validation.
-                    # TODO -- Maybe record these instances
+                # Check if exhausted
+                if i >= max_iters:
                     logger.warning(
-                        "Codegen function approved by critic, but failed internal validation. "
-                        "Rejecting proposed solution."
+                        f"Max iterations ({max_iters}) of critic loop reached without approved function. Latest "
+                        f"attempt:\n\n{attempt}"
                     )
-                    # Set a custom message for passing to the critic that indicates the validation failed,
-                    # and count this as a failure.
-                    approved = False
-                    self.critic.history[-1]['approved'] = False
-                    new_eval = f"""
-                    {eval_item['evaluation']}
-                    ---
-                    NOTE: THIS EVALUATION APPROVED THE PROPOSED SOLUTION. HOWEVER, IT FAILED INTERNAL VALIDATION,
-                    AND IS THUS REJECTED AS A SOLUTION. 
-                    """
-                    eval_item['evaluation'] = new_eval
-                    self.critic.history[-1]['evaluation'] = new_eval
-                else:
-                    # Great
-                    logger.info(f"Codegen function approved by critic after {i} loops")
-                    approved_solution = attempt
                     break
 
-            # Check if exhausted
-            if i >= max_iters:
-                logger.warning(
-                    f"Max iterations ({max_iters}) of critic loop reached without approved function. Latest "
-                    f"attempt:\n\n{attempt}"
-                )
-                break
+                remaining_budget = loop_budget - (time.time() - start)
+                if remaining_budget < 0:
+                    logger.warning(
+                        f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
+                    )
+                    break
 
-            remaining_budget = loop_budget - (time.time() - start)
-            if remaining_budget < 0:
-                logger.warning(
-                    f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
+                # We have enough resources to have another attempt
+                prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
+                attempt_budget = min(actor_budget, remaining_budget)
+                attempt, validated, error = self._call_llm(
+                    prompt, validator, actor_retries, attempt_budget,
                 )
-                break
-
-            # We have enough resources to have another attempt
-            prompt = self._get_gen_prompt_with_eval(validator, attempt, eval_item['evaluation'])
-            attempt_budget = min(actor_budget, remaining_budget)
-            attempt, validated, error = self._call_llm(
-                prompt, validator, actor_retries, attempt_budget,
-            )
 
         return {
             "all_results": results,
