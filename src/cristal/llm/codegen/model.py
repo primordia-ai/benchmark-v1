@@ -222,16 +222,18 @@ class LLMCodeGen:
         </DIRECTIVE>
         """
 
+        # We'll start the clock here
+        start = iter_start = actor_start = time.time()
+
         # We circumnavigate the self.generate_function method, because we want to capture and continue with whatever
         # the produce code attempt is.
         attempt, validated, error = self._call_llm(
             prompt, validator, actor_retries, actor_budget,
         )
-        print(f"MW FIRST ATTEMPT -- {validated} | {error} \n\nATTEMPT:\n {attempt}")
+        actor_delta = time.time() - actor_start
 
         # Main loop
         approved = False
-        start = eval_moment = time.time()
         i = 0
         max_critic_eval_retries = 3  # After three, it's probably not returning JSON correct.
         approved_solution = None
@@ -241,17 +243,13 @@ class LLMCodeGen:
 
         while not approved:
             i += 1
-            # We'll use the default evaluate retry params
-            remaining_budget = loop_budget - (time.time() - start)
-            if remaining_budget < 0:
-                raise LLMCodeGenException(
-                    f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
-                )
 
             # Validation and validation errors are taken into account
+            eval_start = time.time()
             eval_item: CriticEvalItem = self.critic.evaluate_attempt(
                 attempt, validated, error, budget=remaining_budget, max_retries=max_critic_eval_retries
             )
+            eval_delta = time.time() - eval_start
             approved = eval_item['approved']
 
             if approved:
@@ -280,8 +278,8 @@ class LLMCodeGen:
                     approved_solution = attempt
                     break
 
-            delta = time.time() - eval_moment
-            eval_moment = time.time()
+            iter_delta = time.time() - iter_start
+            iter_start = time.time()
 
             results.append([
                 {
@@ -290,8 +288,9 @@ class LLMCodeGen:
                     "approved": eval_item['approved'],
                     "validated": validated,
                     "validation_error": error,
-                    "iter_delta": delta,
-                    "total_time": time.time() - start,
+                    "actor_delta": actor_delta,
+                    "eval_delta": eval_delta,
+                    "iter_delta": iter_delta,
                 }
             ])
 
