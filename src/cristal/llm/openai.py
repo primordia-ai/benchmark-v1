@@ -23,6 +23,7 @@ class GPT(LLMBaseClass):
 
     name = "gpt-4o-mini"
     code = "gpt-4o-mini"
+    path_code = "gpt-4o-mini"
     api_key = get_api_key()
     aliases = [
         "gpt-4o-mini",
@@ -55,6 +56,7 @@ class GPT4o(GPT):
 
     name = "gpt-4o"
     code = "gpt-4o-2024-08-06"
+    path_code = "gpt-4o"
     api_key = get_api_key()
     aliases = [
         "gpt-4o",

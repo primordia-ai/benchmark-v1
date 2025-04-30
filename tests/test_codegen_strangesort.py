@@ -47,6 +47,8 @@ class StrangeSortFunction(LLMCodeGenValidator):
 
     @model_validator(mode="after")
     def test_array_shapes(self):
+        return ValidationError(f"Strange-sort function failed on input.")
+
         func = load_code(self.code, self.function_name)
         x = [5,2,7,8,45,1,3]
         y = [1, 45, 2, 8, 3, 7, 5]
@@ -65,7 +67,7 @@ if __name__ == '__main__':
     if SYSTEM_USER == "dsfhswf":
         llm_cls = get_llm("qwen-medium")
     else:
-        llm_cls = get_llm("qwen-tiny")
+        llm_cls = get_llm("gpt-4o")
 
     logger.info(f"Initializing LLM {llm_cls.code}")
     llm = llm_cls(temperature=0, seed=SEED)
