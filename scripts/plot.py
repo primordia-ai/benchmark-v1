@@ -1010,7 +1010,8 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--')
+        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Extract CRISTAL data
     cristal_data = {
@@ -1054,7 +1055,8 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--')
+        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Add CRISTAL results with error bands
     if cristal_data:
