@@ -39,11 +39,11 @@ def run_multi_exp4():
     ############
     # Constants
     extractor = "llama-small"
-    tag = f"cg-{extractor}-"
+    tag = f"multirun/"
     # if tag:
     #     tag = tag.split("-")[0] + "-"
 
-    mode = "cristal"
+    mode = "both"
     use_codegen = False
     # We'll override the reports dir to 200 for this run
     #reports_dir = str(PROJECT_ROOT) + "/data/reports/llama3_70b"
