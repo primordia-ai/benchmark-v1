@@ -758,6 +758,145 @@ def exp2(results_name: str):
     plt.close()
 
 
+def exp3(results_name: str):
+    """
+    Plot the resources used for the actor-critic performance of different models
+
+    Since the metric is binary, should probably just do a table with columns:
+        - Iters used
+        - Average budget per iter
+        - Approved boolean
+
+    Args:
+        results_name: A directory containing containing sub-directories of actor models.
+            Each actor subdir has a 'results.json' file, is a list of data from each actor-critic loop
+            [
+                [
+                    {
+                        "approved": <bool>,
+                        "actor_delta": <float>,  # Actor time delta for that iter
+                        "eval_delta": <float>,  # Critic delta
+                        "iter_delta": <float>,  # Combined time of actor + critic
+                    }
+                ],
+                [
+                    {...},
+                ],
+                ...
+            ]
+    """
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("Set2")
+    sns.set_context("notebook")
+
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-3', results_name)
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Create figs directory
+    os.makedirs(SAVE_DIR, exist_ok=True)
+
+    # Load results from each actor
+    all_results = {}
+    for actor_dir in os.listdir(RESULTS_DIR):
+        if actor_dir.startswith("."):
+            continue  # Skip hidden files
+        actor = str(actor_dir)
+        actor_path = os.path.join(RESULTS_DIR, actor_dir)
+        print(f"Loading {actor_path}")
+        if not os.path.isdir(actor_path):
+            continue  # Skip non-directories
+        try:
+            with open(os.path.join(actor_path, "results.json"), 'r') as f:
+                data = json.load(f)
+                # Remove unnecessary inner bracketting
+                data = [d[0] for d in data]
+                final = data[-1]
+                all_results[actor] = {
+                    "approved": final['approved'],
+                    "actor_delta": int(np.mean([d['actor_delta'] for d in data])),
+                    "critic_delta": int(np.mean([d['eval_delta'] for d in data])),
+                    "iter_delta": int(np.mean([d['iter_delta'] for d in data])),
+                    "num_iters": len(data)
+                }
+        except FileNotFoundError:
+            print(f"File not found: {actor_path}/results.json")
+            continue
+
+    # Combine the results into a single DataFrame
+    rows = []
+    for actor, result in all_results.items():
+        rows.append({
+            "model": actor,
+            "approved": result["approved"],
+            "actor_delta": result["actor_delta"],
+            "critic_delta": result["critic_delta"],
+            "iter_delta": result["iter_delta"],
+            "num_iters": result["num_iters"],
+        })
+
+    # Dataframe
+    df = pd.DataFrame(rows)
+    # Sort by: Approved==True, Num Iters, Actor Delta
+    df = df.sort_values(by=["approved", "num_iters", "actor_delta"], ascending=[False, True, True])
+
+    # Plot the results in tabular format
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.axis('tight')
+    ax.axis('off')
+
+    # Create a table from the DataFrame
+    col_mapping = {
+        "model": "Model",
+        "approved": "Approved",
+        "actor_delta": "Actor Delta (s)",
+        "critic_delta": "Critic Delta (s)",
+        "iter_delta": "Iter Delta (s)",
+        "num_iters": "Num Iters",
+    }
+    table = ax.table(cellText=df.values, colLabels=[col_mapping[c] for c in df.columns], cellLoc='center', loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.2)
+
+    # Improve layout
+    plt.tight_layout()
+
+    # Latex Table
+    latex_table_path = os.path.join(SAVE_DIR, "table1.tex")
+    cols = ["Model", "Approved", "Num Iters", "Actor Delta"]
+
+    with open(latex_table_path, "w") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\begin{tabular}{|l|l|r|r|}\n")
+        f.write("\\hline\n")
+        f.write("\\textbf{Model} & \\textbf{Approved} & \\textbf{Num Iters} & \\textbf{Actor Delta (s)} \\\\ \n")
+        f.write("\\noalign{\\hrule height 2pt}\n")
+
+        # n_shots_counts = results_df['n-shots'].value_counts().to_dict()  # Count occurrences of each n-shot value
+        for _, row in df.iterrows():
+            f.write(f"{row['model']} & {row['approved']} & {row['num_iters']} & {row['actor_delta']} \\\\ \n")
+            # if row['n-shots'] != current_n_shots:
+            #     current_n_shots = row['n-shots']
+            #     row_span = n_shots_counts[current_n_shots]  # Get the number of rows for this n-shot value
+            #     if current_n_shots != list(n_shots_counts.keys())[0]:
+            #         f.write("\\noalign{\\hrule height 2pt}\n")  # Use noalign with hrule for a thicker horizontal line for new multirow, except for the first one
+            #     f.write(f"\\multirow{{{row_span}}}{{*}}{{{current_n_shots}}} & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+            # else:
+            #     f.write(f" & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+
+        f.write("\\hline\n")  # Add final \hline at the end of the table
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Results Table of }\n")
+        f.write("\\label{tab:results_table}\n")
+        f.write("\\end{table}\n")
+
+    save_path = os.path.join(SAVE_DIR, f"fig1.{save_fmt}")
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path)
+    plt.close()
 
 
 def budget_plot():
@@ -1183,9 +1322,6 @@ def n_shot_plot():
         f.write("\\end{table}\n")
 
 
-    
-    
-
 
 if __name__ == '__main__':
     import sys
@@ -1220,3 +1356,7 @@ if __name__ == '__main__':
 
     elif func_name == "n_shot_plot":
         globals()[func_name]()
+
+    elif func_name == "exp3":
+        _results_name = sys.argv[2]
+        globals()[func_name](_results_name)

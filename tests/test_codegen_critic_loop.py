@@ -150,7 +150,7 @@ if __name__ == '__main__':
                 f"Critic loop budget exhausted without approved function. Latest attempt:\n\n{attempt}"
             )
 
-        eval_item = critic.evaluate_function(
+        eval_item = critic.evaluate_attempt(
             attempt, budget=remaining_budget, max_retries=max_critic_eval_retries
         )
         approved = eval_item['approved']

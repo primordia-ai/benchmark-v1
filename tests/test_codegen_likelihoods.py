@@ -6,9 +6,8 @@ import os
 import numpy as np
 
 from cristal import synthetic as synth
-from cristal.env import SYSTEM_USER
 from cristal.cristal import CRISTAL
-from cristal.synthetic import Indicators
+from cristal.env import SYSTEM_USER
 from cristal.llm import get_llm
 from cristal.llm.codegen.likelihood_inference import IndicatorLikelihoodInference
 from cristal.llm.codegen.model import LLMCodeGen

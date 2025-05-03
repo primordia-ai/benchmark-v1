@@ -46,8 +46,7 @@ class LLMBaseClass(ABC):
     """
     name = None
     code = None
-    path_code = None  # Certain characters--looking at you colon (wait what?)--are bad for making file paths (
-    # defaults to code)
+    path_code = None  # Certain characters--looking at you colon (wait what?)--are bad for making file paths
     context_window = None
     aliases = []
 
@@ -64,10 +63,12 @@ class LLMBaseClass(ABC):
         seed: int = 101010,
         budget_mode: BudgetMode = BudgetMode.WALL,
     ):
+        if not self.path_code:
+            raise ValueError("Undefined path_code for LLM Class")
+
         self.temperature = temperature
         self.seed = seed
         self.budget_mode = budget_mode
-        self.path_code = self.path_code or self.code
         self._client = None
         # Separate LLM prompt logger
         self.logger = None

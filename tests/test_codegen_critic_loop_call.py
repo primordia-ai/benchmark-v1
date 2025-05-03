@@ -99,9 +99,10 @@ if __name__ == '__main__':
     loop_max_iters, loop_budget = 4, 120
 
     # Call the loop method
-    func = actor.critic_loop(
+    result = actor.critic_loop(
         validator, loop_max_iters, loop_budget, actor_retries, actor_budget
     )
+    func = load_code(result['code'], validator.function_name)
 
     # Test the returned function
     assert func(4) == 16, "Insane fail"

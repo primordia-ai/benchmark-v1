@@ -80,6 +80,7 @@ class Gemini25(Gemini15):
 
     name = "gemini_2.5"
     code = "models/gemini-2.5-pro-exp-03-25"
+    path_code = "gemini-2_5-pro-exp-03-25"
     api_key = get_api_key()
     aliases = [
         "gemini25",
