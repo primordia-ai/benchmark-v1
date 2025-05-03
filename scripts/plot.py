@@ -1002,7 +1002,7 @@ def n_shot_plot():
         # Sort the results by n_shot for consistent plotting
 
 
-    fig, axs = plt.subplots(2, 1, figsize=(6, 8))
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
     # Accuracy plot
     ax = axs[0]
@@ -1080,7 +1080,7 @@ def n_shot_plot():
 
     # Add legends outside the plots
     handles, labels = axs[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="center right", title=None, bbox_to_anchor=(1.25, 0.5))
+    fig.legend(handles, labels, loc="center right", title=None, bbox_to_anchor=(1, 0.5))
 
     # Tight layout
     plt.tight_layout(rect=[0, 0, 0.8, 1])  # Adjust layout to make space for the legend
