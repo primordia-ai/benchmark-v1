@@ -10,13 +10,13 @@ def run_multi_exp4():
     ############
     # Variables
     n_shot_iters = [
-        # 1,
+        1,
         5,
         # 10,
         20,
         #40,
         # 60,
-        80
+        #80
     ]
     model_iters = [
         #"llama-large",
@@ -30,7 +30,7 @@ def run_multi_exp4():
         # CAREFUL with rated usage
         "gpt-4o",
         #"gemini2",
-        #"gemini25",
+        "gemini25",
         #####
         # Special handling for cristal
         "cristal"

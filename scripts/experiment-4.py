@@ -20,7 +20,45 @@ are using prior/learnt knowledge to make the decisions.
 This is a test of the LLM's ability to understand the reports and indicators, and to make predictions based on them.
 
 """
+import xarray as xr
+import numpy as np
 
+def swap_labels(stocks):
+    """
+    Swap the labels 'high_growth' and 'time_bomb' in the given stocks data.
+
+    Args:
+        stocks (xarray.Dataset or dict): Stock data with categories.
+
+    Returns:
+        xarray.Dataset or dict: Updated stocks with swapped labels.
+    """
+    if isinstance(stocks, dict):
+        for asset_id, data in stocks.items():
+            category = data['category']
+            if isinstance(category, np.ndarray):
+                category = category.item() if category.size == 1 else category.tolist()
+            if category == "high_growth":
+                data['category'] = "time_bomb"
+            elif category == "time_bomb":
+                data['category'] = "high_growth"
+        return stocks
+
+    elif isinstance(stocks, (xr.Dataset, xr.DataArray)):
+        stocks = stocks.copy()  # Avoid modifying the original xarray object
+        stocks['category'] = stocks['category'].where(
+            stocks['category'] != 'high_growth', 'temp_label'
+        )
+        stocks['category'] = stocks['category'].where(
+            stocks['category'] != 'time_bomb', 'high_growth'
+        )
+        stocks['category'] = stocks['category'].where(
+            stocks['category'] != 'temp_label', 'time_bomb'
+        )
+        return stocks
+
+    else:
+        raise TypeError("Unsupported data type for stocks. Expected dict or xarray.Dataset/DataArray.")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -102,7 +140,7 @@ def main():
 
     # Run dir
     run_name = args.name
-    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-2/{run_name}")
+    results_dir = os.path.join(PROJECT_ROOT, f"results/exp-4/{run_name}")
     os.makedirs(results_dir, exist_ok=True)
     log_path = os.path.join(results_dir, "out.log")
     # Set logging to file
@@ -141,14 +179,14 @@ def main():
     # swap them out here
     mixture_params = {
         "mu": {
-            "high_growth": synth.GROWTH_MU[0],
+            "high_growth": synth.GROWTH_MU[2],
             "stable": synth.GROWTH_MU[1],
-            "time_bomb": synth.GROWTH_MU[2],
+            "time_bomb": synth.GROWTH_MU[0],
         },
         "sigma": {
-            "high_growth": synth.GROWTH_SCALE[0],
+            "high_growth": synth.GROWTH_SCALE[2],
             "stable": synth.GROWTH_SCALE[1],
-            "time_bomb": synth.GROWTH_SCALE[2],
+            "time_bomb": synth.GROWTH_SCALE[0],
         },
     }
     quantiles = [0.025, 0.16, 0.5, 0.84, 0.975]
@@ -200,7 +238,8 @@ def main():
     # Only for assets that we have reports for
     truth_data = {}
     stocks = synth.load_stocks(as_dataset=False, test=True, train_size=args.train_size)
-    
+    # Swap the labels "high_growth" and "time_bomb" in the stocks
+    stocks = swap_labels(stocks)
     financials = {}  # For use by LLM
     for asset_id in os.listdir(REPORTS_DIR):
         if asset_id not in stocks:
@@ -209,11 +248,7 @@ def main():
 
         # Check category
         category = stocks[asset_id]['category']
-        # here we swap the categories something like this
-        # if category == "high_growth":
-        #     category = "time_bomb"
-        # elif category == "time_bomb":
-        #     category = "high_growth"
+
         # Check if we are in test mode
         if n_asset_per and len(assets[category]) >= n_asset_per:
             # We have enough assets for this category
@@ -251,7 +286,9 @@ def main():
     #
     stocks = synth.load_stocks(test=True, train_size=args.train_size)  # synth.stocks_to_xarray(stocks)
     # we also need to swap labels here
-    # stocks = stocks.rename({"high_growth": "time_bomb", "time_bomb": "high_growth"})
+    # Swap the labels "high_growth" and "time_bomb" in the stocks
+     # Call the function to swap labels
+    stocks = swap_labels(stocks)
     if mode in ['cristal', 'both']:
         # Create CRISTAL model -- Use Extractor LLM
         m = CRISTAL(
@@ -261,7 +298,7 @@ def main():
         # pretrain cristal here with the train method and n_shots
         training_data = synth.get_ground_truth_samples(args.n_shots, args.train_size)
         #we also need to swap labels here
-        # training_data = training_data.rename({"high_growth": "time_bomb", "time_bomb": "high_growth"})
+        training_data = swap_labels(training_data)
         logger.debug("predefined likelihood matrix: %s", m.indicators.likelihood.values)
         logger.debug("shape of predefined likelihood matrix: %s", m.indicators.likelihood.shape)
         m.likelihood_inference(training_data)
