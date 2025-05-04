@@ -1637,3 +1637,6 @@ if __name__ == '__main__':
     elif func_name == "exp3":
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)
+
+    elif func_name == "exp4_n_shot_plot":
+        globals()[func_name]()
