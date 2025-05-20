@@ -91,7 +91,7 @@ def exp1(results_name: str):
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -398,7 +398,7 @@ def exp2(results_name: str):
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', results_name)
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -788,7 +788,7 @@ def exp3(results_name: str):
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-3', results_name)
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -906,7 +906,7 @@ def budget_plot():
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
 
     #### Keeping it bespoke for now
     run_group = "critic_200"
@@ -1052,7 +1052,7 @@ def n_shot_plot():
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', 'multirun')
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
     save_fmt = "pdf"
@@ -1329,7 +1329,7 @@ def exp4_n_shot_plot():
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
     sns.set_palette("colorblind")
-    sns.set_context("notebook")
+    sns.set_context("paper")
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-4', 'multirun')
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
     save_fmt = "pdf"
