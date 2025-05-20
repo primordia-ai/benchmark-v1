@@ -90,7 +90,7 @@ def exp1(results_name: str):
 
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
@@ -397,7 +397,7 @@ def exp2(results_name: str):
     print("Running exp2")
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', results_name)
@@ -787,7 +787,7 @@ def exp3(results_name: str):
     """
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-3', results_name)
@@ -905,7 +905,7 @@ def budget_plot():
     """
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     #### Keeping it bespoke for now
@@ -1051,7 +1051,7 @@ def n_shot_plot():
 
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', 'multirun')
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -1149,7 +1149,7 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Extract CRISTAL data
@@ -1194,7 +1194,7 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Add CRISTAL results with error bands
@@ -1328,7 +1328,7 @@ def exp4_n_shot_plot():
 
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-4', 'multirun')
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -1426,7 +1426,7 @@ def exp4_n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Extract CRISTAL data
@@ -1471,7 +1471,7 @@ def exp4_n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Add CRISTAL results with error bands
