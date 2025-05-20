@@ -90,7 +90,7 @@ def exp1(results_name: str):
 
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-1', results_name)
@@ -397,7 +397,7 @@ def exp2(results_name: str):
     print("Running exp2")
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', results_name)
@@ -787,7 +787,7 @@ def exp3(results_name: str):
     """
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-3', results_name)
@@ -905,7 +905,7 @@ def budget_plot():
     """
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
 
     #### Keeping it bespoke for now
@@ -1051,7 +1051,7 @@ def n_shot_plot():
 
     # Initialize seaborn
     sns.set_theme(style="darkgrid")
-    sns.set_palette("Set2")
+    sns.set_palette("colorblind")
     sns.set_context("notebook")
     RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-2', 'multirun')
     SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
@@ -1149,7 +1149,7 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Extract CRISTAL data
@@ -1194,7 +1194,284 @@ def n_shot_plot():
         # Sort the results by x values (n_shot) for consistent plotting
         sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
         x_sorted, llm_y_sorted = zip(*sorted_data)
-        color = plt.cm.tab10(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
+
+    # Add CRISTAL results with error bands
+    if cristal_data:
+        sorted_cristal_data = sorted(zip(cristal_data['mcc']['x'], cristal_data['mcc']['cristal_y']))
+        x_sorted_cristal = [x for x, _ in sorted_cristal_data]
+        cristal_means = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).mean() for x in sorted(set(x_sorted_cristal))]
+        cristal_stds = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).std() for x in sorted(set(x_sorted_cristal))]
+        x_unique = sorted(set(x_sorted_cristal))
+        ax.errorbar(x=x_unique, y=cristal_means, yerr=cristal_stds, marker='+', linestyle='-', label="CRISTAL", color="blue")
+        ax.fill_between(
+            x_unique,
+            [m - s for m, s in zip(cristal_means, cristal_stds)],
+            [m + s for m, s in zip(cristal_means, cristal_stds)],
+            alpha=0.2,
+            color="blue"
+        )
+
+    ax.set_xticks(sorted(set(x for data in results.values() for x in data['mcc']['x'])))
+    ax.set_xlabel("N-shot examples of each category")
+    ax.set_ylabel("MCC")
+
+    # Add legends outside the plots
+    handles, labels = axs[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="center right", title=None, bbox_to_anchor=(1, 0.5))
+
+    # Tight layout
+    plt.tight_layout(rect=[0, 0, 0.8, 1])  # Adjust layout to make space for the legend
+    # Save
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    save_path = os.path.join(SAVE_DIR, "n_shot_plot.pdf")
+    print(f"Saving to {save_path}")
+    plt.savefig(save_path, bbox_inches="tight")
+    plt.close()
+
+    # Convert results to a pandas DataFrame and generate a LaTeX table
+    results_df = pd.DataFrame()
+
+    # Process LLM results
+    for name, data in results.items():
+        for i, x in enumerate(data["accuracy"]["x"]):
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": [name],
+                    "n-shots": [int(x)],
+                    "Accuracy": [data["accuracy"]["llm_y"][i]],
+                    "MCC": [data["mcc"]["llm_y"][i]]
+                })
+            ], ignore_index=True)
+
+    # Process CRISTAL results (calculate means over runs)
+    cristal_data = {
+        "n-shots": [],
+        "Accuracy": [],
+        "MCC": []
+    }
+    for name, data in results.items():
+        cristal_data["n-shots"].extend(data["accuracy"]["x"])
+        cristal_data["Accuracy"].extend(data["accuracy"]["cristal_y"])
+        cristal_data["MCC"].extend(data["mcc"]["cristal_y"])
+
+    if cristal_data:
+        unique_n_shots = sorted(set(cristal_data["n-shots"]))
+        for n_shot in unique_n_shots:
+            accuracy_mean = pd.Series(
+                [acc for n, acc in zip(cristal_data["n-shots"], cristal_data["Accuracy"]) if n == n_shot]
+            ).mean()
+            mcc_mean = pd.Series(
+                [mcc for n, mcc in zip(cristal_data["n-shots"], cristal_data["MCC"]) if n == n_shot]
+            ).mean()
+            results_df = pd.concat([
+                results_df,
+                pd.DataFrame({
+                    "Model": ["CRISTAL"],
+                    "n-shots": [int(n_shot)],
+                    "Accuracy": [accuracy_mean],
+                    "MCC": [mcc_mean]
+                })
+            ], ignore_index=True)
+
+    # Save the DataFrame as a LaTeX table
+    latex_table_path = os.path.join(SAVE_DIR, "results_table.tex")
+    print(f"Saving LaTeX table to {latex_table_path}")
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Highlight the highest values per numerical column with bold font
+    for col in ["Accuracy", "MCC"]:
+        if col in results_df.columns:
+            max_values = results_df.groupby(["n-shots"])[col].transform("max")
+            results_df[col] = results_df.apply(
+                lambda row: f"\\textbf{{{row[col]:.4f}}}" if row[col] == max_values[row.name] else f"{row[col]:.4f}",
+                axis=1
+            )
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df.sort_values(by=["n-shots", "Model"])
+    # Reorder columns to place "n-shots" as the first column
+    results_df = results_df[["n-shots", "Model", "Accuracy", "MCC"]]
+
+    # Create a multirow design for n-shots
+    results_df["n-shots"] = results_df["n-shots"].astype(str)  # Ensure n-shots is treated as a string for grouping
+
+    with open(latex_table_path, "w") as f:
+        f.write("\\begin{table}[htbp]\n")
+        f.write("\\centering\n")
+        f.write("\\begin{tabular}{|l|l|r|r|}\n")
+        f.write("\\hline\n")
+        f.write("\\textbf{n-shots} & \\textbf{Model} & \\textbf{Accuracy} & \\textbf{MCC} \\\\ \n")
+        f.write("\\noalign{\\hrule height 2pt}\n")
+        current_n_shots = None
+        n_shots_counts = results_df['n-shots'].value_counts().to_dict()  # Count occurrences of each n-shot value
+        for _, row in results_df.iterrows():
+            if row['n-shots'] != current_n_shots:
+                current_n_shots = row['n-shots']
+                row_span = n_shots_counts[current_n_shots]  # Get the number of rows for this n-shot value
+                if current_n_shots != list(n_shots_counts.keys())[0]:
+                    f.write("\\noalign{\\hrule height 2pt}\n")  # Use noalign with hrule for a thicker horizontal line for new multirow, except for the first one
+                f.write(f"\\multirow{{{row_span}}}{{*}}{{{current_n_shots}}} & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+            else:
+                f.write(f" & {row['Model']} & {row['Accuracy']} & {row['MCC']} \\\\ \\cline{{2-4}}\n")
+
+        f.write("\\hline\n")  # Add final \hline at the end of the table
+        f.write("\\end{tabular}\n")
+        f.write("\\caption{Results Table for N-shot Analysis}\n")
+        f.write("\\label{tab:results_table}\n")
+        f.write("\\end{table}\n")
+
+def exp4_n_shot_plot():
+    """
+    Plot mean classification accuracy for various n-shot values for experiment 4.
+    """
+
+    # Initialize seaborn
+    sns.set_theme(style="darkgrid")
+    sns.set_palette("colorblind")
+    sns.set_context("notebook")
+    RESULTS_DIR = os.path.join(PROJECT_ROOT, "results", 'exp-4', 'multirun')
+    SAVE_DIR = os.path.join(RESULTS_DIR, "figs")
+    save_fmt = "pdf"
+
+    # Compile runs iterating over the RESULTS_DIR
+    results = {}
+    for run_dir in os.listdir(RESULTS_DIR):
+        run_path = os.path.join(RESULTS_DIR, run_dir)
+        if not os.path.isdir(run_path):
+            continue
+        # Infer n_shot from the directory name if not present in config.json
+        try:
+            run_config = json.load(open(os.path.join(run_path, "config.json"), 'r'))
+        except FileNotFoundError:
+            print(f"Skipping {run_path}, no config.json found.")
+            continue
+        n_shot = run_config.get("n_shot", None)
+        if n_shot is None:
+            # Attempt to extract n_shot from the directory name
+            try:
+                n_shot = int(run_dir.split("n_shots")[1])
+            except (ValueError, IndexError):
+                print(f"Skipping {run_path}, unable to infer n_shot value.")
+                continue
+
+        run_name = run_config["base_llm"]["name"]
+        # Load data
+        print(run_path)
+        df = results_to_df(run_path)
+        # For LLM
+        y_true_llm = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
+        y_pred_llm = df[df["source"] == "LLM"].sort_values("asset")[["category"]]
+        # Calculate accuracy and MCC for LLM
+        y_true_llm = y_true_llm.reset_index(drop=True)
+        y_pred_llm = y_pred_llm.reset_index(drop=True)
+
+        try:
+            accuracy_llm = accuracy_score(y_true_llm, y_pred_llm)
+            mcc_llm = matthews_corrcoef(y_true_llm.values.ravel(), y_pred_llm.values.ravel())
+        except ValueError as e:
+            print(f"Skipping {run_path}, unable to calculate accuracy or MCC for LLM: {e}")
+            continue
+
+        # For CRISTAL
+        if "CRISTAL" in df["source"].unique():
+            y_true_cristal = df[df["source"] == "Truth"].sort_values("asset")[["category"]]
+            y_pred_cristal = df[df["source"] == "CRISTAL"].sort_values("asset")[["category"]]
+            # Calculate accuracy and MCC for CRISTAL
+            y_true_cristal = y_true_cristal.reset_index(drop=True)
+            y_pred_cristal = y_pred_cristal.reset_index(drop=True)
+        else:
+            y_true_cristal = pd.DataFrame(columns=["category"])
+            y_pred_cristal = pd.DataFrame(columns=["category"])
+
+        try:
+            accuracy_cristal = accuracy_score(y_true_cristal, y_pred_cristal)
+            mcc_cristal = matthews_corrcoef(y_true_cristal.values.ravel(), y_pred_cristal.values.ravel())
+        except ValueError as e:
+            accuracy_cristal = np.nan
+            mcc_cristal = np.nan
+            print(f" {run_path}, unable to calculate accuracy or MCC for CRISTAL: {e}, assigning NaN")
+
+        # Append to data of this run name or create new
+        if run_name not in results:
+            results[run_name] = {
+            "accuracy": {
+                "x": [float(n_shot)],
+                "llm_y": [accuracy_llm],
+                "cristal_y": [accuracy_cristal],
+            },
+            "mcc": {
+                "x": [float(n_shot)],
+                "llm_y": [mcc_llm],
+                "cristal_y": [mcc_cristal],
+            }
+            }
+        else:
+            results[run_name]['accuracy']['x'].append(n_shot)
+            results[run_name]['accuracy']['llm_y'].append(accuracy_llm)
+            results[run_name]['accuracy']['cristal_y'].append(accuracy_cristal)
+            results[run_name]['mcc']['x'].append(n_shot)
+            results[run_name]['mcc']['llm_y'].append(mcc_llm)
+            results[run_name]['mcc']['cristal_y'].append(mcc_cristal)
+
+        # Create two plots for the Accuracy and MCC
+        # Sort the results by n_shot for consistent plotting
+
+
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Accuracy plot
+    ax = axs[0]
+    for name, data in results.items():
+        # Sort the results by x values (n_shot) for consistent plotting
+        sorted_data = sorted(zip(data['accuracy']['x'], data['accuracy']['llm_y']))
+        x_sorted, llm_y_sorted = zip(*sorted_data)
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
+        ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
+
+    # Extract CRISTAL data
+    cristal_data = {
+        "accuracy": {
+            "x": [],
+            "cristal_y": []
+        },
+        "mcc": {
+            "x": [],
+            "cristal_y": []
+        }
+    }
+    for name, data in results.items():
+        cristal_data["accuracy"]["x"].extend(data["accuracy"]["x"])
+        cristal_data["accuracy"]["cristal_y"].extend(data["accuracy"]["cristal_y"])
+        cristal_data["mcc"]["x"].extend(data["mcc"]["x"])
+        cristal_data["mcc"]["cristal_y"].extend(data["mcc"]["cristal_y"])
+    if cristal_data:
+        sorted_cristal_data = sorted(zip(cristal_data['accuracy']['x'], cristal_data['accuracy']['cristal_y']))
+        x_sorted_cristal = [x for x, _ in sorted_cristal_data]
+        cristal_means = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).mean() for x in sorted(set(x_sorted_cristal))]
+        cristal_stds = [pd.Series([y for x_val, y in sorted_cristal_data if x_val == x]).std() for x in sorted(set(x_sorted_cristal))]
+        x_unique = sorted(set(x_sorted_cristal))
+        ax.errorbar(x=x_unique, y=cristal_means, yerr=cristal_stds, marker='+', linestyle='-', label="CRISTAL", color="blue")
+        ax.fill_between(
+            x_unique,
+            [m - s for m, s in zip(cristal_means, cristal_stds)],
+            [m + s for m, s in zip(cristal_means, cristal_stds)],
+            alpha=0.2,
+            color="blue"
+        )
+
+    ax.set_xticks(sorted(set(x for data in results.values() for x in data['accuracy']['x'])))
+    ax.set_xlabel("N-shot examples of each category")
+    ax.set_ylabel("Classification Accuracy")
+    ax.set_ylim(0, 1)
+
+    # MCC plot
+    ax = axs[1]
+    for name, data in results.items():
+        # Sort the results by x values (n_shot) for consistent plotting
+        sorted_data = sorted(zip(data['mcc']['x'], data['mcc']['llm_y']))
+        x_sorted, llm_y_sorted = zip(*sorted_data)
+        color = plt.cm.Set1(len(ax.lines) % 10)  # Use the number of existing lines to assign unique colors
         ax.plot(x_sorted, llm_y_sorted, label=f"{name}", marker='x', linestyle='--', color=color)
 
     # Add CRISTAL results with error bands
@@ -1360,3 +1637,6 @@ if __name__ == '__main__':
     elif func_name == "exp3":
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)
+
+    elif func_name == "exp4_n_shot_plot":
+        globals()[func_name]()
