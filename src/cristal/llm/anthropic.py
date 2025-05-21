@@ -27,7 +27,7 @@ class AnthropicModel(LLMBaseClass):
     """
     Anthropic class for interacting with the Claude-3-5-Sonnet model.
     """
-    name = "claude-3-5-sonnet"
+    name = "Claude 3.5 Sonnet"
     code = "claude-3-5-sonnet-20240620"
     path_code = "claude3_5_sonnet_20240620"
     api_key = get_api_key()
