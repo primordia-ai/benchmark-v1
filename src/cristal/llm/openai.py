@@ -21,7 +21,7 @@ class GPT(LLMBaseClass):
     GPT class for interacting with the GPT-4o-mini model.
     """
 
-    name = "gpt-4o-mini"
+    name = "GPT-4o-mini"
     code = "gpt-4o-mini"
     path_code = "gpt-4o-mini"
     api_key = get_api_key()
@@ -54,7 +54,7 @@ class GPT4o(GPT):
         aliases (list): A list of alternative names for the model.
     """
 
-    name = "gpt-4o"
+    name = "GPT-4o"
     code = "gpt-4o-2024-08-06"
     path_code = "gpt-4o"
     api_key = get_api_key()

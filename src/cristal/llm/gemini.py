@@ -20,7 +20,7 @@ class Gemini15(LLMBaseClass):
     """
     Gemini15 is a class that extends LLMBaseClass and provides functionality for interacting with the Gemini 1.5 model.
     """
-    name = "gemini_1.5"
+    name = "Gemini 1.5"
     code = "gemini-1.5-flash-latest"
     path_code = "gemini-1_5-flash-latest"
     api_key = get_api_key()
@@ -59,7 +59,7 @@ class Gemini2(Gemini15):
         aliases (list): A list of alternative names for the model.
     """
 
-    name = "gemini_2.0"
+    name = "Gemini 2.0"
     code = "gemini-2.0-flash-exp"
     path_code = "gemini-2_0-flash-exp"
     api_key = get_api_key()
@@ -78,7 +78,7 @@ class Gemini25(Gemini15):
         aliases (list): A list of alternative names for the model.
     """
 
-    name = "gemini_2.5"
+    name = "Gemini 2.5"
     code = "models/gemini-2.5-pro-exp-03-25"
     path_code = "gemini-2_5-pro-exp-03-25"
     api_key = get_api_key()
