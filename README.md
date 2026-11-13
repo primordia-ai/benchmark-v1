@@ -75,3 +75,6 @@ nltk.download('punkt_tab')
 
 `results`: Experimental results and figures for reporting.
 
+## License
+
+This software is licensed under the PolyForm Noncommercial License 1.0.0 for Non-commercial use.
