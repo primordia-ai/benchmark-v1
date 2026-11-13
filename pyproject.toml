@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "cristal"
+version = "0.1.0"
+description = ""
+authors = [
+    "Michael Walters <michaelwalters3000@gmail.com>",
+    # Add authorship here
+]
+readme = "README.md"
+
+packages = [
+    {include = "cristal", from = "src"},
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Dependencies
+# Remember to 'poetry update' after changing
+[tool.poetry.dependencies]
+# python = ">=3.12,<3.13"  # pytensor has a restrictive range
+# NOTE: On FH-SWF, try python 3.11
+python = ">=3.10,<3.13"
+numpy = "^1.26.4"
+scikit-learn = "^1.4.1"
+pytensor = "^2.20.0"
+pymc = "^5.13.1"
+diffrax = "^0.5.0"
+arviz = "^0.18.0"
+namedtupled = "^0.3.3"
+jax = {extras = ["cpu"], version = "^0.4.26"}
+xarray = "^2024.11.0"
+pandas = "^2.2.3"
+tqdm = "^4.67.1"
+ollama = "^0.4.4"
+openai = "^1.58.1"
+instructor = "^1.7.0"
+pydantic = "^2.10.4"
+nltk = "^3.9.1"
+google-generativeai = "^0.8.3"
+anthropic = "^0.42.0"
+pyautogen = "^0.8.4"
+litellm = {extras = ["proxy"], version = "^1.64.1"}
+trace-opt = {extras = ["autogen"], version = "^0.1.3.8"}
+
+[tool.poetry.group.dev.dependencies]
+notebook = "*"
+jupyterlab = "*"
+matplotlib = "*"
+seaborn = "*"
+
+[tool.poetry.extras]
+cuda = [
+	# The line below is an example; change for your system
+  #torch = { url = "https://download.pytorch.org/whl/cu113/torch-1.10.0+cu113-cp38-cp38-linux_x86_64.whl" }
+]

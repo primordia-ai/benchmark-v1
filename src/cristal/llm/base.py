@@ -1,0 +1,302 @@
+"""
+Consolidate LLM models, and LLM utils etc.
+"""
+import time
+from abc import ABC
+
+import instructor
+from instructor.exceptions import InstructorRetryException
+from tqdm import tqdm
+
+from cristal.llm import system_roles, utils as llm_utils
+from cristal.llm.wrangling import read_reports
+from cristal.logger import logger
+from cristal.utils import BudgetMode
+
+
+class SoftIndicatorExtractionError(Exception):
+    """Raised when a soft indicator cannot be extracted from reports"""
+    pass
+
+
+def init_llm_prompt_logger(log_path: str):
+    """Initialize a logger specifically for LLM prompts"""
+    import logging
+    # From the Instructor github, it looks like they use 'instructor' as logger name
+    logger = logging.getLogger("instructor")
+    logger.setLevel(logging.DEBUG)
+
+    # Create a file handler for logging prompts
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Add formatter for better output
+    formatter = logging.Formatter('[ {name}:{levelname} ]\t{message}', style='{')
+    file_handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(file_handler)
+
+    return logger
+
+
+class LLMBaseClass(ABC):
+    """
+    Base class for all LLM models
+    """
+    name = None
+    code = None
+    path_code = None  # Certain characters--looking at you colon (wait what?)--are bad for making file paths
+    context_window = None
+    aliases = []
+
+    system_roles = {
+        "financial_analyst": system_roles.FINANCIAL_ANALYST,
+        "cristal": system_roles.CRISTAL,
+        "codegen": system_roles.CODEGEN_LLM,
+        "codegen_critic": system_roles.CODEGEN_CRITIC,
+    }
+
+    def __init__(
+        self,
+        temperature: float = 0.0,
+        seed: int = 101010,
+        budget_mode: BudgetMode = BudgetMode.WALL,
+    ):
+        if not self.path_code:
+            raise ValueError("Undefined path_code for LLM Class")
+
+        self.temperature = temperature
+        self.seed = seed
+        self.budget_mode = budget_mode
+        self._client = None
+        # Separate LLM prompt logger
+        self.logger = None
+
+    def to_json(self):
+        return {
+            "name": self.name,
+            "code": self.code,
+            "path_code": self.path_code,
+            "budget_mode": str(self.budget_mode),
+            "seed": self.seed,
+            "context_window": self.context_window,
+            "temperature": self.temperature,
+        }
+
+    def log_to_file(self, file_path: str):
+        """
+        Initialize a log file to record LLM-specific events (namely, prompts).
+        Instructor automatically logs at the DEBUG level:
+            https://python.useinstructor.com/concepts/logging/
+        """
+        if not self.logger:
+            self.logger = init_llm_prompt_logger(file_path)
+
+    def init_client(self) -> None:
+        raise NotImplementedError()
+
+    def get_client(self, cached: bool = True) -> instructor.Instructor | instructor.AsyncInstructor:
+        """Return the client, initializing if needed. Use cached=False to re-init"""
+        if not cached or not self._client:
+            self.init_client()
+        return self._client
+
+    def extract_indicator(
+        self,
+        indicator_name: str,
+        asset_id: str,
+        report_dir: str | None = None,  # TODO -- should end with path_code
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
+        reports_text: str | None = None,
+        verbose=False,
+        budget: float | None = None,
+        max_retries: int | None = None,
+    ) -> tuple[dict, bool]:
+        """
+        Retrieves the value of a specified indicator for a given asset ID by generating a report using a local LLM.
+
+        Note, both max_retries and budget can be passed in as valid terminating conditions.
+
+        :param indicator_name:  The name of the indicator to retrieve.
+        :param asset_id:        The ID of the asset for which to retrieve the indicator.
+        :param include:         Optional list of specific reports to comprise in the report.
+        :param exclude:         Optional list of specific reports to exclude from the report.
+        :param report_dir:      The path to the directory containing the reports.
+        :param reports_text:    Optionally provide reports to skip the compilation.
+        :param verbose:         If True, prints additional information during execution.
+        :param budget:          Budget to perform the evaluation within.
+        :param max_retries:     The maximum number of retries to attempt. Default is None.
+        :return:                Tuple[A dictionary with keys "name", "value", "reason", Boolean of LLM success]
+        """
+        if max_retries is None and budget is None:
+            raise ValueError("One of max_retries or budget must be provided")
+
+        if budget and self.budget_mode != BudgetMode.WALL:
+            raise NotImplementedError(f"Budget mode '{self.budget_mode}' is not supported for 'extract_indicator'")
+
+        if not report_dir and not reports_text:
+            raise ValueError("Either report_dir or reports_text must be provided")
+        if report_dir and reports_text:
+            # Hmm...
+            logger.warning("Received report_dir and reports_text. Opting for reports_text.")
+
+        if not reports_text:
+            reports_text = read_reports(report_dir, include, exclude)
+
+        if verbose is True:
+            tqdm.write(f"Inferring value from report for '{asset_id}' for {indicator_name}")
+
+        try:
+            prompt = llm_utils.prompt_se_context(indicator_name, reports_text)
+        except KeyError:
+            raise ValueError(f'Prompt for {indicator_name} not found')
+        except FileNotFoundError:
+            raise FileNotFoundError(f'File not found for asset_id {asset_id}')
+
+        client = self.get_client()
+        # TODO -- Hacky soln for gemini
+        if "gemini" in self.code.lower():
+            additional_kwargs = {}
+        else:
+            additional_kwargs = {
+                "model": self.code,
+                "temperature": self.temperature,
+                "seed": self.seed,
+            }
+        try:
+            response, completion = client.chat.completions.create_with_completion(
+                **additional_kwargs,
+                messages=[
+                    {
+                        "role": "developer",  # OpenAI docs say this over 'system' for newer models. Hopefully is
+                        # back-compatible
+                        "content": self.system_roles["financial_analyst"],
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    },
+                ],
+                response_model=llm_utils.ExtractedIndicator,
+                max_retries=llm_utils.get_retry_control(max_retries, budget, wait_range=(0.1, 1.0)),
+            )
+        except InstructorRetryException as e:
+            response = e.last_completion  # e.messages[-1]
+            py_response = response.model_dump()
+            # Add the indicator value
+            py_response["indicator"] = indicator_name
+            py_response["error"] = str(e)
+            py_response["last_completion"] = e.messages[-1]
+            # py_response["reason"] = "Failed to extract soft indicator from reports"
+            # py_response["value"] = None
+            # py_response["numeric"] = None
+            return py_response, False
+        else:
+            # Success
+            py_response = response.model_dump()
+            # Add the indicator name
+            py_response["indicator"] = indicator_name
+
+            return py_response, True
+
+    def evaluate_asset(
+        self, prompt: str, max_retries: int | None = None, budget: float | None = None
+    ) -> tuple[dict, bool]:
+        """
+        Evaluates an asset given its reports and indicators.
+        Produces this model's estimate of the asset's growth forecast and category distribution.
+
+        Note, both max_retries and budget can be passed in as valid terminating conditions.
+
+        :param prompt:                  The prompt to use for the evaluation.
+        :param max_retries:             The maximum number of retries to attempt.
+        :param budget:                  Budget to perform the evaluation within.
+        :return:                        Asset evaluation and bool indicating response success
+        """
+        client = self.get_client()
+        remaining_budget = budget
+        # Initial message
+        messages = [
+            {"role": "user", "content": prompt},
+        ]
+        # Record predictions to return most recent
+        predictions = []
+        error_result = None
+        start = time.time()
+        if "gemini" in self.code.lower():
+            additional_kwargs = {}
+        else:
+            additional_kwargs = {
+                "model": self.code,
+                "temperature": self.temperature,
+                "seed": self.seed,
+            }
+
+        critic_hits = 0
+        max_critic_hits = 10
+        # Reduce max hits for private api-models
+        # TODO -- hacky; preferable to perhaps mag an attribute on the model itself signifying this
+        if any([private in self.code.lower() for private in ["gpt", "gemini", "claude"]]):
+            max_critic_hits = 5
+
+        while remaining_budget > 0 and critic_hits < max_critic_hits:
+            # LLM can continue to max_retry within the budget
+            retry_ctrl = llm_utils.get_retry_control(max_retries, remaining_budget, wait_range=(0.1, 0.3))
+            try:
+                response, completion = client.chat.completions.create_with_completion(
+                    **additional_kwargs,
+                    messages=messages,
+                    response_model=llm_utils.AssetEvaluationV2,
+                    max_retries=retry_ctrl,
+                )
+            except InstructorRetryException as e:
+                # Could not manage to produce a response
+                error_result = {
+                    "error": str(e),
+                    "last_completion": e.last_completion,  # e.messages[-1]
+                }
+                break
+            else:
+                # Success, record the prediction
+                predictions.append(
+                    response.model_dump()
+                )
+                # Check for early stopping
+                if len(predictions) > 1:
+                    last = predictions[-2]
+                    this = predictions[-1]
+                    deltas = [
+                        this['high_growth'] - last['high_growth'],
+                        this['stable'] - last['stable'],
+                        this['time_bomb'] - last['time_bomb']
+                    ]
+                    if all(abs(delta) < 0.01 for delta in deltas):
+                        logger.debug("Early stopping from plateau")
+                        break
+
+                # Update messages with critic prompt
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": llm_utils.prompt_critic_exp1(predictions[-1])
+                    }
+                )
+                remaining_budget = budget - (time.time() - start)
+                if remaining_budget > 0:
+                    logger.debug(f"Re-prompting with critic. Last estimate: {predictions[-1]}")
+                    critic_hits += 1
+
+        if predictions:
+            return predictions[-1], True
+        else:
+            return error_result, False
+
+    def __str__(self):
+        """Return name and class dot notation"""
+        return f"{self.name} ({self.__class__.__module__}.{self.__class__.__name__})"
+
+    def __repr__(self):
+        """Return name and class dot notation"""
+        return self.__str__()

@@ -1,0 +1,6 @@
+extracted_indicators/*
+!extracted_indicators/*.zip
+!extracted_indicators/*.tar
+!extracted_indicators/*.tar.gz
+reports*
+reports/
