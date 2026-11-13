@@ -1468,10 +1468,6 @@ def n_shot_plot(results_name: str):
         f.write("\\end{table}\n")
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 if __name__ == '__main__':
     import sys
     from sklearn.metrics import confusion_matrix
@@ -1504,19 +1500,12 @@ if __name__ == '__main__':
         globals()[func_name]()
 
     elif func_name == "n_shot_plot":
-<<<<<<< HEAD
-        globals()[func_name]()
-=======
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)
->>>>>>> main
 
     elif func_name == "exp3":
         _results_name = sys.argv[2]
         globals()[func_name](_results_name)
-<<<<<<< HEAD
-=======
 
     # elif func_name == "exp4_n_shot_plot":
     #     globals()[func_name]()
->>>>>>> main
